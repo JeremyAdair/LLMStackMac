@@ -1,0 +1,28 @@
+services:
+  rag-pipeline:
+    build:
+      context: ../..
+      dockerfile: rag-pipeline/Dockerfile
+    environment:
+      # Ollama and Qdrant service endpoints on the internal network.
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      # Collection and embedding settings.
+      RAG_COLLECTION: ${RAG_COLLECTION:-documents}
+      RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
+      RAG_VECTOR_SIZE: ${RAG_VECTOR_SIZE:-768}
+      # Comma-separated directories to read markdown from.
+      RAG_SOURCE_DIRS: ${RAG_SOURCE_DIRS:-/workspace/processed,/workspace/ingest}
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-400}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
+    volumes:
+      # Mount the local workspace directory into the container.
+      - ../../workspace:/workspace
+    networks:
+      - llm-stack
+    depends_on:
+      - ollama
+      - qdrant
+    profiles:
+      # Use a profile so this runs only when called explicitly.
+      - tools
