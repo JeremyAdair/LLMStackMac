@@ -1,9 +1,9 @@
 services:
   prometheus:
     image: prom/prometheus:latest
-    # Expose for local inspection of metrics.
-    ports:
-      - "9090:9090"
+    # Internal-only access through the reverse proxy if needed.
+    expose:
+      - "9090"
     volumes:
       # Use the local Prometheus config file and persist metrics.
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -13,9 +13,12 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    # Expose for local dashboard access.
-    ports:
-      - "3001:3000"
+    # Internal-only access through the reverse proxy.
+    expose:
+      - "3000"
+    environment:
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost/grafana/}
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       # Persist Grafana dashboards and settings.
       - grafana_data:/var/lib/grafana

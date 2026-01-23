@@ -72,6 +72,12 @@ The stack reads configuration from `.env`. Start from the example and adjust as 
 cp .env.example .env
 ```
 
+Set strong values for the authentication secrets:
+
+- `AUTHELIA_JWT_SECRET`
+- `AUTHELIA_SESSION_SECRET`
+- `AUTHELIA_STORAGE_ENCRYPTION_KEY`
+
 ## Step 6: Create the workspace folders
 
 These folders are where you drop PDFs and where the ingestion outputs are written. They are gitignored.
@@ -82,7 +88,17 @@ mkdir -p workspace/audio/in workspace/audio/out
 mkdir -p workspace/ocr/in workspace/ocr/out
 ```
 
-## Step 7: Start the full stack
+## Step 7: Create the first auth user
+
+Generate a password hash and update the user database:
+
+```bash
+docker run --rm authelia/authelia:latest authelia hash-password --password "change-me"
+```
+
+Replace the password hash for the `admin` user in `config/auth/users_database.yml`.
+
+## Step 8: Start the full stack
 
 This brings up all services, including the reverse proxy, UIs, databases, and optional tooling.
 
@@ -102,15 +118,23 @@ docker compose \
   up -d
 ```
 
-## Step 8: Access the UIs
+## Step 9: Access the UIs
 
 Open these URLs in your browser:
 
 - Open WebUI: http://localhost/
 - Flowise: http://localhost/flowise/
 - OpenHands: http://localhost/openhands/
+- Grafana: http://localhost/grafana/
 
-## Step 9: Download speech and OCR models
+You should be redirected to the Authelia login page before accessing protected routes.
+
+Smoke test:
+
+1) Open http://localhost/ and confirm you are redirected to `/authelia/`.
+2) Log in with your configured user and confirm Open WebUI loads.
+
+## Step 10: Download speech and OCR models
 
 This pulls the Whisper and Piper models defined in `models/models.yml` into `data/`.
 
@@ -124,7 +148,7 @@ Smoke test:
 ls -1 data/stt/models data/tts/voices
 ```
 
-## Step 10: Run PDF ingestion (optional)
+## Step 11: Run PDF ingestion (optional)
 
 Use this when you want to convert PDFs to markdown before indexing.
 
@@ -135,7 +159,7 @@ docker compose \
   run --rm pdf-ingest
 ```
 
-## Step 11: Run the RAG pipeline (optional)
+## Step 12: Run the RAG pipeline (optional)
 
 This reads markdown from the workspace, embeds it through Ollama, and writes vectors to Qdrant.
 
@@ -152,7 +176,7 @@ docker compose \
   run --rm rag-pipeline
 ```
 
-## Step 12: Run speech-to-text (optional)
+## Step 13: Run speech-to-text (optional)
 
 Place an audio file in `workspace/audio/in`, then run:
 
@@ -166,7 +190,7 @@ Smoke test:
 test -f workspace/audio/out/sample.txt
 ```
 
-## Step 13: Run text-to-speech (optional)
+## Step 14: Run text-to-speech (optional)
 
 ```bash
 ./bin/tts-speak "hello world"
@@ -178,7 +202,7 @@ Smoke test:
 test -f workspace/audio/out/tts_output.wav
 ```
 
-## Step 14: Run OCR (optional)
+## Step 15: Run OCR (optional)
 
 Place an image in `workspace/ocr/in`, then run:
 
@@ -192,7 +216,7 @@ Smoke test:
 test -f workspace/ocr/out/sample.txt
 ```
 
-## Step 15: Run a one-off Python job (optional)
+## Step 16: Run a one-off Python job (optional)
 
 ```bash
 docker compose \
@@ -201,7 +225,7 @@ docker compose \
   run --rm python-runner python /app/main.py
 ```
 
-## Step 16: Stop the stack
+## Step 17: Stop the stack
 
 Use this when you want to shut everything down.
 
@@ -218,5 +242,3 @@ These are the default host ports exposed by the stack:
 - `6333` Qdrant (optional direct access)
 - `5432` Postgres (optional direct access)
 - `6379` Redis (optional direct access)
-- `9090` Prometheus (optional direct access)
-- `3001` Grafana (optional direct access)

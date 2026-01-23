@@ -11,5 +11,7 @@ services:
       - open-webui
       - flowise
       - openhands
+      - grafana
+      - auth
     networks:
       - llm-stack

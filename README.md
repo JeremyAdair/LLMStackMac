@@ -12,6 +12,7 @@ LLMStack is a self-hosted local LLM stack built around Docker Compose. It provid
 - OpenHands for an agentic coding workspace.
 - PDF ingestion and a simple RAG pipeline for indexing documents.
 - Local speech-to-text, text-to-speech, and OCR utilities.
+- Authelia authentication gateway for protected web access.
 
 ## Quick start
 
@@ -32,6 +33,13 @@ cp .env.example .env
 - Open WebUI: http://localhost/
 - Flowise: http://localhost/flowise/
 - OpenHands: http://localhost/openhands/
+- Grafana: http://localhost/grafana/
+
+You will be prompted to log in via the authentication gateway.
+
+## Access and ports
+
+All web access goes through the reverse proxy on port 80. Use the URLs above to configure each service after logging in. Internal services and databases are not exposed on host ports by default.
 
 ## Workspace convention
 
@@ -104,4 +112,5 @@ See the docs for details:
 - `docs/30-rag.md`
 - `docs/40-agents.md`
 - `docs/50-media.md`
+- `docs/60-auth.md`
 - `docs/runbooks/bringup.md`
