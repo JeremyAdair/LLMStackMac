@@ -1,0 +1,18 @@
+services:
+  node-red:
+    image: nodered/node-red:latest
+    environment:
+      NODE_RED_HOST: ${NODE_RED_HOST:-localhost}
+      NODE_RED_PORT: ${NODE_RED_PORT:-1880}
+      NODE_RED_ENABLE_SAFE_MODE: ${NODE_RED_ENABLE_SAFE_MODE:-false}
+    volumes:
+      - ../../data/node-red:/data
+    networks:
+      - llm-stack
+    expose:
+      - "1880"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1880/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
