@@ -1,0 +1,14 @@
+name: llm-stack
+
+networks:
+  llm-stack:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  openwebui_data:
+  qdrant_data:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
