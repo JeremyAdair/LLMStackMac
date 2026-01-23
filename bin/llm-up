@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+repo_root=$(git rev-parse --show-toplevel)
+
 compose_files=(
-  "compose/docker-compose.yml"
-  "compose/ollama/docker-compose.yml"
-  "compose/open-webui/docker-compose.yml"
-  "compose/qdrant/docker-compose.yml"
-  "compose/postgres/docker-compose.yml"
-  "compose/redis/docker-compose.yml"
-  "compose/reverse-proxy/docker-compose.yml"
-  "compose/monitoring/docker-compose.yml"
-  "compose/flowise/docker-compose.yml"
-  "compose/openhands/docker-compose.yml"
-  "compose/pdf-ingest/docker-compose.yml"
-  "compose/rag-pipeline/docker-compose.yml"
+  "${repo_root}/compose/docker-compose.yml"
+  "${repo_root}/compose/ollama/docker-compose.yml"
+  "${repo_root}/compose/open-webui/docker-compose.yml"
+  "${repo_root}/compose/qdrant/docker-compose.yml"
+  "${repo_root}/compose/postgres/docker-compose.yml"
+  "${repo_root}/compose/redis/docker-compose.yml"
+  "${repo_root}/compose/reverse-proxy/docker-compose.yml"
+  "${repo_root}/compose/monitoring/docker-compose.yml"
+  "${repo_root}/compose/flowise/docker-compose.yml"
+  "${repo_root}/compose/openhands/docker-compose.yml"
+  "${repo_root}/compose/pdf-ingest/docker-compose.yml"
+  "${repo_root}/compose/rag-pipeline/docker-compose.yml"
 )
 
 args=()
