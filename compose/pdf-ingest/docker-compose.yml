@@ -1,0 +1,14 @@
+services:
+  pdf-ingest:
+    build:
+      context: ../..
+      dockerfile: pdf-ingest/Dockerfile
+    environment:
+      INGEST_INPUT_DIR: /workspace/ingest
+      INGEST_OUTPUT_DIR: /workspace/processed
+    volumes:
+      - ../../workspace:/workspace
+    networks:
+      - llm-stack
+    profiles:
+      - tools

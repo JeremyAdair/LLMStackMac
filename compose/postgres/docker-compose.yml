@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-llmstack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmstack}
+      POSTGRES_DB: ${POSTGRES_DB:-llmstack}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - llm-stack
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmstack}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
