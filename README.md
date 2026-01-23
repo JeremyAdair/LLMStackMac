@@ -1,43 +1,52 @@
 # LLMStack
 
 LLMStack is a self-hosted local LLM stack built around Docker Compose. It provides a modular setup for running models, a web UI, vector search, RAG ingestion, and optional agent tooling.
+
+# Future Hopes
 ## Normal chat (no RAG)
+```
 [Browser]
-   |
-   v
-[Reverse Proxy] ---> [Auth Gateway]
-   |                    |
-   |<---- session -------|
-   v
+(trigger: user types message)
+        ↓
+[Reverse Proxy + Auth Gateway]
+(always-on)
+        ↓
 [Open WebUI]
-   |
-   v
-[Ollama]  (LLM inference)
+(always-on UI)
+        ↓
+[Ollama]
+(always-on LLM inference)
+        ↓
+[Open WebUI]
+(response rendered)
+        ↓
+[Browser]
 
+```
 ## Ask questions over your docs (RAG query-time)
+```
 [Browser]
-   |
-   v
-[Reverse Proxy] ---> [Auth Gateway]
-   |
-   v
-[Flowise UI / Flowise API]  (reasoning graph)
-   |
-   | 1) retrieve context
-   v
-[Qdrant]  (vectors + payload)
-   |
-   | 2) generate answer with context
-   v
-[Ollama]  (LLM)
-   |
-   v
-[Flowise returns answer]
-   |
-   v
+(trigger: user asks question)
+        ↓
+[Reverse Proxy + Auth Gateway]
+(always-on)
+        ↓
+[Flowise UI / API]
+(always-on reasoning graph)
+        ↓ retrieve context
+[Qdrant]
+(always-on vector store)
+        ↓ context + question
+[Ollama]
+(always-on LLM)
+        ↓ answer
+[Flowise]
+(reasoning output)
+        ↓
 [Browser]
-
+```
 ## Drop a PDF, automatically OCR it, index it, then it’s searchable (RAG ingestion)
+```
 [You drop PDF]
 into workspace/ingest/
       |
@@ -59,8 +68,9 @@ into workspace/ingest/
       | optional metadata
       v
    [Postgres]  (doc index status, logs, etc.)
-   
+```   
 ## Voice note → transcript → (optional) answer → spoken reply
+```
 [Audio file]
 workspace/audio/in/
       |
@@ -81,22 +91,26 @@ workspace/audio/in/
       | TTS
       v
 [TTS Service] -----------------> workspace/audio/out/reply.wav
-
+```
 ## “If something breaks, tell me” (alerts + dashboards)
-
-[All services/jobs emit metrics]
-        |
-        v
-   [Prometheus]  (scrapes /metrics)
-        |
-        v
-    [Grafana]  (dashboards)
-        ^
-        |
-[Node-RED] (job status + alerts)
-        |
-        +----> [Discord webhook]  (notify)
+```
+[Job success / failure]
+(trigger: event)
+        ↓
+[Node-RED]
+(always-on)
+        ↓
+[Discord / Webhook]
+(notification)
+        ↓
+[Prometheus]
+(metrics)
+        ↓+----> [Discord webhook]  (notify)
+[Grafana]
+(dashboard)
+```        
 ## OpenHands for repo work (guarded, not exposed)
+```
 [Browser]
    |
    v
@@ -111,9 +125,10 @@ workspace/audio/in/
    | (optional calls)
    v
 [Ollama]  (local model)  and/or  [Flowise API] (agent logic)
-
+```
 
 ## Audio file drop pipeline
+```
 ┌───────────────────────────┐
 │ 1) LOAD AUDIO              │
 │ You drop file into:        │
@@ -172,7 +187,9 @@ workspace/audio/in/
 │ - meeting.summary.md       │
 │ - meeting.summary.json     │
 └───────────────────────────┘
+```
 ## Audio File API Pipeline
+```
 ┌───────────────────────────┐
 │ 1) LOAD AUDIO              │
 │ Browser upload / API post  │
@@ -209,8 +226,9 @@ workspace/audio/in/
 │ Store (Postgres/Qdrant)    │
 │ + return status to browser │
 └───────────────────────────┘
-
+```
 ### Output Schema
+```
 {
   "title": "Meeting summary",
   "summary": "...",
@@ -221,8 +239,64 @@ workspace/audio/in/
   "key_quotes": ["..."],
   "tags": ["work", "controls", "project-x"]
 }
-
-
+```
+## Scheduled RAG quality evaluation
+```
+[Scheduled trigger]
+(cron / timer)
+        ↓
+[Node-RED]
+(always-on scheduler)
+        ↓
+[Python Evaluation Job]
+(on-demand batch)
+        ↓ test queries
+[Flowise]
+(reasoning with RAG)
+        ↓
+[Ollama]
+(LLM answers)
+        ↓ metrics
+[Postgres]
+        ↓
+[Prometheus]
+        ↓
+[Grafana]
+```
+## Knowledge distillation (compress old data)
+```
+[Scheduled trigger]
+        ↓
+[Node-RED]
+        ↓ select old content
+[Python Job]
+(chunk + select)
+        ↓
+[Flowise]
+(distill concepts)
+        ↓
+[Ollama]
+        ↓ summaries
+[Qdrant]
+(store distilled vectors)
+```
+## Log ingestion → anomaly explanation
+```
+[System logs]
+(trigger: file append)
+        ↓
+[Node-RED]
+        ↓
+[Python Log Parser]
+        ↓
+[Flowise]
+(anomaly reasoning)
+        ↓
+[Ollama]
+(explanation)
+        ↓
+[Postgres + Grafana]
+```
 ## What is included
 
 - Ollama for running local models.
