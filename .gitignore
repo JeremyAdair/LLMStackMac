@@ -1,0 +1,11 @@
+# Environment
+.env
+
+# Data directories
+/data/
+/secrets/
+/workspace/
+
+# TLS secrets (keep placeholder)
+/config/tls/*
+!/config/tls/.gitkeep
