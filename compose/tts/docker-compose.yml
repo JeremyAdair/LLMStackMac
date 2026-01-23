@@ -1,0 +1,13 @@
+services:
+  tts:
+    image: rhasspy/piper:latest
+    entrypoint: ["piper"]
+    environment:
+      TTS_VOICE_MODEL: ${TTS_VOICE_MODEL:-/voices/en_US-amy-low.onnx}
+    volumes:
+      - ../../data/tts/voices:/voices
+      - ../../workspace:/workspace
+    networks:
+      - llm-stack
+    profiles:
+      - tools
