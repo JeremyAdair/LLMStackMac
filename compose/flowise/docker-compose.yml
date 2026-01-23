@@ -1,0 +1,16 @@
+services:
+  flowise:
+    image: flowiseai/flowise:latest
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      FLOWISE_USERNAME: ${FLOWISE_USERNAME:-}
+      FLOWISE_PASSWORD: ${FLOWISE_PASSWORD:-}
+      FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/flowise}
+    volumes:
+      - flowise_data:/root/.flowise
+    networks:
+      - llm-stack
+    depends_on:
+      - ollama
+    expose:
+      - "3000"

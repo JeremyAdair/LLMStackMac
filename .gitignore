@@ -9,3 +9,17 @@
 # TLS secrets (keep placeholder)
 /config/tls/*
 !/config/tls/.gitkeep
+
+# Models and artifacts
+/models/
+*.gguf
+*.bin
+*.onnx
+*.safetensors
+*.pt
+*.ckpt
+*.db
+*.sqlite
+*.sqlite3
+/artifacts/
+/logs/

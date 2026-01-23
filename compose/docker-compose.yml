@@ -10,8 +10,7 @@ volumes:
   qdrant_data:
   postgres_data:
   redis_data:
+  flowise_data:
+  openhands_data:
   prometheus_data:
   grafana_data:
-version: "3.8"
-
-services: {}

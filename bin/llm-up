@@ -10,6 +10,10 @@ compose_files=(
   "compose/redis/docker-compose.yml"
   "compose/reverse-proxy/docker-compose.yml"
   "compose/monitoring/docker-compose.yml"
+  "compose/flowise/docker-compose.yml"
+  "compose/openhands/docker-compose.yml"
+  "compose/pdf-ingest/docker-compose.yml"
+  "compose/rag-pipeline/docker-compose.yml"
 )
 
 args=()

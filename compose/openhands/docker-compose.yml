@@ -1,0 +1,12 @@
+services:
+  openhands:
+    image: ghcr.io/openhands-ai/openhands:latest
+    environment:
+      OPENHANDS_BASE_PATH: ${OPENHANDS_BASE_PATH:-/openhands}
+    volumes:
+      - openhands_data:/var/lib/openhands
+      - ../../workspace:/workspace
+    networks:
+      - llm-stack
+    expose:
+      - "3000"
