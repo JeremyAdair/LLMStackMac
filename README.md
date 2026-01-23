@@ -49,6 +49,8 @@ The following components are job-style services, not web UIs:
 - Python runner: run one-off scripts and maintenance tasks.
 - STT, TTS, OCR: run on demand using the helper scripts.
 
+If you want a single page with links to the UIs, bookmark this README or create your own landing page. The authentication gateway only handles login and redirects; it does not provide a menu of services.
+
 ## Workspace convention
 
 The ingestion pipeline uses a shared workspace directory in the repo root:
@@ -132,3 +134,273 @@ See the docs for details:
 - `docs/60-auth.md`
 - `docs/70-nodered.md`
 - `docs/runbooks/bringup.md`
+
+## Future hopes
+
+The following items are planned but not complete yet. Each has a placeholder folder under `roadmap/` to track work.
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Landing page | Work in progress | Simple UI that links to all protected web apps. |
+| Backups | Work in progress | Backup and restore guidance for persistent data. |
+| CI tests | Work in progress | Automated compose validation and lint checks. |
+
+### Normal chat (no RAG)
+
+```
+[Browser]
+
+[Reverse Proxy + Auth Gateway]
+(always-on)
+        ↓
+[Open WebUI]
+
+        ↓
+[Ollama]
+(always-on LLM inference)
+        ↓
+[Open WebUI]
+(response rendered)
+        ↓
+[Browser]
+```
+
+### Ask questions over your docs (RAG query-time)
+
+```
+[Browser]
+(trigger: user asks question)
+        ↓
+[Reverse Proxy + Auth Gateway]
+(always-on)
+        ↓
+[Flowise UI / API]
+(always-on reasoning graph)
+        ↓ retrieve context
+[Qdrant]
+(always-on vector store)
+        ↓ context + question
+[Ollama]
+(always-on LLM)
+        ↓ answer
+[Flowise]
+(reasoning output)
+        ↓
+[Browser]
+```
+
+### Drop a PDF, automatically OCR it, index it, then it’s searchable (RAG ingestion)
+
+```
+[You drop PDF]
+into workspace/ingest/
+      |
+      | OCR
+      v
+[OCR Service]  (text extraction)
+      |
+      | write markdown
+      v
+workspace/processed/
+      |
+      | chunk + embed
+      v
+[RAG Pipeline]
+      |
+      | optional metadata
+      v
+[Postgres]  (doc index status, logs, etc.)
+```
+
+### Voice note → transcript → (optional) answer → spoken reply
+
+```
+[Audio file]
+workspace/audio/in/
+      |
+      | STT
+      v
+[STT Service]  -------------> workspace/audio/out/transcript.txt
+      |
+      | optional RAG query
+      v
+[Flowise]
+      |
+      | TTS
+      v
+[TTS Service] -----------------> workspace/audio/out/reply.wav
+```
+
+### If something breaks, tell me (alerts + dashboards)
+
+
+```
+[Job success / failure]
+(trigger: event)
+        ↓
+[Node-RED]
+(always-on)
+        ↓
+[Discord / Webhook]
+(notification)
+        ↓
+[Prometheus]
+(metrics)
+        ↓+----> [Discord webhook]  (notify)
+[Grafana]
+(dashboard)
+```
+
+### OpenHands for repo work (guarded, not exposed)
+
+```
+[Browser]
+   |
+   v
+[Reverse Proxy] ---> [Auth Gateway]
+   |
+   v
+[OpenHands]
+   |
+   v
+[Workspace]
+   |
+   | (optional calls)
+   v
+[Ollama]  (local model)  and/or  [Flowise API] (agent logic)
+```
+
+### Audio file drop pipeline
+
+```
+┌───────────────────────────┐
+│ 1) LOAD AUDIO              │
+│ You drop file into:        │
+│ workspace/audio/in/        │
+└───────────────────────────┘
+        |
+        v
+┌───────────────────────────┐
+│ 2) TRANSCRIBE              │
+│ STT writes transcript to:  │
+│ workspace/audio/out/       │
+└───────────────────────────┘
+        |
+        v
+┌───────────────────────────┐
+│ 3) OPTIONAL RAG            │
+│ Flowise queries Qdrant and │
+│ Ollama for an answer       │
+└───────────────────────────┘
+        |
+        v
+┌───────────────────────────┐
+│ 4) SUMMARIZE               │
+│ Outputs:                   │
+│ - meeting.summary.md       │
+│ - meeting.summary.json     │
+└───────────────────────────┘
+```
+
+### Audio File API Pipeline
+
+```
+┌───────────────────────────┐
+│ 1) LOAD AUDIO              │
+│ Browser upload / API post  │
+└───────────────────────────┘
+        |
+        v
+┌───────────────────────────┐
+│ 2) TRANSCRIBE              │
+│ STT + diarization          │
+└───────────────────────────┘
+        |
+        v
+┌───────────────────────────┐
+│ 3) ENRICH                  │
+│ Summarize + extract tasks  │
+└───────────────────────────┘
+        |
+        v
+┌───────────────────────────┐
+│ 4) STORE                   │
+│ Store (Postgres/Qdrant)    │
+│ + return status to browser │
+└───────────────────────────┘
+```
+
+#### Output schema
+
+```
+{
+  "title": "Meeting summary",
+  "summary": "...",
+  "action_items": ["..."],
+  "key_quotes": ["..."],
+  "tags": ["work", "controls", "project-x"]
+}
+```
+
+### Scheduled RAG quality evaluation
+
+```
+[Scheduled trigger]
+(cron / timer)
+        ↓
+[Node-RED]
+(always-on scheduler)
+        ↓
+[Python Evaluation Job]
+(on-demand batch)
+        ↓ test queries
+[Flowise]
+(reasoning with RAG)
+        ↓
+[Ollama]
+(LLM answers)
+        ↓ metrics
+[Postgres]
+        ↓
+[Prometheus]
+        ↓
+[Grafana]
+```
+
+### Knowledge distillation (compress old data)
+
+```
+[Scheduled trigger]
+        ↓
+[Node-RED]
+        ↓ select old content
+[Python Job]
+(chunk + select)
+        ↓
+[Flowise]
+(distill concepts)
+        ↓
+[Ollama]
+        ↓ summaries
+[Qdrant]
+(store distilled vectors)
+```
+
+### Log ingestion → anomaly explanation
+
+```
+[System logs]
+(trigger: file append)
+        ↓
+[Node-RED]
+        ↓
+[Python Log Parser]
+        ↓
+[Flowise]
+(anomaly reasoning)
+        ↓
+[Ollama]
+(explanation)
+        ↓
+[Postgres + Grafana]
+```
