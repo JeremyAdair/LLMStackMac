@@ -149,22 +149,12 @@ The following items are planned but not complete yet. Each has a placeholder fol
 
 ```
 [Browser]
-   |
-   v
-[Reverse Proxy] ---> [Auth Gateway]
-   |                    |
-   |<---- session -------|
-   v
-(trigger: user types message)
-        ↓
+
 [Reverse Proxy + Auth Gateway]
 (always-on)
         ↓
 [Open WebUI]
-   |
-   v
-[Ollama]  (LLM inference)
-(always-on UI)
+
         ↓
 [Ollama]
 (always-on LLM inference)
@@ -179,25 +169,6 @@ The following items are planned but not complete yet. Each has a placeholder fol
 
 ```
 [Browser]
-   |
-   v
-[Reverse Proxy] ---> [Auth Gateway]
-   |
-   v
-[Flowise UI / Flowise API]  (reasoning graph)
-   |
-   | 1) retrieve context
-   v
-[Qdrant]  (vectors + payload)
-   |
-   | 2) generate answer with context
-   v
-[Ollama]  (LLM)
-   |
-   v
-[Flowise returns answer]
-   |
-   v
 (trigger: user asks question)
         ↓
 [Reverse Proxy + Auth Gateway]
@@ -262,20 +233,6 @@ workspace/audio/in/
 
 ### If something breaks, tell me (alerts + dashboards)
 
-```
-[All services/jobs emit metrics]
-        |
-        v
-   [Prometheus]  (scrapes /metrics)
-        |
-        v
-    [Grafana]  (dashboards)
-        ^
-        |
-[Node-RED] (job status + alerts)
-        |
-        +----> [Discord webhook]  (notify)
-```
 
 ```
 [Job success / failure]
