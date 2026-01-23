@@ -12,6 +12,8 @@
 
 # Models and artifacts
 /models/
+!/models/
+!/models/models.yml
 *.gguf
 *.bin
 *.onnx
@@ -21,5 +23,6 @@
 *.db
 *.sqlite
 *.sqlite3
+*.wav
 /artifacts/
 /logs/

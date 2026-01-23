@@ -11,6 +11,7 @@ LLMStack is a self-hosted local LLM stack built around Docker Compose. It provid
 - Flowise for visual agent graphs.
 - OpenHands for an agentic coding workspace.
 - PDF ingestion and a simple RAG pipeline for indexing documents.
+- Local speech-to-text, text-to-speech, and OCR utilities.
 
 ## Quick start
 
@@ -81,6 +82,20 @@ docker compose \
   up -d
 ```
 
+Install speech and OCR models:
+
+```bash
+./bin/models-pull
+```
+
+Run a speech-to-text example:
+
+```bash
+./bin/stt-transcribe sample.wav
+```
+
+Place `sample.wav` in `workspace/audio/in/` before running the command.
+
 ## Documentation
 
 See the docs for details:
@@ -88,4 +103,5 @@ See the docs for details:
 - `docs/10-install.md`
 - `docs/30-rag.md`
 - `docs/40-agents.md`
+- `docs/50-media.md`
 - `docs/runbooks/bringup.md`

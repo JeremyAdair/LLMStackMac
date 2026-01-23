@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: bin/tts-speak \"text to speak\"" >&2
+  exit 1
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+text="$*"
+
+mkdir -p "${repo_root}/workspace/audio"
+mkdir -p "${repo_root}/workspace/audio/out"
+
+echo "$text" > "${repo_root}/workspace/audio/tts_in.txt"
+
+compose_files=(
+  "${repo_root}/compose/docker-compose.yml"
+  "${repo_root}/compose/tts/docker-compose.yml"
+)
+
+args=()
+for file in "${compose_files[@]}"; do
+  args+=("-f" "$file")
+done
+
+output_path="/workspace/audio/out/tts_output.wav"
+
+cat "${repo_root}/workspace/audio/tts_in.txt" | \
+  docker compose "${args[@]}" run --rm -T tts \
+  --model "${TTS_VOICE_MODEL:-/voices/en_US-amy-low.onnx}" \
+  --output_file "$output_path"
+
+echo "Audio written to ${repo_root}/workspace/audio/out/tts_output.wav"

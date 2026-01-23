@@ -11,6 +11,7 @@ A runbook is a step-by-step guide for setting up and operating a system. Use thi
 - Install Docker and Docker Compose.
 - Start the full LLMStack with one command.
 - Learn how to start individual services and run ingestion jobs.
+- Install local speech and OCR models.
 
 ## Prerequisites
 
@@ -77,6 +78,8 @@ These folders are where you drop PDFs and where the ingestion outputs are writte
 
 ```bash
 mkdir -p workspace/ingest workspace/processed workspace/indexed
+mkdir -p workspace/audio/in workspace/audio/out
+mkdir -p workspace/ocr/in workspace/ocr/out
 ```
 
 ## Step 7: Start the full stack
@@ -87,6 +90,18 @@ This brings up all services, including the reverse proxy, UIs, databases, and op
 ./bin/llm-up
 ```
 
+Optional: start only the core services (Ollama, Open WebUI, Qdrant, reverse proxy):
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/ollama/docker-compose.yml \
+  -f compose/open-webui/docker-compose.yml \
+  -f compose/qdrant/docker-compose.yml \
+  -f compose/reverse-proxy/docker-compose.yml \
+  up -d
+```
+
 ## Step 8: Access the UIs
 
 Open these URLs in your browser:
@@ -95,7 +110,21 @@ Open these URLs in your browser:
 - Flowise: http://localhost/flowise/
 - OpenHands: http://localhost/openhands/
 
-## Step 9: Run PDF ingestion (optional)
+## Step 9: Download speech and OCR models
+
+This pulls the Whisper and Piper models defined in `models/models.yml` into `data/`.
+
+```bash
+./bin/models-pull
+```
+
+Smoke test:
+
+```bash
+ls -1 data/stt/models data/tts/voices
+```
+
+## Step 10: Run PDF ingestion (optional)
 
 Use this when you want to convert PDFs to markdown before indexing.
 
@@ -106,7 +135,7 @@ docker compose \
   run --rm pdf-ingest
 ```
 
-## Step 10: Run the RAG pipeline (optional)
+## Step 11: Run the RAG pipeline (optional)
 
 This reads markdown from the workspace, embeds it through Ollama, and writes vectors to Qdrant.
 
@@ -123,7 +152,56 @@ docker compose \
   run --rm rag-pipeline
 ```
 
-## Step 11: Stop the stack
+## Step 12: Run speech-to-text (optional)
+
+Place an audio file in `workspace/audio/in`, then run:
+
+```bash
+./bin/stt-transcribe sample.wav
+```
+
+Smoke test:
+
+```bash
+test -f workspace/audio/out/sample.txt
+```
+
+## Step 13: Run text-to-speech (optional)
+
+```bash
+./bin/tts-speak "hello world"
+```
+
+Smoke test:
+
+```bash
+test -f workspace/audio/out/tts_output.wav
+```
+
+## Step 14: Run OCR (optional)
+
+Place an image in `workspace/ocr/in`, then run:
+
+```bash
+./bin/ocr-run sample.png
+```
+
+Smoke test:
+
+```bash
+test -f workspace/ocr/out/sample.txt
+```
+
+## Step 15: Run a one-off Python job (optional)
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/python-runner/docker-compose.yml \
+  run --rm python-runner python /app/main.py
+```
+
+## Step 16: Stop the stack
 
 Use this when you want to shut everything down.
 
