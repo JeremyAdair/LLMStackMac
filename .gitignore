@@ -1,0 +1,28 @@
+# Environment
+.env
+
+# Data directories
+/data/
+/secrets/
+/workspace/
+
+# TLS secrets (keep placeholder)
+/config/tls/*
+!/config/tls/.gitkeep
+
+# Models and artifacts
+/models/
+!/models/
+!/models/models.yml
+*.gguf
+*.bin
+*.onnx
+*.safetensors
+*.pt
+*.ckpt
+*.db
+*.sqlite
+*.sqlite3
+*.wav
+/artifacts/
+/logs/

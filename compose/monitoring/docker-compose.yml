@@ -1,0 +1,25 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    # Expose for local inspection of metrics.
+    ports:
+      - "9090:9090"
+    volumes:
+      # Use the local Prometheus config file and persist metrics.
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - llm-stack
+
+  grafana:
+    image: grafana/grafana:latest
+    # Expose for local dashboard access.
+    ports:
+      - "3001:3000"
+    volumes:
+      # Persist Grafana dashboards and settings.
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - llm-stack
