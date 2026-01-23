@@ -2,15 +2,20 @@ services:
   flowise:
     image: flowiseai/flowise:latest
     environment:
+      # Flowise talks to Ollama over the internal network.
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      # Optional basic auth credentials.
       FLOWISE_USERNAME: ${FLOWISE_USERNAME:-}
       FLOWISE_PASSWORD: ${FLOWISE_PASSWORD:-}
+      # Serve Flowise under a path on the reverse proxy.
       FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/flowise}
     volumes:
+      # Persist Flowise configuration and data.
       - flowise_data:/root/.flowise
     networks:
       - llm-stack
     depends_on:
       - ollama
     expose:
+      # Internal-only port; reverse proxy publishes it.
       - "3000"

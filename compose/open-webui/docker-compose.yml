@@ -2,12 +2,15 @@ services:
   open-webui:
     image: ghcr.io/open-webui/open-webui:latest
     expose:
+      # Only expose internally; reverse proxy handles public access.
       - "8080"
     environment:
+      # Open WebUI should talk to Ollama through the internal network.
       OLLAMA_BASE_URL: http://ollama:11434
     depends_on:
       - ollama
     volumes:
+      # Persist Open WebUI configuration and data.
       - openwebui_data:/app/backend/data
     networks:
       - llm-stack

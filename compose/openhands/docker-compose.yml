@@ -2,11 +2,14 @@ services:
   openhands:
     image: ghcr.io/openhands-ai/openhands:latest
     environment:
+      # Serve OpenHands under a path on the reverse proxy.
       OPENHANDS_BASE_PATH: ${OPENHANDS_BASE_PATH:-/openhands}
     volumes:
+      # Persist OpenHands state and mount the workspace.
       - openhands_data:/var/lib/openhands
       - ../../workspace:/workspace
     networks:
       - llm-stack
     expose:
+      # Internal-only port; reverse proxy publishes it.
       - "3000"

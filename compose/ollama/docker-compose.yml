@@ -1,9 +1,11 @@
 services:
   ollama:
     image: ollama/ollama:latest
+    # Expose Ollama on the host for local CLI access and debugging.
     ports:
       - "11434:11434"
     volumes:
+      # Persist downloaded models.
       - ollama_data:/root/.ollama
     networks:
       - llm-stack

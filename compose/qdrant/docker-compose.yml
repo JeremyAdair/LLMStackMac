@@ -1,9 +1,11 @@
 services:
   qdrant:
     image: qdrant/qdrant:latest
+    # Expose for local debugging; internal services use the network name.
     ports:
       - "6333:6333"
     volumes:
+      # Persist vector index data.
       - qdrant_data:/qdrant/storage
     networks:
       - llm-stack
