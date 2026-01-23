@@ -34,6 +34,7 @@ access_control:
         - "^/flowise/.*$"
         - "^/openhands/.*$"
         - "^/grafana/.*$"
+        - "^/nodered/.*$"
         - "^/$"
 
 regulation:

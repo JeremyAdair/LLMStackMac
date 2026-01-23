@@ -26,6 +26,7 @@ This stack uses Authelia as a self-hosted authentication gateway. It sits in fro
 - `/flowise/`
 - `/openhands/`
 - `/grafana/`
+- `/nodered/`
 
 Internal services (Qdrant, Redis, Postgres, STT, TTS, OCR, RAG pipeline) are not exposed publicly and are not protected by the gateway.
 

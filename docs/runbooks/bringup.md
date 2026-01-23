@@ -126,6 +126,7 @@ Open these URLs in your browser:
 - Flowise: http://localhost/flowise/
 - OpenHands: http://localhost/openhands/
 - Grafana: http://localhost/grafana/
+- Node-RED: http://localhost/nodered/
 
 You should be redirected to the Authelia login page before accessing protected routes.
 
@@ -133,6 +134,7 @@ Smoke test:
 
 1) Open http://localhost/ and confirm you are redirected to `/authelia/`.
 2) Log in with your configured user and confirm Open WebUI loads.
+3) Open http://localhost/nodered/ and confirm the editor loads.
 
 ## Step 10: Download speech and OCR models
 
@@ -216,7 +218,22 @@ Smoke test:
 test -f workspace/ocr/out/sample.txt
 ```
 
-## Step 16: Run a one-off Python job (optional)
+## Step 16: Start Node-RED (optional)
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/node-red/docker-compose.yml \
+  up -d
+```
+
+## Step 17: Node-RED smoke test (optional)
+
+1) Open the Node-RED editor.
+2) Add an Inject node and a Debug node, connect them, and click Deploy.
+3) Click the Inject button and confirm the message appears in the Debug sidebar.
+
+## Step 18: Run a one-off Python job (optional)
 
 ```bash
 docker compose \
@@ -225,7 +242,16 @@ docker compose \
   run --rm python-runner python /app/main.py
 ```
 
-## Step 17: Stop the stack
+## Step 19: Stop Node-RED (optional)
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/node-red/docker-compose.yml \
+  stop node-red
+```
+
+## Step 20: Stop the stack
 
 Use this when you want to shut everything down.
 

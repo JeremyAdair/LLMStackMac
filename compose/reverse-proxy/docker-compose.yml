@@ -13,5 +13,6 @@ services:
       - openhands
       - grafana
       - auth
+      - node-red
     networks:
       - llm-stack
