@@ -36,6 +36,10 @@ access_control:
         - "^/grafana/.*$"
         - "^/nodered/.*$"
         - "^/$"
+    - domain: "${LANDING_HOSTNAME}"
+      policy: one_factor
+      resources:
+        - "^/.*$"
 
 regulation:
   max_retries: 5

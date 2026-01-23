@@ -14,5 +14,6 @@ services:
       - grafana
       - auth
       - node-red
+      - landing
     networks:
       - llm-stack

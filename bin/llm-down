@@ -16,6 +16,7 @@ compose_files=(
   "${repo_root}/compose/openhands/docker-compose.yml"
   "${repo_root}/compose/auth/docker-compose.yml"
   "${repo_root}/compose/node-red/docker-compose.yml"
+  "${repo_root}/compose/landing/docker-compose.yml"
   "${repo_root}/compose/python-runner/docker-compose.yml"
   "${repo_root}/compose/stt/docker-compose.yml"
   "${repo_root}/compose/tts/docker-compose.yml"

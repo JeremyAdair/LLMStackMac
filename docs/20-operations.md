@@ -8,6 +8,17 @@ This guide covers daily operations: start, stop, status, logs, updates, and back
 ./bin/llm-up
 ```
 
+## Start landing page and proxy only
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/reverse-proxy/docker-compose.yml \
+  -f compose/auth/docker-compose.yml \
+  -f compose/landing/docker-compose.yml \
+  up -d
+```
+
 ## Stop the stack
 
 ```bash
