@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+
+compose_files=(
+  "${repo_root}/compose/docker-compose.yml"
+  "${repo_root}/compose/ollama/docker-compose.yml"
+  "${repo_root}/compose/open-webui/docker-compose.yml"
+  "${repo_root}/compose/qdrant/docker-compose.yml"
+  "${repo_root}/compose/postgres/docker-compose.yml"
+  "${repo_root}/compose/redis/docker-compose.yml"
+  "${repo_root}/compose/reverse-proxy/docker-compose.yml"
+  "${repo_root}/compose/monitoring/docker-compose.yml"
+  "${repo_root}/compose/flowise/docker-compose.yml"
+  "${repo_root}/compose/openhands/docker-compose.yml"
+  "${repo_root}/compose/pdf-ingest/docker-compose.yml"
+  "${repo_root}/compose/rag-pipeline/docker-compose.yml"
+)
+
+args=()
+for file in "${compose_files[@]}"; do
+  args+=("-f" "$file")
+done
+
+docker compose "${args[@]}" ps
