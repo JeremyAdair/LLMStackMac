@@ -1,0 +1,12 @@
+stt:
+  - name: base.en
+    url: https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
+    path: data/stt/models/ggml-base.en.bin
+
+tts:
+  - name: en_US-amy-low
+    url: https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/en_US-amy-low.onnx
+    path: data/tts/voices/en_US-amy-low.onnx
+  - name: en_US-amy-low.json
+    url: https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/en_US-amy-low.onnx.json
+    path: data/tts/voices/en_US-amy-low.onnx.json

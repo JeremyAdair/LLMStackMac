@@ -1,0 +1,18 @@
+services:
+  pdf-ingest:
+    build:
+      context: ../..
+      dockerfile: pdf-ingest/Dockerfile
+    environment:
+      # Input PDFs or markdown go here.
+      INGEST_INPUT_DIR: /workspace/ingest
+      # Converted markdown is written here.
+      INGEST_OUTPUT_DIR: /workspace/processed
+    volumes:
+      # Mount the local workspace directory into the container.
+      - ../../workspace:/workspace
+    networks:
+      - llm-stack
+    profiles:
+      # Use a profile so this runs only when called explicitly.
+      - tools
