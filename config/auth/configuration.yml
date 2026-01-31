@@ -31,9 +31,10 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    - domain: "{{ env \"AUTH_DOMAIN\" }}"
+    - domain: "{{ env \"AUTH_DOMAIN_WILDCARD\" }}"
       policy: one_factor
       resources:
+        - "^/api/verify$"
         - "^/flowise/.*$"
         - "^/openhands/.*$"
         - "^/grafana/.*$"
