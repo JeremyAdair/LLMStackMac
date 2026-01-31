@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: bin/stt-transcribe <filename.wav>" >&2
+  exit 1
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+input_name="$1"
+input_path="${repo_root}/workspace/audio/in/${input_name}"
+output_base="${repo_root}/workspace/audio/out/${input_name%.*}"
+
+if [[ ! -f "$input_path" ]]; then
+  echo "Input file not found: $input_path" >&2
+  exit 1
+fi
+
+mkdir -p "${repo_root}/workspace/audio/out"
+
+compose_files=(
+  "${repo_root}/compose/docker-compose.yml"
+  "${repo_root}/compose/stt/docker-compose.yml"
+)
+
+args=()
+for file in "${compose_files[@]}"; do
+  args+=("-f" "$file")
+done
+
+docker compose "${args[@]}" run --rm stt \
+  ./main -m "${STT_MODEL_PATH:-/models/ggml-base.en.bin}" \
+  -f "/workspace/audio/in/${input_name}" \
+  -otxt -of "/workspace/audio/out/${input_name%.*}"
+
+if [[ -f "${output_base}.txt" ]]; then
+  echo "Transcript written to ${output_base}.txt"
+fi

@@ -1,0 +1,17 @@
+python-dotenv
+loguru
+rich
+pydantic
+typing-extensions
+requests
+httpx
+aiohttp
+tenacity
+psycopg2-binary
+sqlalchemy
+redis
+pyyaml
+orjson
+python-dateutil
+fastapi
+uvicorn

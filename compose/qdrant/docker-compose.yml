@@ -1,0 +1,12 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    # Expose for local debugging; internal services use the network name.
+    ports:
+      # Change the host port if 6333 is in use.
+      - "6333:6333"
+    volumes:
+      # Persist vector index data. Removing the volume deletes stored vectors.
+      - qdrant_data:/qdrant/storage
+    networks:
+      - llm-stack

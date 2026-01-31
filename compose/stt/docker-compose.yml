@@ -1,0 +1,13 @@
+services:
+  stt:
+    image: ghcr.io/ggerganov/whisper.cpp:latest
+    working_dir: /app
+    environment:
+      STT_MODEL_PATH: ${STT_MODEL_PATH:-/models/ggml-base.en.bin}
+    volumes:
+      - ../../data/stt/models:/models
+      - ../../workspace:/workspace
+    networks:
+      - llm-stack
+    profiles:
+      - tools

@@ -1,0 +1,7 @@
+plcs:
+  - name: sample_plc
+    ip: 192.168.1.10
+    slot: 0
+    tags:
+      - ExampleTag1
+      - ExampleTag2

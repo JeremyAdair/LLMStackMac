@@ -1,0 +1,11 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    # Expose only on the internal network by default.
+    expose:
+      - "11434"
+    volumes:
+      # Persist downloaded models. Removing the volume deletes cached models.
+      - ollama_data:/root/.ollama
+    networks:
+      - llm-stack
