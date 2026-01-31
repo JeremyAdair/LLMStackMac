@@ -2,6 +2,8 @@ services:
   auth:
     image: authelia/authelia:latest
     volumes:
+      - ../../config/auth:/config
+      - ../../data/auth:/data
       - ../config/auth:/config
       - ../config/auth/configuration.local.yml:/config/configuration.yml
       - ../data/auth:/data

@@ -5,6 +5,38 @@ networks:
     driver: bridge
     # Single shared network so containers can reach each other by service name.
 
+services:
+  python-toolbox:
+    build:
+      context: ../python-toolbox
+      dockerfile: Dockerfile
+    image: llmstack/python-toolbox:local
+    command: ["sleep", "infinity"]
+    volumes:
+      # Bind mount for scripts and libraries you edit locally.
+      - ../python-toolbox/app:/app
+    networks:
+      - llm-stack
+
+  python-api:
+    image: llmstack/python-toolbox:local
+    command:
+      - uvicorn
+      - api.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      # FastAPI endpoint for Node-RED or Flowise integrations.
+      # Change the host port if 8000 is in use.
+      - "8000:8000"
+    volumes:
+      # Share the same code and scripts as the toolbox container.
+      - ../python-toolbox/app:/app
+    networks:
+      - llm-stack
+
 volumes:
   # Named volumes keep data around between container restarts.
   ollama_data:

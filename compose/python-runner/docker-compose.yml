@@ -1,6 +1,11 @@
 services:
   python-runner:
     build:
+      context: ../..
+      dockerfile: compose/python-runner/Dockerfile
+    volumes:
+      - ../../workspace:/workspace
+      - ../../scripts:/scripts
       context: ..
       dockerfile: compose/python-runner/Dockerfile
     volumes:

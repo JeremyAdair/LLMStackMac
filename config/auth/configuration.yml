@@ -2,11 +2,23 @@
 # This file uses environment variables set in .env. Replace secrets before use.
 
 server:
+  address: tcp://0.0.0.0:9091
   address: tcp://0.0.0.0:9091/authelia
 
 log:
   level: info
 
+jwt_secret: "${AUTHELIA_JWT_SECRET}"
+
+session:
+  name: authelia_session
+  secret: "${AUTHELIA_SESSION_SECRET}"
+  expiration: 3600
+  inactivity: 300
+  domain: "${AUTHELIA_DOMAIN}"
+
+storage:
+  encryption_key: "${AUTHELIA_STORAGE_ENCRYPTION_KEY}"
 jwt_secret: "{{ env \"AUTHELIA_JWT_SECRET\" }}"
 
 session:
@@ -31,6 +43,9 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
+    - domain: "${AUTHELIA_DOMAIN}"
+      policy: one_factor
+      resources:
     - domain: "{{ env \"AUTH_DOMAIN_WILDCARD\" }}"
       policy: one_factor
       resources:
@@ -40,6 +55,7 @@ access_control:
         - "^/grafana/.*$"
         - "^/nodered/.*$"
         - "^/$"
+    - domain: "${LANDING_HOSTNAME}"
     - domain: "{{ env \"LANDING_HOSTNAME\" }}"
       policy: one_factor
       resources:

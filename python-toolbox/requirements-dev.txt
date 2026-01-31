@@ -1,0 +1,5 @@
+typer
+click
+ipython
+watchdog
+apscheduler

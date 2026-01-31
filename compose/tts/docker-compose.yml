@@ -5,6 +5,8 @@ services:
     environment:
       TTS_VOICE_MODEL: ${TTS_VOICE_MODEL:-/voices/en_US-amy-low.onnx}
     volumes:
+      - ../../data/tts/voices:/voices
+      - ../../workspace:/workspace
       - ../data/tts/voices:/voices
       - ../workspace:/workspace
     networks:

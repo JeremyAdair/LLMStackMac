@@ -1,0 +1,4 @@
+pylogix
+cpppo
+opcua
+snap7

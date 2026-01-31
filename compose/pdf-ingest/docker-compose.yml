@@ -1,6 +1,7 @@
 services:
   pdf-ingest:
     build:
+      context: ../..
       context: ..
       dockerfile: pdf-ingest/Dockerfile
     environment:
@@ -10,6 +11,7 @@ services:
       INGEST_OUTPUT_DIR: /workspace/processed
     volumes:
       # Mount the local workspace directory into the container.
+      - ../../workspace:/workspace
       - ../workspace:/workspace
     networks:
       - llm-stack

@@ -51,6 +51,41 @@ The following components are job-style services, not web UIs:
 
 If you want a single page with links to the UIs, bookmark this README or create your own landing page. The authentication gateway only handles login and redirects; it does not provide a menu of services.
 
+## Python toolbox
+
+The python-toolbox container is a CLI-first environment for running scripts under
+`python-toolbox/app`. The python-api container uses the same image but serves a
+FastAPI surface on port 8000 for Node-RED or Flowise triggers.
+
+Build the image:
+
+```bash
+docker compose -f compose/docker-compose.yml build python-toolbox
+```
+
+Start the toolbox container and exec into it:
+
+```bash
+docker compose -f compose/docker-compose.yml up -d python-toolbox
+docker compose -f compose/docker-compose.yml exec python-toolbox bash
+```
+
+Start the API container:
+
+```bash
+docker compose -f compose/docker-compose.yml up -d python-api
+```
+
+Example script runs:
+
+```bash
+python /app/scripts/plc_poll/poll_plc.py
+python /app/scripts/rag_ingest/ingest_folder.py
+python /app/scripts/db_tools/healthcheck.py
+```
+
+See `python-toolbox/README.md` for environment variables and usage notes.
+
 ### Ports you may need to change
 
 These services publish host ports for local access. Change the host side of the
@@ -59,6 +94,7 @@ mapping if the port is already in use.
 - Reverse proxy: `80` for all web UIs via the gateway.
 - Forgejo web UI: `3000` for the local git server.
 - Forgejo SSH: `2222` for git over SSH.
+- Python API: `8000` for FastAPI triggers.
 - Qdrant: `6333` for local debugging.
 - Postgres: `5432` for local admin tools.
 - Redis: `6379` for local debugging.

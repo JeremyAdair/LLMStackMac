@@ -2,6 +2,7 @@ services:
   landing:
     image: nginx:alpine
     volumes:
+      - ../../config/landing:/usr/share/nginx/html:ro
       - ../config/landing:/usr/share/nginx/html:ro
     networks:
       - llm-stack

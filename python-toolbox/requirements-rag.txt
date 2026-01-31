@@ -1,0 +1,8 @@
+numpy
+pandas
+qdrant-client
+faiss-cpu
+sentence-transformers
+pymupdf
+pdfminer.six
+pillow
