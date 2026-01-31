@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+manifest="${repo_root}/models/models.yml"
+
+if [[ ! -f "$manifest" ]]; then
+  echo "Model manifest not found: $manifest" >&2
+  exit 1
+fi
+
+current_url=""
+current_path=""
+
+while IFS= read -r line; do
+  case "$line" in
+    *"url:"*)
+      current_url=$(echo "$line" | awk '{print $2}')
+      ;;
+    *"path:"*)
+      current_path=$(echo "$line" | awk '{print $2}')
+      ;;
+  esac
+
+  if [[ -n "$current_url" && -n "$current_path" ]]; then
+    target="${repo_root}/${current_path}"
+    target_dir=$(dirname "$target")
+    mkdir -p "$target_dir"
+
+    if [[ -f "$target" ]]; then
+      echo "Already exists: $target"
+    else
+      echo "Downloading $current_url -> $target"
+      curl -L "$current_url" -o "$target"
+    fi
+
+    current_url=""
+    current_path=""
+  fi
+done < "$manifest"

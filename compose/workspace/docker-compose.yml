@@ -1,0 +1,16 @@
+services:
+  workspace:
+    build:
+      context: .
+      args:
+        WORKSPACE_UID: ${WORKSPACE_UID:-1000}
+        WORKSPACE_GID: ${WORKSPACE_GID:-1000}
+    image: llmstack/workspace:local
+    user: "${WORKSPACE_UID:-1000}:${WORKSPACE_GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - ../../workspaces:/workspace
+    command: ["sleep", "infinity"]
+    read_only: true
+    networks:
+      - llm-stack

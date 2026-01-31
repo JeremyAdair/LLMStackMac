@@ -1,0 +1,16 @@
+services:
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:1.21
+    environment:
+      USER_UID: ${FORGEJO_UID:-1000}
+      USER_GID: ${FORGEJO_GID:-1000}
+    volumes:
+      # Git server storage. Delete this volume only if you intend to wipe all repos.
+      - forgejo_data:/data
+    ports:
+      # Web UI for Forgejo. Change the host port if 3000 is in use.
+      - "3000:3000"
+      # SSH for git operations. Change the host port if 2222 is in use.
+      - "2222:22"
+    networks:
+      - llm-stack
