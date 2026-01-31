@@ -51,6 +51,42 @@ The following components are job-style services, not web UIs:
 
 If you want a single page with links to the UIs, bookmark this README or create your own landing page. The authentication gateway only handles login and redirects; it does not provide a menu of services.
 
+## Local Git
+
+This stack includes an optional Forgejo service for local git hosting. Forgejo is a
+lightweight, self-contained server that works well in homelab and air-gapped setups.
+
+- Web UI: http://localhost:3000
+- SSH: port 2222
+
+If these ports are in use, update the port mappings in
+`compose/forgejo/docker-compose.yml`.
+
+Start it with:
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/forgejo/docker-compose.yml \
+  up -d
+```
+
+See `docs/git-local.md` for setup and backup details.
+
+## OpenHands Workspace
+
+The workspace container provides a safe play area for OpenHands and CLI tools. It
+mounts `./workspaces` to `/workspace` and runs as a non-root user.
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/workspace/docker-compose.yml \
+  up -d
+```
+
+See `docs/workspace-container.md` for guardrails and reset guidance.
+
 ## Workspace convention
 
 The ingestion pipeline uses a shared workspace directory in the repo root:
@@ -133,6 +169,8 @@ See the docs for details:
 - `docs/50-media.md`
 - `docs/60-auth.md`
 - `docs/70-nodered.md`
+- `docs/git-local.md`
+- `docs/workspace-container.md`
 - `docs/runbooks/bringup.md`
 
 ## Future hopes

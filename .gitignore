@@ -5,6 +5,9 @@
 /data/
 /secrets/
 /workspace/
+/workspaces/
+!/workspaces/
+!/workspaces/README.md
 
 # Node-RED data
 /data/node-red/
