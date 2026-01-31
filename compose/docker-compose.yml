@@ -1,0 +1,19 @@
+name: llm-stack
+
+networks:
+  llm-stack:
+    driver: bridge
+    # Single shared network so containers can reach each other by service name.
+
+volumes:
+  # Named volumes keep data around between container restarts.
+  ollama_data:
+  openwebui_data:
+  qdrant_data:
+  postgres_data:
+  redis_data:
+  flowise_data:
+  openhands_data:
+  prometheus_data:
+  grafana_data:
+  forgejo_data:

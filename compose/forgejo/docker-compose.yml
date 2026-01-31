@@ -1,0 +1,13 @@
+services:
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:1.21
+    environment:
+      USER_UID: ${FORGEJO_UID:-1000}
+      USER_GID: ${FORGEJO_GID:-1000}
+    volumes:
+      - forgejo_data:/data
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    networks:
+      - llm-stack
