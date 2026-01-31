@@ -2,7 +2,7 @@
 # This file uses environment variables set in .env. Replace secrets before use.
 
 server:
-  address: tcp://0.0.0.0:9091
+  address: tcp://0.0.0.0:9091/authelia
 
 log:
   level: info
