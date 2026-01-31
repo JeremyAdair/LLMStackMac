@@ -10,7 +10,9 @@ services:
     working_dir: /workspace
     volumes:
       - ../../workspaces:/workspace
+      - ../workspaces:/workspace
     command: ["sleep", "infinity"]
     read_only: true
     networks:
       - llm-stack
+

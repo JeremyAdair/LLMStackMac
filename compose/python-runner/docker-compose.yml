@@ -6,7 +6,13 @@ services:
     volumes:
       - ../../workspace:/workspace
       - ../../scripts:/scripts
+      context: ..
+      dockerfile: compose/python-runner/Dockerfile
+    volumes:
+      - ../workspace:/workspace
+      - ../scripts:/scripts
     networks:
       - llm-stack
     profiles:
       - tools
+

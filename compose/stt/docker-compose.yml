@@ -7,7 +7,10 @@ services:
     volumes:
       - ../../data/stt/models:/models
       - ../../workspace:/workspace
+      - ../data/stt/models:/models
+      - ../workspace:/workspace
     networks:
       - llm-stack
     profiles:
       - tools
+

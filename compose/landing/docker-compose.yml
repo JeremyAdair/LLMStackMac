@@ -3,6 +3,7 @@ services:
     image: nginx:alpine
     volumes:
       - ../../config/landing:/usr/share/nginx/html:ro
+      - ../config/landing:/usr/share/nginx/html:ro
     networks:
       - llm-stack
     expose:
@@ -12,3 +13,4 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+

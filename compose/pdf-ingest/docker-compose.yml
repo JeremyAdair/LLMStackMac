@@ -2,6 +2,7 @@ services:
   pdf-ingest:
     build:
       context: ../..
+      context: ..
       dockerfile: pdf-ingest/Dockerfile
     environment:
       # Input PDFs or markdown go here.
@@ -11,8 +12,10 @@ services:
     volumes:
       # Mount the local workspace directory into the container.
       - ../../workspace:/workspace
+      - ../workspace:/workspace
     networks:
       - llm-stack
     profiles:
       # Use a profile so this runs only when called explicitly.
       - tools
+
