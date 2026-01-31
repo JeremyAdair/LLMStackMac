@@ -3,6 +3,7 @@ services:
     image: nginx:alpine
     # Reverse proxy is the only service exposed on port 80.
     ports:
+      # Change the host port if another service already uses port 80.
       - "80:80"
     volumes:
       # Provide the Nginx routing configuration.

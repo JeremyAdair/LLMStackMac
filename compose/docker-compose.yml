@@ -17,3 +17,4 @@ volumes:
   prometheus_data:
   grafana_data:
   forgejo_data:
+  # Removing a volume here or running `docker compose down -v` deletes its data.

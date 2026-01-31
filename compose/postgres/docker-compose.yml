@@ -3,6 +3,7 @@ services:
     image: postgres:15
     # Expose for local admin tools; internal services use the network name.
     ports:
+      # Change the host port if 5432 is in use.
       - "5432:5432"
     environment:
       # Default credentials come from .env.
@@ -10,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmstack}
       POSTGRES_DB: ${POSTGRES_DB:-llmstack}
     volumes:
-      # Persist database data between restarts.
+      # Persist database data between restarts. Removing the volume deletes data.
       - postgres_data:/var/lib/postgresql/data
     networks:
       - llm-stack

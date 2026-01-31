@@ -51,6 +51,36 @@ The following components are job-style services, not web UIs:
 
 If you want a single page with links to the UIs, bookmark this README or create your own landing page. The authentication gateway only handles login and redirects; it does not provide a menu of services.
 
+### Ports you may need to change
+
+These services publish host ports for local access. Change the host side of the
+mapping if the port is already in use.
+
+- Reverse proxy: `80` for all web UIs via the gateway.
+- Forgejo web UI: `3000` for the local git server.
+- Forgejo SSH: `2222` for git over SSH.
+- Qdrant: `6333` for local debugging.
+- Postgres: `5432` for local admin tools.
+- Redis: `6379` for local debugging.
+
+### Persistent data and reset behavior
+
+Named volumes store service data across restarts. Removing a volume deletes that
+service data. Bind mounts under `workspace/` and `workspaces/` are local folders and
+can be cleaned by deleting their contents.
+
+- Named volumes include `ollama_data`, `openwebui_data`, `qdrant_data`,
+  `postgres_data`, `redis_data`, `flowise_data`, `openhands_data`, `prometheus_data`,
+  `grafana_data`, and `forgejo_data`.
+- `docker compose down` keeps named volumes.
+- `docker compose down -v` removes named volumes, which wipes stored data.
+- The `workspaces/` folder is safe to delete when you want a clean OpenHands workspace.
+
+If you run Ollama on bare metal, keep port `11434` available on the host and point
+`OLLAMA_BASE_URL` to `http://localhost:11434` in `.env`. The Ollama container does not
+publish a host port by default. If you need to expose the container port, add a ports
+mapping in `compose/ollama/docker-compose.yml`.
+
 ## Local Git
 
 This stack includes an optional Forgejo service for local git hosting. Forgejo is a

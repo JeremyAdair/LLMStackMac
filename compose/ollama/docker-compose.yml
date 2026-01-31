@@ -1,11 +1,11 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    # Expose Ollama on the host for local CLI access and debugging.
-    ports:
-      - "11434:11434"
+    # Expose only on the internal network by default.
+    expose:
+      - "11434"
     volumes:
-      # Persist downloaded models.
+      # Persist downloaded models. Removing the volume deletes cached models.
       - ollama_data:/root/.ollama
     networks:
       - llm-stack
