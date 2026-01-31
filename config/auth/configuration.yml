@@ -7,17 +7,17 @@ server:
 log:
   level: info
 
-jwt_secret: "${AUTHELIA_JWT_SECRET}"
+jwt_secret: "{{ env \"AUTHELIA_JWT_SECRET\" }}"
 
 session:
   name: authelia_session
-  secret: "${AUTHELIA_SESSION_SECRET}"
+  secret: "{{ env \"AUTHELIA_SESSION_SECRET\" }}"
   expiration: 3600
   inactivity: 300
-  domain: "${AUTHELIA_DOMAIN}"
+  domain: "{{ env \"AUTH_DOMAIN\" }}"
 
 storage:
-  encryption_key: "${AUTHELIA_STORAGE_ENCRYPTION_KEY}"
+  encryption_key: "{{ env \"AUTHELIA_STORAGE_ENCRYPTION_KEY\" }}"
   local:
     path: /data/db.sqlite3
 
@@ -28,7 +28,7 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    - domain: "${AUTHELIA_DOMAIN}"
+    - domain: "{{ env \"AUTH_DOMAIN\" }}"
       policy: one_factor
       resources:
         - "^/flowise/.*$"
@@ -36,7 +36,7 @@ access_control:
         - "^/grafana/.*$"
         - "^/nodered/.*$"
         - "^/$"
-    - domain: "${LANDING_HOSTNAME}"
+    - domain: "{{ env \"LANDING_HOSTNAME\" }}"
       policy: one_factor
       resources:
         - "^/.*$"

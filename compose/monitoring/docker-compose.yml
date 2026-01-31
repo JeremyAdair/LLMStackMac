@@ -6,7 +6,7 @@ services:
       - "9090"
     volumes:
       # Use the local Prometheus config file and persist metrics.
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
       - llm-stack

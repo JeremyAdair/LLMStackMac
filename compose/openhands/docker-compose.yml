@@ -1,15 +1,18 @@
 services:
   openhands:
-    image: ghcr.io/openhands-ai/openhands:latest
+    image: ${OPENHANDS_IMAGE:-docker.all-hands.dev/all-hands-ai/openhands:0.54}
     environment:
       # Serve OpenHands under a path on the reverse proxy.
       OPENHANDS_BASE_PATH: ${OPENHANDS_BASE_PATH:-/openhands}
+      # Sandbox runtime image used for agent sessions.
+      SANDBOX_RUNTIME_CONTAINER_IMAGE: ${OPENHANDS_RUNTIME_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik}
     volumes:
       # Persist OpenHands state and mount the workspace.
       - openhands_data:/var/lib/openhands
-      - ../../workspace:/workspace
+      - ../workspace:/workspace
     networks:
       - llm-stack
     expose:
       # Internal-only port; reverse proxy publishes it.
       - "3000"
+

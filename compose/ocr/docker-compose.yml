@@ -2,8 +2,9 @@ services:
   ocr:
     image: jitesoft/tesseract-ocr:latest
     volumes:
-      - ../../workspace:/workspace
+      - ../workspace:/workspace
     networks:
       - llm-stack
     profiles:
       - tools
+

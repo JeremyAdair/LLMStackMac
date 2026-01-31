@@ -1,12 +1,13 @@
 services:
   python-runner:
     build:
-      context: ../..
+      context: ..
       dockerfile: compose/python-runner/Dockerfile
     volumes:
-      - ../../workspace:/workspace
-      - ../../scripts:/scripts
+      - ../workspace:/workspace
+      - ../scripts:/scripts
     networks:
       - llm-stack
     profiles:
       - tools
+

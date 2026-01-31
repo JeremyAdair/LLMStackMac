@@ -9,8 +9,9 @@ services:
     user: "${WORKSPACE_UID:-1000}:${WORKSPACE_GID:-1000}"
     working_dir: /workspace
     volumes:
-      - ../../workspaces:/workspace
+      - ../workspaces:/workspace
     command: ["sleep", "infinity"]
     read_only: true
     networks:
       - llm-stack
+

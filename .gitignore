@@ -16,6 +16,9 @@
 /config/tls/*
 !/config/tls/.gitkeep
 
+# Local Authelia config (contains secrets)
+/config/auth/configuration.local.yml
+
 # Models and artifacts
 /models/
 !/models/

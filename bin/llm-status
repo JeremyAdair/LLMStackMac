@@ -30,4 +30,9 @@ for file in "${compose_files[@]}"; do
   args+=("-f" "$file")
 done
 
-docker compose "${args[@]}" ps
+env_file_arg=()
+if [[ -f "${repo_root}/.env" ]]; then
+  env_file_arg=(--env-file "${repo_root}/.env")
+fi
+
+docker compose "${env_file_arg[@]}" "${args[@]}" ps
