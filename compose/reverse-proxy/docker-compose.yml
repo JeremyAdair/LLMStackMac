@@ -5,9 +5,12 @@ services:
     ports:
       # Change the host port if another service already uses port 80.
       - "80:80"
+      - "443:443"
     volumes:
       # Provide the Nginx routing configuration.
       - ../config/reverse-proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # TLS certs for local HTTPS.
+      - ../config/tls:/etc/nginx/certs:ro
     depends_on:
       - open-webui
       - flowise

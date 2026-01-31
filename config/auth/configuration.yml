@@ -14,7 +14,10 @@ session:
   secret: "{{ env \"AUTHELIA_SESSION_SECRET\" }}"
   expiration: 3600
   inactivity: 300
-  domain: "{{ env \"AUTH_DOMAIN\" }}"
+  cookies:
+    - domain: "{{ env \"AUTH_DOMAIN\" }}"
+      authelia_url: "{{ env \"AUTHELIA_URL\" }}"
+      default_redirection_url: "{{ env \"AUTHELIA_DEFAULT_REDIRECT_URL\" }}"
 
 storage:
   encryption_key: "{{ env \"AUTHELIA_STORAGE_ENCRYPTION_KEY\" }}"
