@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python API</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Python API</h1>
+        <p>FastAPI service for toolbox jobs and health checks.</p>
+      </header>
+
+      <section class="links">
+        <a class="button" href="/docs.html">Back to Docs</a>
+        <a class="button" href="/">Back to Landing</a>
+      </section>
+
+      <section class="note">
+        <h2>Endpoints</h2>
+        <ul>
+          <li>Docs: <code>http://localhost:8000/docs</code></li>
+          <li>OpenAPI JSON: <code>http://localhost:8000/openapi.json</code></li>
+          <li>Health: <code>http://localhost:8000/health</code></li>
+          <li>RAG ingest (one-shot): <code>POST http://localhost:8000/rag/ingest_once</code></li>
+          <li>PLC poll (one-shot): <code>POST http://localhost:8000/plc/poll_once</code></li>
+        </ul>
+        <p>Example call:</p>
+        <pre><code>curl -X POST http://localhost:8000/rag/ingest_once</code></pre>
+      </section>
+
+      <section class="note">
+        <h2>Notes</h2>
+        <p>
+          The API is bound to port 8000 on the host. If you want to route it
+          through the reverse proxy, we can add a subdomain or path route.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

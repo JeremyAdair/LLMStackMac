@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LLMStack Docs</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>LLMStack Docs</h1>
+        <p>Quick reference for local services and the Python API.</p>
+      </header>
+
+      <section class="links">
+        <a class="button" href="/">Back to Landing</a>
+      </section>
+
+      <section class="links">
+        <a class="button" href="/python-api.html">Python API</a>
+      </section>
+
+      <section class="note">
+        <h2>Core services</h2>
+        <ul>
+          <li>Redis: available to containers at <code>redis:6379</code></li>
+          <li>Prometheus: <code>http://prometheus:9090</code> (internal)</li>
+          <li>Ollama: <code>http://ollama:11434</code> (internal)</li>
+          <li>Qdrant: <code>http://qdrant:6333</code> (internal)</li>
+        </ul>
+        <p>
+          Local admin access is available on the host ports shown in the stack
+          status. These services are meant to be used from other containers unless
+          you explicitly publish ports.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
