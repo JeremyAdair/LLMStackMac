@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     # Expose for local admin tools; internal services use the network name.
     ports:
       # Change the host port if 5432 is in use.

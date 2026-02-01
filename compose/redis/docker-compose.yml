@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7
+    image: redis:7-alpine
     # Expose for local debugging; internal services use the network name.
     ports:
       # Change the host port if 6379 is in use.
