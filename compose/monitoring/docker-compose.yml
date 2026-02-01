@@ -1,9 +1,8 @@
 services:
   prometheus:
     image: prom/prometheus:latest
-    # Internal-only access through the reverse proxy if needed.
-    expose:
-      - "9090"
+    ports:
+      - "9090:9090"
     volumes:
       # Use the local Prometheus config file and persist metrics.
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro

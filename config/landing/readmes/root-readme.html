@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project README</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Project README</h1>
+      </header>
+
+      <section class="links">
+        <a class="button" href="/docs.html">Back to Docs</a>
+        <a class="button" href="/python-api.html">Back to Python API</a>
+        <a class="button" href="/">Back to Landing</a>
+      </section>
+
+      <section class="note">
+        <pre style="white-space: pre-wrap;"># LLMStack
+
+LLMStack is a self-hosted local LLM stack built around Docker Compose. It provides a modular setup for running models, a web UI, vector search, RAG ingestion, and optional agent tooling.
+
+## What is included
+
+- Ollama for running local models.
+- Open WebUI for a browser-based chat interface.
+- Qdrant for vector search.
+- Postgres and Redis as optional supporting services.
+- Flowise for visual agent graphs.
+- OpenHands for an agentic coding workspace.
+- PDF ingestion and a simple RAG pipeline for indexing documents.
+- Local speech-to-text, text-to-speech, and OCR utilities.
+- Authelia authentication gateway for protected web access.
+
+## Quick start
+
+1) Copy the environment example.
+
+```bash
+cp .env.example .env
+```
+
+2) Start the full stack.
+
+```bash
+./bin/llm-up
+```
+
+3) Open the UI via the reverse proxy.
+
+Add these entries to your hosts file first:
+
+```
+127.0.0.1  llmstack.lan
+127.0.0.1  openwebui.llmstack.lan
+127.0.0.1  flowise.llmstack.lan
+127.0.0.1  openhands.llmstack.lan
+127.0.0.1  grafana.llmstack.lan
+127.0.0.1  nodered.llmstack.lan
+```
+
+Then open:
+
+- Landing page: https://llmstack.lan/
+- Authelia login: https://llmstack.lan/authelia/
+- Open WebUI: https://openwebui.llmstack.lan/
+- Flowise: https://flowise.llmstack.lan/
+- OpenHands: https://openhands.llmstack.lan/
+- Grafana: https://grafana.llmstack.lan/
+- Node-RED: https://nodered.llmstack.lan/
+
+You will be prompted to log in via Authelia. The first visit to each subdomain will
+also show a browser TLS warning because a self-signed cert is used for local HTTPS.
+
+## Access and ports
+
+All web access goes through the reverse proxy on ports 80/443. Use the URLs above to
+reach each service after logging in. Internal services and databases are not exposed
+on host ports by default.
+
+The following components are job-style services, not web UIs:
+
+- RAG pipeline: run on demand to index content.
+- PDF ingestion: run on demand to convert PDFs to markdown.
+- Python runner: run one-off scripts and maintenance tasks.
+- STT, TTS, OCR: run on demand using the helper scripts.
+
+The landing page at https://llmstack.lan/ provides links to the protected UIs after
+you authenticate. Authelia only handles login and redirects; it does not provide a
+service menu.
+
+## Python toolbox
+
+The python-toolbox container is a CLI-first environment for running scripts under
+`python-toolbox/app`. The python-api container uses the same image but serves a
+FastAPI surface on port 8000 for Node-RED or Flowise triggers.
+
+Build the image:
+
+```bash
+docker compose -f compose/docker-compose.yml build python-toolbox
+```
+
+Start the toolbox container and exec into it:
+
+```bash
+docker compose -f compose/docker-compose.yml up -d python-toolbox
+docker compose -f compose/docker-compose.yml exec python-toolbox bash
+```
+
+Start the API container:
+
+```bash
+docker compose -f compose/docker-compose.yml up -d python-api
+```
+
+Example script runs:
+
+```bash
+python /app/scripts/plc_poll/poll_plc.py
+python /app/scripts/rag_ingest/ingest_folder.py
+python /app/scripts/db_tools/healthcheck.py
+```
+
+See `python-toolbox/README.md` for environment variables and usage notes.
+
+### Ports you may need to change
+
+These services publish host ports for local access. Change the host side of the
+mapping if the port is already in use.
+
+- Reverse proxy: `80` for all web UIs via the gateway.
+- Forgejo web UI: `3000` for the local git server.
+- Forgejo SSH: `2222` for git over SSH.
+- Python API: `8000` for FastAPI triggers.
+- Qdrant: `6333` for local debugging.
+- Postgres: `5432` for local admin tools.
+- Redis: `6379` for local debugging.
+
+### Persistent data and reset behavior
+
+Named volumes store service data across restarts. Removing a volume deletes that
+service data. Bind mounts under `workspace/` and `workspaces/` are local folders and
+can be cleaned by deleting their contents.
+
+- Named volumes include `ollama_data`, `openwebui_data`, `qdrant_data`,
+  `postgres_data`, `redis_data`, `flowise_data`, `openhands_data`, `prometheus_data`,
+  `grafana_data`, and `forgejo_data`.
+- `docker compose down` keeps named volumes.
+- `docker compose down -v` removes named volumes, which wipes stored data.
+- The `workspaces/` folder is safe to delete when you want a clean OpenHands workspace.
+
+If you run Ollama on bare metal, keep port `11434` available on the host and point
+`OLLAMA_BASE_URL` to `http://localhost:11434` in `.env`. The Ollama container does not
+publish a host port by default. If you need to expose the container port, add a ports
+mapping in `compose/ollama/docker-compose.yml`.
+
+## Local Git
+
+This stack includes an optional Forgejo service for local git hosting. Forgejo is a
+lightweight, self-contained server that works well in homelab and air-gapped setups.
+
+- Web UI: http://localhost:3000
+- SSH: port 2222
+
+If these ports are in use, update the port mappings in
+`compose/forgejo/docker-compose.yml`.
+
+Start it with:
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/forgejo/docker-compose.yml \
+  up -d
+```
+
+See `docs/git-local.md` for setup and backup details.
+
+## OpenHands Workspace
+
+The workspace container provides a safe play area for OpenHands and CLI tools. It
+mounts `./workspaces` to `/workspace` and runs as a non-root user.
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/workspace/docker-compose.yml \
+  up -d
+```
+
+See `docs/workspace-container.md` for guardrails and reset guidance.
+
+## Workspace convention
+
+The ingestion pipeline uses a shared workspace directory in the repo root:
+
+- `workspace/ingest/` for PDFs or markdown you want to ingest.
+- `workspace/processed/` for cleaned markdown output.
+- `workspace/indexed/` for markers or logs.
+
+These folders are gitignored. Create them when needed:
+
+```bash
+mkdir -p workspace/ingest workspace/processed workspace/indexed
+```
+
+## Common tasks
+
+Run PDF ingestion:
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/pdf-ingest/docker-compose.yml \
+  run --rm pdf-ingest
+```
+
+Run the RAG pipeline (Ollama + Qdrant + ingestion job):
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/ollama/docker-compose.yml \
+  -f compose/qdrant/docker-compose.yml \
+  up -d
+
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/rag-pipeline/docker-compose.yml \
+  run --rm rag-pipeline
+```
+
+Run a Python one-off job:
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/python-runner/docker-compose.yml \
+  run --rm python-runner python /app/main.py
+```
+
+Start only Flowise:
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/flowise/docker-compose.yml \
+  up -d
+```
+
+Install speech and OCR models:
+
+```bash
+./bin/models-pull
+```
+
+Run a speech-to-text example:
+
+```bash
+./bin/stt-transcribe sample.wav
+```
+
+Place `sample.wav` in `workspace/audio/in/` before running the command.
+
+## Documentation
+
+See the docs for details:
+
+- `docs/10-install.md`
+- `docs/30-rag.md`
+- `docs/40-agents.md`
+- `docs/50-media.md`
+- `docs/60-auth.md`
+- `docs/70-nodered.md`
+- `docs/git-local.md`
+- `docs/workspace-container.md`
+- `docs/runbooks/bringup.md`
+
+## Future hopes
+
+The following items are planned but not complete yet. Each has a placeholder folder under `roadmap/` to track work.
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Landing page | Work in progress | Simple UI that links to all protected web apps. |
+| Backups | Work in progress | Backup and restore guidance for persistent data. |
+| CI tests | Work in progress | Automated compose validation and lint checks. |
+
+### Normal chat (no RAG)
+
+```
+[Browser]
+   |
+   v
+[Reverse Proxy] ---&gt; [Auth Gateway]
+   |                    |
+   |&lt;---- session -------|
+   v
+(trigger: user types message)
+        &#226;†“
+[Reverse Proxy + Auth Gateway]
+(always-on)
+        &#226;†“
+[Open WebUI]
+   |
+   v
+[Ollama]  (LLM inference)
+(always-on UI)
+        &#226;†“
+[Ollama]
+(always-on LLM inference)
+        &#226;†“
+[Open WebUI]
+(response rendered)
+        &#226;†“
+[Browser]
+```
+
+### Ask questions over your docs (RAG query-time)
+
+```
+[Browser]
+   |
+   v
+[Reverse Proxy] ---&gt; [Auth Gateway]
+   |
+   v
+[Flowise UI / Flowise API]  (reasoning graph)
+   |
+   | 1) retrieve context
+   v
+[Qdrant]  (vectors + payload)
+   |
+   | 2) generate answer with context
+   v
+[Ollama]  (LLM)
+   |
+   v
+[Flowise returns answer]
+   |
+   v
+(trigger: user asks question)
+        &#226;†“
+[Reverse Proxy + Auth Gateway]
+(always-on)
+        &#226;†“
+[Flowise UI / API]
+(always-on reasoning graph)
+        &#226;†“ retrieve context
+[Qdrant]
+(always-on vector store)
+        &#226;†“ context + question
+[Ollama]
+(always-on LLM)
+        &#226;†“ answer
+[Flowise]
+(reasoning output)
+        &#226;†“
+[Browser]
+```
+
+### Drop a PDF, automatically OCR it, index it, then it&#226;€™s searchable (RAG ingestion)
+
+```
+[You drop PDF]
+into workspace/ingest/
+      |
+      | OCR
+      v
+[OCR Service]  (text extraction)
+      |
+      | write markdown
+      v
+workspace/processed/
+      |
+      | chunk + embed
+      v
+[RAG Pipeline]
+      |
+      | optional metadata
+      v
+[Postgres]  (doc index status, logs, etc.)
+```
+
+### Voice note &#226;†’ transcript &#226;†’ (optional) answer &#226;†’ spoken reply
+
+```
+[Audio file]
+workspace/audio/in/
+      |
+      | STT
+      v
+[STT Service]  -------------&gt; workspace/audio/out/transcript.txt
+      |
+      | optional RAG query
+      v
+[Flowise]
+      |
+      | TTS
+      v
+[TTS Service] -----------------&gt; workspace/audio/out/reply.wav
+```
+
+### If something breaks, tell me (alerts + dashboards)
+
+```
+[All services/jobs emit metrics]
+        |
+        v
+   [Prometheus]  (scrapes /metrics)
+        |
+        v
+    [Grafana]  (dashboards)
+        ^
+        |
+[Node-RED] (job status + alerts)
+        |
+        +----&gt; [Discord webhook]  (notify)
+```
+
+```
+[Job success / failure]
+(trigger: event)
+        &#226;†“
+[Node-RED]
+(always-on)
+        &#226;†“
+[Discord / Webhook]
+(notification)
+        &#226;†“
+[Prometheus]
+(metrics)
+        &#226;†“+----&gt; [Discord webhook]  (notify)
+[Grafana]
+(dashboard)
+```
+
+### OpenHands for repo work (guarded, not exposed)
+
+```
+[Browser]
+   |
+   v
+[Reverse Proxy] ---&gt; [Auth Gateway]
+   |
+   v
+[OpenHands]
+   |
+   v
+[Workspace]
+   |
+   | (optional calls)
+   v
+[Ollama]  (local model)  and/or  [Flowise API] (agent logic)
+```
+
+### Audio file drop pipeline
+
+```
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 1) LOAD AUDIO              &#226;”‚
+&#226;”‚ You drop file into:        &#226;”‚
+&#226;”‚ workspace/audio/in/        &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+        |
+        v
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 2) TRANSCRIBE              &#226;”‚
+&#226;”‚ STT writes transcript to:  &#226;”‚
+&#226;”‚ workspace/audio/out/       &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+        |
+        v
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 3) OPTIONAL RAG            &#226;”‚
+&#226;”‚ Flowise queries Qdrant and &#226;”‚
+&#226;”‚ Ollama for an answer       &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+        |
+        v
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 4) SUMMARIZE               &#226;”‚
+&#226;”‚ Outputs:                   &#226;”‚
+&#226;”‚ - meeting.summary.md       &#226;”‚
+&#226;”‚ - meeting.summary.json     &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+```
+
+### Audio File API Pipeline
+
+```
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 1) LOAD AUDIO              &#226;”‚
+&#226;”‚ Browser upload / API post  &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+        |
+        v
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 2) TRANSCRIBE              &#226;”‚
+&#226;”‚ STT + diarization          &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+        |
+        v
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 3) ENRICH                  &#226;”‚
+&#226;”‚ Summarize + extract tasks  &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+        |
+        v
+&#226;”Œ&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”
+&#226;”‚ 4) STORE                   &#226;”‚
+&#226;”‚ Store (Postgres/Qdrant)    &#226;”‚
+&#226;”‚ + return status to browser &#226;”‚
+&#226;””&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”€&#226;”˜
+```
+
+#### Output schema
+
+```
+{
+  &quot;title&quot;: &quot;Meeting summary&quot;,
+  &quot;summary&quot;: &quot;...&quot;,
+  &quot;action_items&quot;: [&quot;...&quot;],
+  &quot;key_quotes&quot;: [&quot;...&quot;],
+  &quot;tags&quot;: [&quot;work&quot;, &quot;controls&quot;, &quot;project-x&quot;]
+}
+```
+
+### Scheduled RAG quality evaluation
+
+```
+[Scheduled trigger]
+(cron / timer)
+        &#226;†“
+[Node-RED]
+(always-on scheduler)
+        &#226;†“
+[Python Evaluation Job]
+(on-demand batch)
+        &#226;†“ test queries
+[Flowise]
+(reasoning with RAG)
+        &#226;†“
+[Ollama]
+(LLM answers)
+        &#226;†“ metrics
+[Postgres]
+        &#226;†“
+[Prometheus]
+        &#226;†“
+[Grafana]
+```
+
+### Knowledge distillation (compress old data)
+
+```
+[Scheduled trigger]
+        &#226;†“
+[Node-RED]
+        &#226;†“ select old content
+[Python Job]
+(chunk + select)
+        &#226;†“
+[Flowise]
+(distill concepts)
+        &#226;†“
+[Ollama]
+        &#226;†“ summaries
+[Qdrant]
+(store distilled vectors)
+```
+
+### Log ingestion &#226;†’ anomaly explanation
+
+```
+[System logs]
+(trigger: file append)
+        &#226;†“
+[Node-RED]
+        &#226;†“
+[Python Log Parser]
+        &#226;†“
+[Flowise]
+(anomaly reasoning)
+        &#226;†“
+[Ollama]
+(explanation)
+        &#226;†“
+[Postgres + Grafana]
+```
+</pre>
+      </section>
+    </main>
+  </body>
+</html>

@@ -23,6 +23,8 @@ compose_files=(
   "${repo_root}/compose/ocr/docker-compose.yml"
   "${repo_root}/compose/pdf-ingest/docker-compose.yml"
   "${repo_root}/compose/rag-pipeline/docker-compose.yml"
+  "${repo_root}/compose/pgadmin/docker-compose.yml"
+  "${repo_root}/compose/redisinsight/docker-compose.yml"
 )
 
 args=()

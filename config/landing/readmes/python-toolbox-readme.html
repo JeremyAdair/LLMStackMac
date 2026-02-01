@@ -1,4 +1,25 @@
-# Python toolbox
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python Toolbox README</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Python Toolbox README</h1>
+      </header>
+
+      <section class="links">
+        <a class="button" href="/docs.html">Back to Docs</a>
+        <a class="button" href="/python-api.html">Back to Python API</a>
+        <a class="button" href="/">Back to Landing</a>
+      </section>
+
+      <section class="note">
+        <pre style="white-space: pre-wrap;"># Python toolbox
 
 This directory provides a Dockerized Python toolbox for CLI scripts and an optional
 FastAPI surface for job triggers from Node-RED or Flowise.
@@ -85,15 +106,15 @@ python-toolbox:
   build:
     context: ../python-toolbox
     dockerfile: Dockerfile
-  command: ["sleep", "infinity"]
+  command: [&quot;sleep&quot;, &quot;infinity&quot;]
   volumes:
     - ../python-toolbox/app:/app
 
 python-api:
   image: llmstack/python-toolbox:local
-  command: ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+  command: [&quot;uvicorn&quot;, &quot;api.app:app&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8000&quot;]
   ports:
-    - "8000:8000"
+    - &quot;8000:8000&quot;
   volumes:
     - ../python-toolbox/app:/app
 ```
@@ -102,4 +123,8 @@ python-api:
 
 - Run a single polling loop per PLC. Multiple pollers cause noisy data and extra load.
 - Use Redis as a shared cache for current values.
-- If you enable Postgres writes, ensure indexes match your query patterns.
+- If you enable Postgres writes, ensure indexes match your query patterns.</pre>
+      </section>
+    </main>
+  </body>
+</html>
