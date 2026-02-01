@@ -30,17 +30,35 @@ cp .env.example .env
 
 3) Open the UI via the reverse proxy.
 
-- Open WebUI: http://localhost/
-- Flowise: http://localhost/flowise/
-- OpenHands: http://localhost/openhands/
-- Grafana: http://localhost/grafana/
-- Node-RED: http://localhost/nodered/
+Add these entries to your hosts file first:
 
-You will be prompted to log in via the authentication gateway.
+```
+127.0.0.1  llmstack.lan
+127.0.0.1  openwebui.llmstack.lan
+127.0.0.1  flowise.llmstack.lan
+127.0.0.1  openhands.llmstack.lan
+127.0.0.1  grafana.llmstack.lan
+127.0.0.1  nodered.llmstack.lan
+```
+
+Then open:
+
+- Landing page: https://llmstack.lan/
+- Authelia login: https://llmstack.lan/authelia/
+- Open WebUI: https://openwebui.llmstack.lan/
+- Flowise: https://flowise.llmstack.lan/
+- OpenHands: https://openhands.llmstack.lan/
+- Grafana: https://grafana.llmstack.lan/
+- Node-RED: https://nodered.llmstack.lan/
+
+You will be prompted to log in via Authelia. The first visit to each subdomain will
+also show a browser TLS warning because a self-signed cert is used for local HTTPS.
 
 ## Access and ports
 
-All web access goes through the reverse proxy on port 80. Use the URLs above to configure each service after logging in. Internal services and databases are not exposed on host ports by default.
+All web access goes through the reverse proxy on ports 80/443. Use the URLs above to
+reach each service after logging in. Internal services and databases are not exposed
+on host ports by default.
 
 The following components are job-style services, not web UIs:
 
@@ -49,7 +67,9 @@ The following components are job-style services, not web UIs:
 - Python runner: run one-off scripts and maintenance tasks.
 - STT, TTS, OCR: run on demand using the helper scripts.
 
-If you want a single page with links to the UIs, bookmark this README or create your own landing page. The authentication gateway only handles login and redirects; it does not provide a menu of services.
+The landing page at https://llmstack.lan/ provides links to the protected UIs after
+you authenticate. Authelia only handles login and redirects; it does not provide a
+service menu.
 
 ## Python toolbox
 
