@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python Scripts</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        --bg: #f6f5f2;
+        --panel: #ffffff;
+        --accent: #1a4b9a;
+        --text: #1b1b1b;
+        --muted: #5a5a5a;
+        --border: #d7d2c8;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        padding: 20px 28px;
+        background: linear-gradient(120deg, #e8ddc4, #d0e0ff);
+        border-bottom: 1px solid var(--border);
+      }
+      header h1 {
+        margin: 0 0 6px 0;
+        font-size: 24px;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+      }
+      main {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 18px;
+        padding: 20px 28px 28px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      label {
+        font-weight: 600;
+      }
+      select,
+      input,
+      textarea,
+      button {
+        font: inherit;
+      }
+      select,
+      input,
+      textarea {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        background: #fff;
+      }
+      button {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #526070;
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      .list {
+        margin-top: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        max-height: 420px;
+        overflow: auto;
+      }
+      .list-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+      }
+      .list-item:hover {
+        background: #f3f5fb;
+      }
+      .list-item:last-child {
+        border-bottom: none;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 240px;
+        margin-top: 8px;
+      }
+      pre {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 12px;
+        border-radius: 8px;
+        min-height: 160px;
+        overflow: auto;
+      }
+      .badge {
+        font-size: 12px;
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: #e2e8f0;
+      }
+      @media (max-width: 900px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Python Scripts</h1>
+      <p>Manage and run scripts from the toolbox and repo bin folder.</p>
+    </header>
+    <main>
+      <section class="panel">
+        <div class="row">
+          <label for="rootSelect">Root</label>
+          <select id="rootSelect"></select>
+          <button class="secondary" id="refreshBtn">Refresh</button>
+          <button class="ghost" id="upBtn">Up</button>
+        </div>
+        <p class="muted" id="rootInfo"></p>
+        <div class="list" id="fileList"></div>
+        <div class="row" style="margin-top: 12px;">
+          <input type="file" id="fileInput" />
+          <button id="uploadBtn">Upload</button>
+          <button class="secondary" id="mkdirBtn">New Folder</button>
+          <button class="secondary" id="deleteBtn">Delete</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="row">
+          <span class="badge" id="selectedPath">No file selected</span>
+          <button id="saveBtn">Save</button>
+          <button class="secondary" id="runBtn">Run</button>
+        </div>
+        <textarea id="editor" placeholder="Select a file to view or edit..."></textarea>
+        <div style="margin-top: 12px;">
+          <label for="argsInput">Args (JSON array)</label>
+          <input id="argsInput" placeholder='["--flag", "value"]' />
+        </div>
+        <h3>Output</h3>
+        <pre id="output"></pre>
+      </section>
+    </main>
+
+    <script>
+      const apiBase = "";
+      const rootSelect = document.getElementById("rootSelect");
+      const rootInfo = document.getElementById("rootInfo");
+      const fileList = document.getElementById("fileList");
+      const refreshBtn = document.getElementById("refreshBtn");
+      const upBtn = document.getElementById("upBtn");
+      const fileInput = document.getElementById("fileInput");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const mkdirBtn = document.getElementById("mkdirBtn");
+      const deleteBtn = document.getElementById("deleteBtn");
+      const selectedPath = document.getElementById("selectedPath");
+      const editor = document.getElementById("editor");
+      const saveBtn = document.getElementById("saveBtn");
+      const runBtn = document.getElementById("runBtn");
+      const output = document.getElementById("output");
+      const argsInput = document.getElementById("argsInput");
+
+      let currentRoot = "app";
+      let currentPath = "";
+      let selectedFile = "";
+      let currentEntries = [];
+
+      function updateRunState() {
+        const canRun = currentRoot === "app" && selectedFile.endsWith(".py");
+        runBtn.disabled = !canRun;
+        runBtn.title = canRun
+          ? "Run the selected script"
+          : "Execution only enabled for .py scripts under app root";
+      }
+
+      function showOutput(text) {
+        output.textContent = text;
+      }
+
+      async function loadRoots() {
+        const res = await fetch(`${apiBase}/scripts/roots`);
+        const data = await res.json();
+        rootSelect.innerHTML = "";
+        Object.keys(data).forEach((key) => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = `${key} (${data[key].path})`;
+          rootSelect.appendChild(option);
+        });
+        currentRoot = rootSelect.value;
+      }
+
+      async function loadList() {
+        const url = new URL(`${apiBase}/scripts/list`, window.location.origin);
+        url.searchParams.set("root", currentRoot);
+        if (currentPath) {
+          url.searchParams.set("path", currentPath);
+        }
+        const res = await fetch(url.toString());
+        const data = await res.json();
+        rootInfo.textContent = `Path: ${data.path || "."}`;
+        fileList.innerHTML = "";
+        currentEntries = data.entries || [];
+        currentEntries.forEach((entry) => {
+          const div = document.createElement("div");
+          div.className = "list-item";
+          div.innerHTML = `<span>${entry.type === "dir" ? "📁" : "📄"} ${entry.name}</span>
+                           <span class="muted">${entry.type}</span>`;
+          div.onclick = () => onEntryClick(entry);
+          fileList.appendChild(div);
+        });
+      }
+
+      async function onEntryClick(entry) {
+        if (entry.type === "dir") {
+          currentPath = entry.path;
+          selectedFile = "";
+        selectedPath.textContent = "No file selected";
+        editor.value = "";
+        updateRunState();
+        await loadList();
+        return;
+      }
+        selectedFile = entry.path;
+        selectedPath.textContent = entry.path;
+        const url = new URL(`${apiBase}/scripts/view`, window.location.origin);
+        url.searchParams.set("root", currentRoot);
+        url.searchParams.set("path", entry.path);
+        const res = await fetch(url.toString());
+        const data = await res.json();
+        editor.value = data.content || "";
+        updateRunState();
+      }
+
+      refreshBtn.onclick = async () => {
+        await loadList();
+      };
+
+      rootSelect.onchange = async (event) => {
+        currentRoot = event.target.value;
+        currentPath = "";
+        selectedFile = "";
+        editor.value = "";
+        updateRunState();
+        await loadList();
+      };
+
+      upBtn.onclick = async () => {
+        if (!currentPath) return;
+        const parts = currentPath.split("/").filter(Boolean);
+        parts.pop();
+        currentPath = parts.join("/");
+        await loadList();
+      };
+
+      uploadBtn.onclick = async () => {
+        if (!fileInput.files.length) return;
+        const form = new FormData();
+        form.append("root", currentRoot);
+        form.append("path", currentPath || "");
+        form.append("file", fileInput.files[0]);
+        const res = await fetch(`${apiBase}/scripts/upload`, {
+          method: "POST",
+          body: form,
+        });
+        if (!res.ok) {
+          showOutput("Upload failed");
+          return;
+        }
+        fileInput.value = "";
+        await loadList();
+      };
+
+      mkdirBtn.onclick = async () => {
+        const name = prompt("Folder name?");
+        if (!name) return;
+        const res = await fetch(`${apiBase}/scripts/mkdir`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            root: currentRoot,
+            path: currentPath ? `${currentPath}/${name}` : name,
+          }),
+        });
+        if (!res.ok) {
+          showOutput("Folder create failed");
+          return;
+        }
+        await loadList();
+      };
+
+      deleteBtn.onclick = async () => {
+        if (!selectedFile) {
+          alert("Select a file first.");
+          return;
+        }
+        if (!confirm(`Delete ${selectedFile}?`)) return;
+        const url = new URL(`${apiBase}/scripts/delete`, window.location.origin);
+        url.searchParams.set("root", currentRoot);
+        url.searchParams.set("path", selectedFile);
+        const res = await fetch(url.toString(), { method: "DELETE" });
+        if (!res.ok) {
+          showOutput("Delete failed");
+          return;
+        }
+        selectedFile = "";
+        selectedPath.textContent = "No file selected";
+        editor.value = "";
+        updateRunState();
+        await loadList();
+      };
+
+      saveBtn.onclick = async () => {
+        if (!selectedFile) {
+          alert("Select a file first.");
+          return;
+        }
+        if (currentRoot !== "app" || !selectedFile.endsWith(".py")) {
+          alert("Execution is only enabled for .py scripts under app.");
+          return;
+        }
+        const res = await fetch(`${apiBase}/scripts/save`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            root: currentRoot,
+            path: selectedFile,
+            content: editor.value,
+          }),
+        });
+        if (!res.ok) {
+          showOutput("Save failed");
+          return;
+        }
+        showOutput("Saved.");
+      };
+
+      runBtn.onclick = async () => {
+        if (!selectedFile) {
+          alert("Select a file first.");
+          return;
+        }
+        let args = [];
+        if (argsInput.value.trim()) {
+          try {
+            args = JSON.parse(argsInput.value);
+          } catch (err) {
+            alert("Args must be valid JSON array.");
+            return;
+          }
+        }
+        const res = await fetch(`${apiBase}/scripts/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            root: currentRoot,
+            path: selectedFile,
+            args,
+            timeout_sec: 60,
+          }),
+        });
+        const data = await res.json();
+        const outputText = [
+          `Command: ${data.cmd ? data.cmd.join(" ") : ""}`,
+          `Return code: ${data.returncode ?? "?"}`,
+          "",
+          "STDOUT:",
+          data.stdout || "",
+          "",
+          "STDERR:",
+          data.stderr || "",
+        ].join("\n");
+        showOutput(outputText);
+      };
+
+      async function init() {
+        await loadRoots();
+        updateRunState();
+        await loadList();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
