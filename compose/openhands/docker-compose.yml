@@ -1,13 +1,5 @@
 services:
   openhands:
-    image: ghcr.io/openhands-ai/openhands:latest
-    environment:
-      # Serve OpenHands under a path on the reverse proxy.
-      OPENHANDS_BASE_PATH: ${OPENHANDS_BASE_PATH:-/openhands}
-    volumes:
-      # Persist OpenHands state and mount the workspace.
-      - openhands_data:/var/lib/openhands
-      - ../../workspace:/workspace
     image: ${OPENHANDS_IMAGE:-docker.all-hands.dev/all-hands-ai/openhands:0.54}
     environment:
       # Serve OpenHands under a path on the reverse proxy.
@@ -23,4 +15,3 @@ services:
     expose:
       # Internal-only port; reverse proxy publishes it.
       - "3000"
-

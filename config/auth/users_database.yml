@@ -3,8 +3,8 @@
 #   docker run --rm authelia/authelia:latest authelia hash-password --password "your-password"
 users:
   admin:
-    displayname: "Example Admin"
-    password: "$argon2id$v=19$m=65536,t=3,p=4$c29tZXNhbHQ$9Q1K38E3mZKZk6k5Vg4e9Z6Yc4t4NYkK7Q5QGgZ0C8E"
+    displayname: "LLM Stack"
+    password: "$argon2id$v=19$m=65536,t=3,p=4$daUTS9rw/sDajivvt5TBtA$JDInaNTIiBJ+GrsORUeM/8uE1Y5YCNALVpRSIxDqOuM"
     email: admin@example.local
     groups:
       - admins

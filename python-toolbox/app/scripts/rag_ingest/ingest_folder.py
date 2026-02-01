@@ -93,7 +93,7 @@ def ingest_once() -> dict:
         if cfg.qdrant_collection in collections:
             existing = client.retrieve(
                 collection_name=cfg.qdrant_collection,
-                ids=[f\"{content_hash}:0\"],
+                ids=[f"{content_hash}:0"],
             )
             if existing:
                 skipped_files += 1
