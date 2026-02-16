@@ -1,6 +1,8 @@
 services:
   ollama:
     image: ollama/ollama:latest
+    cpus: "${OLLAMA_CPUS:-6.0}"
+    mem_limit: "${OLLAMA_MEM_LIMIT:-16g}"
     # Expose only on the internal network by default.
     expose:
       - "11434"
