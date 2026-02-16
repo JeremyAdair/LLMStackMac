@@ -4,6 +4,12 @@ services:
     environment:
       USER_UID: ${FORGEJO_UID:-1000}
       USER_GID: ${FORGEJO_GID:-1000}
+      FORGEJO__server__DOMAIN: forgejo.llmstack.lan
+      FORGEJO__server__ROOT_URL: https://forgejo.llmstack.lan/
+      FORGEJO__server__PROTOCOL: http
+      FORGEJO__server__HTTP_PORT: 3000
+      FORGEJO__server__SSH_DOMAIN: forgejo.llmstack.lan
+      FORGEJO__server__SSH_PORT: 2222
     volumes:
       # Git server storage. Delete this volume only if you intend to wipe all repos.
       - forgejo_data:/data

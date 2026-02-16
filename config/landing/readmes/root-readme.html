@@ -71,7 +71,7 @@ Then open:
 - OpenHands: https://openhands.llmstack.lan/
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
-- Forgejo: http://localhost:3000
+- Forgejo: https://forgejo.llmstack.lan/
 
 You will be prompted to log in via Authelia. The first visit to each subdomain will
 also show a browser TLS warning because a self-signed cert is used for local HTTPS.
@@ -164,7 +164,7 @@ mapping in `compose/ollama/docker-compose.yml`.
 This stack includes a Forgejo service for local git hosting. Forgejo is a
 lightweight, self-contained server that works well in homelab and air-gapped setups.
 
-- Web UI: http://localhost:3000
+- Web UI: https://forgejo.llmstack.lan/
 - SSH: port 2222
 
 If these ports are in use, update the port mappings in
