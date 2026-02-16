@@ -15,4 +15,3 @@ orjson
 python-dateutil
 fastapi
 uvicorn
-python-multipart

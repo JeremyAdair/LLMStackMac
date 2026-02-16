@@ -41,3 +41,44 @@ h1 {
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+body.troll {
+  font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+  background: radial-gradient(circle at top, #3b0d4a 0%, #12081f 45%, #050507 100%);
+  color: #fef3c7;
+}
+
+.troll-stage {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  margin-top: 24px;
+}
+
+.middle-finger {
+  font-size: 160px;
+  line-height: 1;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  animation: troll-shake 1.6s infinite ease-in-out;
+}
+
+.troll-gif {
+  width: min(420px, 90%);
+  border-radius: 12px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+}
+
+.actions {
+  margin-top: 8px;
+}
+
+@keyframes troll-shake {
+  0%,
+  100% {
+    transform: rotate(-3deg) scale(1);
+  }
+  50% {
+    transform: rotate(3deg) scale(1.05);
+  }
+}
