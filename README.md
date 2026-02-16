@@ -50,6 +50,7 @@ Then open:
 - OpenHands: https://openhands.llmstack.lan/
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
+- Forgejo: http://localhost:3000
 
 You will be prompted to log in via Authelia. The first visit to each subdomain will
 also show a browser TLS warning because a self-signed cert is used for local HTTPS.
@@ -64,7 +65,7 @@ The following components are job-style services, not web UIs:
 
 - RAG pipeline: run on demand to index content.
 - PDF ingestion: run on demand to convert PDFs to markdown.
-- Python runner: run one-off scripts and maintenance tasks.
+- Python toolbox: run one-off scripts and maintenance tasks.
 - STT, TTS, OCR: run on demand using the helper scripts.
 
 The landing page at https://llmstack.lan/ provides links to the protected UIs after
@@ -139,7 +140,7 @@ mapping in `compose/ollama/docker-compose.yml`.
 
 ## Local Git
 
-This stack includes an optional Forgejo service for local git hosting. Forgejo is a
+This stack includes a Forgejo service for local git hosting. Forgejo is a
 lightweight, self-contained server that works well in homelab and air-gapped setups.
 
 - Web UI: http://localhost:3000
@@ -148,13 +149,13 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 If these ports are in use, update the port mappings in
 `compose/forgejo/docker-compose.yml`.
 
-Start it with:
+`./bin/llm-up` starts Forgejo with the rest of the stack. To start only Forgejo:
 
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
   -f compose/forgejo/docker-compose.yml \
-  up -d
+  up -d forgejo
 ```
 
 See `docs/git-local.md` for setup and backup details.
@@ -218,8 +219,7 @@ Run a Python one-off job:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/python-runner/docker-compose.yml \
-  run --rm python-runner python /app/main.py
+  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 ```
 
 Start only Flowise:
@@ -258,6 +258,12 @@ See the docs for details:
 - `docs/git-local.md`
 - `docs/workspace-container.md`
 - `docs/runbooks/bringup.md`
+
+Regenerate landing-page README mirrors:
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/generate-landing-readmes.ps1
+```
 
 ## Future hopes
 

@@ -7,6 +7,8 @@ services:
     environment:
       # Open WebUI should talk to Ollama through the internal network.
       OLLAMA_BASE_URL: http://ollama:11434
+      # Keep signup available for initial local account bootstrap.
+      ENABLE_SIGNUP: "true"
     depends_on:
       - ollama
     volumes:

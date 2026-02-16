@@ -13,11 +13,11 @@ compose_files=(
   "${repo_root}/compose/reverse-proxy/docker-compose.yml"
   "${repo_root}/compose/monitoring/docker-compose.yml"
   "${repo_root}/compose/flowise/docker-compose.yml"
+  "${repo_root}/compose/forgejo/docker-compose.yml"
   "${repo_root}/compose/openhands/docker-compose.yml"
   "${repo_root}/compose/auth/docker-compose.yml"
   "${repo_root}/compose/node-red/docker-compose.yml"
   "${repo_root}/compose/landing/docker-compose.yml"
-  "${repo_root}/compose/python-runner/docker-compose.yml"
   "${repo_root}/compose/stt/docker-compose.yml"
   "${repo_root}/compose/tts/docker-compose.yml"
   "${repo_root}/compose/ocr/docker-compose.yml"
@@ -37,4 +37,4 @@ if [[ -f "${repo_root}/.env" ]]; then
   env_file_arg=(--env-file "${repo_root}/.env")
 fi
 
-docker compose "${env_file_arg[@]}" "${args[@]}" down
+docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" down

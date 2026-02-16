@@ -1,6 +1,6 @@
 # Speech and OCR Services
 
-This document explains how to use the local STT (speech-to-text), TTS (text-to-speech), OCR, and the Python job runner.
+This document explains how to use the local STT (speech-to-text), TTS (text-to-speech), OCR, and the Python toolbox.
 
 ## Model storage and why it is gitignored
 
@@ -102,7 +102,7 @@ Smoke test:
 test -f workspace/ocr/out/sample.txt
 ```
 
-## Python job runner
+## Python toolbox jobs
 
 Purpose: Run one-off scripts and pipelines inside a controlled container.
 
@@ -111,13 +111,11 @@ Example commands:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/python-runner/docker-compose.yml \
-  run --rm python-runner python /app/main.py
+  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/python-runner/docker-compose.yml \
-  run --rm python-runner python /scripts/rag_pipeline/ingest.py
+  run --rm python-toolbox python /app/scripts/rag_ingest/ingest_folder.py
 ```
 
 Smoke test:
@@ -125,6 +123,5 @@ Smoke test:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/python-runner/docker-compose.yml \
-  run --rm python-runner python /app/main.py
+  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 ```

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -83,8 +83,8 @@ web UI can show both the toolbox scripts and the repo scripts.
 
 To add a new script to the API:
 
-1) Put your script or helper in `python-toolbox/app/scripts/<your_area>/`.
-2) Add an endpoint in `python-toolbox/app/api/routes_<your_area>.py`.
+1) Put your script or helper in `python-toolbox/app/scripts/&lt;your_area&gt;/`.
+2) Add an endpoint in `python-toolbox/app/api/routes_&lt;your_area&gt;.py`.
 3) Register the router in `python-toolbox/app/api/app.py`.
 
 Example pattern:
@@ -122,7 +122,7 @@ Notes:
 
 - Execution is only enabled for scripts under `python-toolbox/app/scripts/`.
 - The `/host-bin` mount is for viewing and editing only.
-- Use JSON array syntax in the UI to pass args (example: `["--flag", "value"]`).
+- Use JSON array syntax in the UI to pass args (example: `[&quot;--flag&quot;, &quot;value&quot;]`).
 
 ## Exec into the toolbox and run scripts
 
@@ -189,7 +189,8 @@ python-api:
 
 - Run a single polling loop per PLC. Multiple pollers cause noisy data and extra load.
 - Use Redis as a shared cache for current values.
-- If you enable Postgres writes, ensure indexes match your query patterns.</pre>
+- If you enable Postgres writes, ensure indexes match your query patterns.
+</pre>
       </section>
     </main>
   </body>

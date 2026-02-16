@@ -43,16 +43,16 @@ If you build file-watching automations, use the shared workspace directories und
 Node-RED can call internal services by service name on the Docker network:
 
 - Ollama: `http://ollama:11434`
-- Python job runner: run a container via `docker compose run` (see below)
+- Python API: `http://python-api:8000`
 - Flowise: `http://flowise:3000`
 - OpenHands: `http://openhands:3000`
 
 ## Trigger a Python job from Node-RED
 
-Use an "exec" node to run:
+Use an HTTP Request node to call:
 
 ```bash
-docker compose -f compose/docker-compose.yml -f compose/python-runner/docker-compose.yml run --rm python-runner python /scripts/rag_pipeline/ingest.py
+POST http://python-api:8000/rag/ingest_once
 ```
 
 ## Secrets and credentials

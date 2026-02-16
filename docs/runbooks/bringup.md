@@ -238,8 +238,7 @@ docker compose \
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/python-runner/docker-compose.yml \
-  run --rm python-runner python /app/main.py
+  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 ```
 
 ## Step 19: Stop Node-RED (optional)
