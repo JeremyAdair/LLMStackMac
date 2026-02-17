@@ -6,7 +6,8 @@ services:
       NODE_RED_PORT: ${NODE_RED_PORT:-1880}
       NODE_RED_ENABLE_SAFE_MODE: ${NODE_RED_ENABLE_SAFE_MODE:-false}
     volumes:
-      - ../data/node-red:/data
+      # Persist flows, credentials, and installed nodes on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/node-red/data:/data
     networks:
       - llm-stack
     expose:

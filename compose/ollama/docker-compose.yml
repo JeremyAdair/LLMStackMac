@@ -7,7 +7,7 @@ services:
     expose:
       - "11434"
     volumes:
-      # Persist downloaded models. Removing the volume deletes cached models.
-      - ollama_data:/root/.ollama
+      # Persist downloaded models and blobs on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/ollama/data:/root/.ollama
     networks:
       - llm-stack

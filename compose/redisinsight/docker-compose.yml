@@ -4,6 +4,7 @@ services:
     ports:
       - "5540:5540"
     volumes:
-      - redisinsight_data:/data
+      # Persist RedisInsight connections/workspace state on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/redisinsight/data:/data
     networks:
       - llm-stack

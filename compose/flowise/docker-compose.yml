@@ -10,12 +10,10 @@ services:
       # Serve Flowise under a path on the reverse proxy.
       FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/}
     volumes:
-      # Persist Flowise configuration and data.
-      - flowise_data:/root/.flowise
+      # Persist Flowise DB, chatflows, credentials, and uploads on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/flowise/data:/root/.flowise
       # Host bind mount for drop-in PDFs on Windows.
-      - type: bind
-        source: "C:\\llm-stack\\pdfs"
-        target: /data/pdfs
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs:/data/pdfs
     networks:
       - llm-stack
     depends_on:
@@ -32,9 +30,8 @@ services:
       FLOWISE_INGEST_STOP_NODE_ID: ${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}
       PDF_WATCH_DIR: /data/pdfs
     volumes:
-      - type: bind
-        source: "C:\\llm-stack\\pdfs"
-        target: /data/pdfs
+      # Watch host drop folder directly.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs:/data/pdfs
       - ./flowise/scripts:/scripts:ro
     command:
       - /bin/sh

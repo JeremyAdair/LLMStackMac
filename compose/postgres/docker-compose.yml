@@ -11,8 +11,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmstack}
       POSTGRES_DB: ${POSTGRES_DB:-llmstack}
     volumes:
-      # Persist database data between restarts. Removing the volume deletes data.
-      - postgres_data:/var/lib/postgresql/data
+      # Persist PostgreSQL database files on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/postgres/data:/var/lib/postgresql/data
     networks:
       - llm-stack
     healthcheck:

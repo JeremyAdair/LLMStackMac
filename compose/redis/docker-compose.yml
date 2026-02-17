@@ -1,13 +1,14 @@
 services:
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
     # Expose for local debugging; internal services use the network name.
     ports:
       # Change the host port if 6379 is in use.
       - "6379:6379"
     volumes:
-      # Persist Redis data if needed. Removing the volume clears cached state.
-      - redis_data:/data
+      # Persist Redis AOF/RDB state on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/redis/data:/data
     networks:
       - llm-stack
     healthcheck:

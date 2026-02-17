@@ -11,8 +11,8 @@ services:
       FORGEJO__server__SSH_DOMAIN: forgejo.llmstack.lan
       FORGEJO__server__SSH_PORT: 2222
     volumes:
-      # Git server storage. Delete this volume only if you intend to wipe all repos.
-      - forgejo_data:/data
+      # Persist repos, users, issues, and Forgejo config on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/forgejo/data:/data
     ports:
       # Web UI for Forgejo. Change the host port if 3000 is in use.
       - "3000:3000"

@@ -4,10 +4,10 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      # Use the local Prometheus config file and persist metrics.
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+      # Host-managed Prometheus config.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Persist Prometheus TSDB metrics data on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/data:/prometheus
     networks:
       - llm-stack
 
@@ -20,8 +20,10 @@ services:
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost/grafana/}
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
-      # Persist Grafana dashboards and settings.
-      - grafana_data:/var/lib/grafana
+      # Persist Grafana database/dashboards/settings on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/data:/var/lib/grafana
+      # Optional provisioning from host (datasources/dashboards).
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
     networks:

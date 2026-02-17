@@ -12,7 +12,7 @@ services:
     depends_on:
       - ollama
     volumes:
-      # Persist Open WebUI configuration and data.
-      - openwebui_data:/app/backend/data
+      # Persist Open WebUI users, chats, files, and settings on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/openwebui/data:/app/backend/data
     networks:
       - llm-stack
