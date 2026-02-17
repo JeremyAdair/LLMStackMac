@@ -6,10 +6,30 @@ services:
       OPENHANDS_BASE_PATH: ${OPENHANDS_BASE_PATH:-/openhands}
       # Sandbox runtime image used for agent sessions.
       SANDBOX_RUNTIME_CONTAINER_IMAGE: ${OPENHANDS_RUNTIME_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik}
+      # Recommended runtime mount configuration for sandbox containers.
+      SANDBOX_VOLUMES: ${OPENHANDS_SANDBOX_VOLUMES:-/mnt/c/llm-stack/repos:/workspace:rw}
+      # Attach sandbox sessions to the shared stack network for forgejo/ollama DNS access.
+      SANDBOX_ADDITIONAL_NETWORKS: ${OPENHANDS_SANDBOX_NETWORKS:-["llm-stack_llm-stack"]}
+      # Persist OpenHands state inside mounted storage.
+      OH_PERSISTENCE_DIR: /.openhands
+      # Optional model backend configuration.
+      LLM_MODEL: ${OPENHANDS_LLM_MODEL:-}
+      LLM_BASE_URL: ${OPENHANDS_LLM_BASE_URL:-}
+      LLM_API_KEY: ${OPENHANDS_LLM_API_KEY:-}
+      # Repo defaults and git identity for agent sessions.
+      FORGEJO_BASE_URL: ${FORGEJO_BASE_URL:-http://forgejo:3000}
+      FORGEJO_OWNER: ${FORGEJO_OWNER:-}
+      FORGEJO_REPO: ${FORGEJO_REPO:-}
+      FORGEJO_TOKEN: ${FORGEJO_TOKEN:-}
+      GIT_USER_NAME: ${GIT_USER_NAME:-}
+      GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
     volumes:
-      # Persist OpenHands state and mount the workspace.
-      - openhands_data:/var/lib/openhands
-      - ../workspace:/workspace
+      # Docker socket is required for OpenHands runtime containers.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Persist OpenHands state and session metadata on host.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/openhands/state:/.openhands
+      # Host-visible workspace for repositories and edits.
+      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/repos:/workspace
     networks:
       - llm-stack
     expose:
