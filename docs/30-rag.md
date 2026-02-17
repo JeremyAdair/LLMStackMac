@@ -1,6 +1,6 @@
 # Retrieval-Augmented Generation (RAG)
 
-This stack ships with a simple ingestion pipeline that turns markdown into embeddings using Ollama and stores vectors in Qdrant.
+This stack ships with a simple ingestion pipeline that turns markdown into embeddings using Ollama and stores vectors in Qdrant. It also supports Flowise-driven PDF auto-ingest from a Windows bind mount.
 
 ## Workspace layout
 
@@ -26,6 +26,37 @@ docker compose \
 ```
 
 The output markdown files will land in `workspace/processed/`.
+
+## Flowise PDF auto-ingest (Windows bind mount)
+
+Flowise can ingest PDFs by watching a host folder directly (no `docker cp`):
+
+- Host path: `C:\llm-stack\pdfs`
+- Container path: `/data/pdfs`
+
+Set these values in `.env`:
+
+```env
+FLOWISE_URL=http://flowise:3000
+FLOWISE_INGEST_CHATFLOW_ID=<your_ingestion_chatflow_id>
+FLOWISE_INGEST_STOP_NODE_ID=qdrant_0
+```
+
+Start Flowise + watcher:
+
+```bash
+docker compose \
+  -f compose/docker-compose.yml \
+  -f compose/ollama/docker-compose.yml \
+  -f compose/flowise/docker-compose.yml \
+  up -d flowise pdf-auto-ingest
+```
+
+Drop PDFs into `C:\llm-stack\pdfs`. The watcher uploads them to Flowise vector upsert and logs progress via:
+
+```bash
+docker logs -f llm-stack-pdf-auto-ingest-1
+```
 
 ## RAG pipeline ingestion
 

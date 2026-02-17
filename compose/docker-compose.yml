@@ -53,4 +53,5 @@ volumes:
   forgejo_data:
   pgadmin_data:
   redisinsight_data:
+  pdf_drop_data:
   # Removing a volume here or running `docker compose down -v` deletes its data.

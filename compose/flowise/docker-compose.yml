@@ -12,6 +12,10 @@ services:
     volumes:
       # Persist Flowise configuration and data.
       - flowise_data:/root/.flowise
+      # Host bind mount for drop-in PDFs on Windows.
+      - type: bind
+        source: "C:\\llm-stack\\pdfs"
+        target: /data/pdfs
     networks:
       - llm-stack
     depends_on:
@@ -19,3 +23,23 @@ services:
     expose:
       # Internal-only port; reverse proxy publishes it.
       - "3000"
+
+  pdf-auto-ingest:
+    image: alpine:3.20
+    environment:
+      FLOWISE_URL: ${FLOWISE_URL:-http://flowise:3000}
+      FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-}
+      FLOWISE_INGEST_STOP_NODE_ID: ${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}
+      PDF_WATCH_DIR: /data/pdfs
+    volumes:
+      - type: bind
+        source: "C:\\llm-stack\\pdfs"
+        target: /data/pdfs
+      - ./flowise/scripts:/scripts:ro
+    command:
+      - /bin/sh
+      - /scripts/pdf-auto-ingest.sh
+    networks:
+      - llm-stack
+    depends_on:
+      - flowise

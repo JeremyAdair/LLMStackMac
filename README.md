@@ -66,6 +66,7 @@ The following components are job-style services, not web UIs:
 
 - RAG pipeline: run on demand to index content.
 - PDF ingestion: run on demand to convert PDFs to markdown.
+- Flowise PDF auto-ingest: optional watcher for PDFs dropped into a bind-mounted host folder.
 - Python toolbox: run one-off scripts and maintenance tasks.
 - STT, TTS, OCR: run on demand using the helper scripts.
 
@@ -133,6 +134,7 @@ can be cleaned by deleting their contents.
 - `docker compose down` keeps named volumes.
 - `docker compose down -v` removes named volumes, which wipes stored data.
 - The `workspaces/` folder is safe to delete when you want a clean OpenHands workspace.
+- Flowise PDF drop folder uses a Windows bind mount: `C:\llm-stack\pdfs` -> `/data/pdfs`.
 
 If you run Ollama on bare metal, keep port `11434` available on the host and point
 `OLLAMA_BASE_URL` to `http://localhost:11434` in `.env`. The Ollama container does not
@@ -183,10 +185,21 @@ The ingestion pipeline uses a shared workspace directory in the repo root:
 - `workspace/processed/` for cleaned markdown output.
 - `workspace/indexed/` for markers or logs.
 
+Flowise auto-ingest uses a separate host bind mount path:
+
+- Host (Windows): `C:\llm-stack\pdfs`
+- Container path: `/data/pdfs`
+
 These folders are gitignored. Create them when needed:
 
 ```bash
 mkdir -p workspace/ingest workspace/processed workspace/indexed
+```
+
+Create the Windows bind-mount folder for Flowise PDF drop-in:
+
+```powershell
+New-Item -ItemType Directory -Force C:\llm-stack\pdfs
 ```
 
 ## Common tasks
@@ -228,9 +241,21 @@ Start only Flowise:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
+  -f compose/ollama/docker-compose.yml \
   -f compose/flowise/docker-compose.yml \
   up -d
 ```
+
+Configure Flowise auto-ingest watcher in `.env`:
+
+```env
+FLOWISE_URL=http://flowise:3000
+FLOWISE_INGEST_CHATFLOW_ID=<your_ingestion_chatflow_id>
+FLOWISE_INGEST_STOP_NODE_ID=qdrant_0
+```
+
+When configured, PDFs dropped into `C:\llm-stack\pdfs` are picked up automatically,
+sent to Flowise vector upsert, and logged to stdout by `pdf-auto-ingest`.
 
 Install speech and OCR models:
 
