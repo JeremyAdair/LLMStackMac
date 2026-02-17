@@ -2,6 +2,14 @@
 
 LLMStack is a self-hosted local LLM stack built around Docker Compose. It provides a modular setup for running models, a web UI, vector search, RAG ingestion, and optional agent tooling.
 
+## Recent updates
+
+- Forgejo is now routed through the reverse proxy at `https://forgejo.llmstack.lan/`.
+- Flowise supports Windows PDF drop-in via bind mount: `C:\llm-stack\pdfs` -> `/data/pdfs`.
+- Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise.
+- Rebuilt Flowise PDF ingestion and retrieval chatflows with current node wiring for latest Flowise compatibility.
+- OpenWebUI API proxy auth handling was adjusted to prevent chat timeout/500 issues.
+
 ## What is included
 
 - Ollama for running local models.
@@ -256,6 +264,9 @@ FLOWISE_INGEST_STOP_NODE_ID=qdrant_0
 
 When configured, PDFs dropped into `C:\llm-stack\pdfs` are picked up automatically,
 sent to Flowise vector upsert, and logged to stdout by `pdf-auto-ingest`.
+
+If Flowise opens a blank screen after updates, hard refresh (`Ctrl+F5`) or open
+Flowise in an incognito window once to clear stale frontend state.
 
 Install speech and OCR models:
 

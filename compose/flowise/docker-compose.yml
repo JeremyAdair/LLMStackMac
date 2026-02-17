@@ -8,7 +8,7 @@ services:
       FLOWISE_USERNAME: ${FLOWISE_USERNAME:-}
       FLOWISE_PASSWORD: ${FLOWISE_PASSWORD:-}
       # Serve Flowise under a path on the reverse proxy.
-      FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/flowise}
+      FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/}
     volumes:
       # Persist Flowise configuration and data.
       - flowise_data:/root/.flowise
@@ -28,7 +28,7 @@ services:
     image: alpine:3.20
     environment:
       FLOWISE_URL: ${FLOWISE_URL:-http://flowise:3000}
-      FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-}
+      FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-f2f4fce2-9c7d-4ca6-8fd7-6c4b0c97f111}
       FLOWISE_INGEST_STOP_NODE_ID: ${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}
       PDF_WATCH_DIR: /data/pdfs
     volumes:
