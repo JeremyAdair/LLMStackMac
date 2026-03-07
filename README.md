@@ -22,6 +22,34 @@ LLMStack is a self-hosted local LLM stack built around Docker Compose. It provid
 - Local speech-to-text, text-to-speech, and OCR utilities.
 - Authelia authentication gateway for protected web access.
 
+## Container roles
+
+Use this as a quick reference for what each service does and whether you usually need it running.
+
+| Service | Purpose | Typical need |
+|---|---|---|
+| `reverse-proxy` | Single web entrypoint on 80/443, routes to all UIs. | Core |
+| `auth` (Authelia) | Login + access control in front of protected routes. | Core |
+| `landing` | Landing page with links to stack tools. | Optional |
+| `open-webui` | Main chat UI for local LLM use. | Core |
+| `ollama` | Model runtime/backend for local inference. | Core |
+| `qdrant` | Vector database for RAG and embeddings search. | Core for RAG |
+| `flowise` | Visual workflow/agent builder and API flows. | Optional |
+| `pdf-auto-ingest` | Watches PDF folder and auto-upserts to Flowise/RAG. | Optional |
+| `python-api` | FastAPI endpoints for automation scripts and jobs. | Optional |
+| `python-toolbox` | Interactive script/runtime container (`exec` into it). | Optional |
+| `postgres` | Relational DB used by optional components/workflows. | Optional |
+| `redis` | Cache/queue support used by optional components/workflows. | Optional |
+| `node-red` | Low-code automation and orchestration. | Optional |
+| `prometheus` | Metrics scraping and storage. | Optional |
+| `grafana` | Metrics dashboards (reads from Prometheus). | Optional |
+| `pgadmin` | UI admin tool for Postgres. | Optional |
+| `redisinsight` | UI admin tool for Redis. | Optional |
+| `forgejo` | Self-hosted Git service for local repos/collaboration. | Optional |
+| `openhands` | Agentic coding workspace service. | Optional |
+
+Job-style services are run on demand rather than left up all the time (RAG pipeline, PDF ingest jobs, STT, TTS, OCR).
+
 ## Quick start
 
 1) Copy the environment example.

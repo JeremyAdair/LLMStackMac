@@ -17,8 +17,6 @@ services:
       - ${PDF_DROP_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs}:/data/pdfs
     networks:
       - llm-stack
-    depends_on:
-      - ollama
     expose:
       # Internal-only port; reverse proxy publishes it.
       - "3000"

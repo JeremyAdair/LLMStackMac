@@ -9,8 +9,6 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
       # Keep signup available for initial local account bootstrap.
       ENABLE_SIGNUP: "true"
-    depends_on:
-      - ollama
     volumes:
       # Persist Open WebUI users, chats, files, and settings on host.
       # For macOS, set OPENWEBUI_DATA_MOUNT=openwebui_data in env overrides.

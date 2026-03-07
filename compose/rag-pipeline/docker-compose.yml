@@ -21,7 +21,6 @@ services:
     networks:
       - llm-stack
     depends_on:
-      - ollama
       - qdrant
     profiles:
       # Use a profile so this runs only when called explicitly.

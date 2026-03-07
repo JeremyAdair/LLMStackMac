@@ -41,4 +41,9 @@ if [[ -f "${repo_root}/.env" ]]; then
   env_file_arg=(--env-file "${repo_root}/.env")
 fi
 
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" up -d
+cmd=(docker compose --project-name llm-stack)
+if [[ ${#env_file_arg[@]} -gt 0 ]]; then
+  cmd+=("${env_file_arg[@]}")
+fi
+
+"${cmd[@]}" "${args[@]}" up -d
