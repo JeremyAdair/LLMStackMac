@@ -1,10 +1,11 @@
 services:
   redisinsight:
-    image: redis/redisinsight:latest
+    image: redis/redisinsight@sha256:55542a762210bb1cd681410282642bac0970f780f39bc134565394a81b1f1fd9
     ports:
       - "5540:5540"
     volumes:
       # Persist RedisInsight connections/workspace state on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/redisinsight/data:/data
+      # For macOS, set REDISINSIGHT_DATA_MOUNT=redisinsight_data in env overrides.
+      - ${REDISINSIGHT_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/redisinsight/data}:/data
     networks:
       - llm-stack

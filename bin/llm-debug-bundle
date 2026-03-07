@@ -2,6 +2,8 @@
 set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
+out_dir="${repo_root}/debug-bundles/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$out_dir"
 
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
@@ -37,8 +39,31 @@ for file in "${compose_files[@]}"; do
 done
 
 env_file_arg=()
-if [[ -f "${repo_root}/.env" ]]; then
+if [[ -f "${repo_root}/.env.mac" ]]; then
+  env_file_arg=(--env-file "${repo_root}/.env.mac")
+elif [[ -f "${repo_root}/.env" ]]; then
   env_file_arg=(--env-file "${repo_root}/.env")
 fi
 
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" up -d
+echo "Writing debug bundle to: $out_dir"
+
+{
+  echo "timestamp=$(date -Iseconds)"
+  echo "repo_root=$repo_root"
+  echo "cwd=$(pwd)"
+  echo "uname=$(uname -a 2>/dev/null || true)"
+} > "${out_dir}/meta.txt"
+
+docker version > "${out_dir}/docker-version.txt" 2>&1 || true
+docker info > "${out_dir}/docker-info.txt" 2>&1 || true
+docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" config > "${out_dir}/compose-config.yml" 2>&1 || true
+docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" ps > "${out_dir}/compose-ps.txt" 2>&1 || true
+docker ps -a > "${out_dir}/docker-ps-a.txt" 2>&1 || true
+docker volume ls > "${out_dir}/docker-volume-ls.txt" 2>&1 || true
+
+core_services=(reverse-proxy auth open-webui flowise ollama qdrant postgres redis forgejo grafana prometheus node-red pgadmin redisinsight openhands)
+for svc in "${core_services[@]}"; do
+  docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" logs --since 2h "$svc" > "${out_dir}/logs-${svc}.txt" 2>&1 || true
+done
+
+echo "Bundle complete: $out_dir"

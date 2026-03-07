@@ -27,8 +27,8 @@ compose_files=(
   "${repo_root}/compose/redisinsight/docker-compose.yml"
 )
 
-if grep -qi microsoft /proc/version 2>/dev/null; then
-  export LLMSTACK_HOST_ROOT="${LLMSTACK_HOST_ROOT:-/mnt/c/llm-stack}"
+if [[ -z "${LLMSTACK_HOST_ROOT:-}" ]] && grep -qi microsoft /proc/version 2>/dev/null; then
+  export LLMSTACK_HOST_ROOT="/mnt/c/llm-stack"
 fi
 
 args=()

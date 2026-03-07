@@ -1,29 +1,38 @@
 services:
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus@sha256:4a61322ac1103a0e3aea2a61ef1718422a48fa046441f299d71e660a3bc71ae9
+    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
       # Host-managed Prometheus config.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # For macOS, set PROMETHEUS_CONFIG_MOUNT=./monitoring/prometheus.yml in env overrides.
+      - ${PROMETHEUS_CONFIG_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/config/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
       # Persist Prometheus TSDB metrics data on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/data:/prometheus
+      # For macOS, set PROMETHEUS_DATA_MOUNT=prometheus_data in env overrides.
+      - ${PROMETHEUS_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/data}:/prometheus
     networks:
       - llm-stack
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana@sha256:b0ae311af06228bcfd4a620504b653db80f5b91e94dc3dc2a5b7dab202bcde20
+    restart: unless-stopped
     # Internal-only access through the reverse proxy.
     expose:
       - "3000"
     environment:
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost/grafana/}
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      # Optional comma-separated plugin list, for example:
+      # GRAFANA_INSTALL_PLUGINS=grafana-clock-panel
+      GF_INSTALL_PLUGINS: ${GRAFANA_INSTALL_PLUGINS:-}
     volumes:
       # Persist Grafana database/dashboards/settings on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/data:/var/lib/grafana
+      # For macOS, set GRAFANA_DATA_MOUNT=grafana_data in env overrides.
+      - ${GRAFANA_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/data}:/var/lib/grafana
       # Optional provisioning from host (datasources/dashboards).
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/provisioning:/etc/grafana/provisioning:ro
+      # For macOS, set GRAFANA_PROVISIONING_MOUNT=../config/grafana/provisioning in env overrides.
+      - ${GRAFANA_PROVISIONING_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/provisioning}:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
     networks:

@@ -1,18 +1,20 @@
 services:
   forgejo:
-    image: codeberg.org/forgejo/forgejo:1.21
+    image: codeberg.org/forgejo/forgejo@sha256:ea792343484a45f387b05540874aa0836fd0c251522f94d488f1df65faa1763e
     environment:
       USER_UID: ${FORGEJO_UID:-1000}
       USER_GID: ${FORGEJO_GID:-1000}
-      FORGEJO__server__DOMAIN: forgejo.llmstack.lan
-      FORGEJO__server__ROOT_URL: https://forgejo.llmstack.lan/
+      # Keep defaults for existing Windows flow; override in env for macOS/local domain changes.
+      FORGEJO__server__DOMAIN: ${FORGEJO_DOMAIN:-forgejo.llmstack.lan}
+      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-https://forgejo.llmstack.lan/}
       FORGEJO__server__PROTOCOL: http
       FORGEJO__server__HTTP_PORT: 3000
-      FORGEJO__server__SSH_DOMAIN: forgejo.llmstack.lan
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_DOMAIN:-forgejo.llmstack.lan}
       FORGEJO__server__SSH_PORT: 2222
     volumes:
       # Persist repos, users, issues, and Forgejo config on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/forgejo/data:/data
+      # For macOS, set FORGEJO_DATA_MOUNT=forgejo_data in env overrides.
+      - ${FORGEJO_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/forgejo/data}:/data
     ports:
       # Web UI for Forgejo. Change the host port if 3000 is in use.
       - "3000:3000"

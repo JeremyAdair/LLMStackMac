@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-log="/mnt/c/Users/jerem/LLMStack/salvage-copy-$(date +%Y%m%d-%H%M%S).log"
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+host_root="${LLMSTACK_HOST_ROOT:-/mnt/c/llm-stack}"
+log="${LOG_FILE:-${repo_root}/salvage-copy-$(date +%Y%m%d-%H%M%S).log}"
 
 copy_one() {
   local vol="$1"
@@ -17,14 +19,13 @@ copy_one() {
 
 {
   echo "Starting salvage copy $(date)"
-  copy_one llm-stack_flowise_data /mnt/c/llm-stack/flowise/data
-  copy_one llm-stack_forgejo_data /mnt/c/llm-stack/forgejo/data
-  copy_one llm-stack_grafana_data /mnt/c/llm-stack/grafana/data
-  copy_one llm-stack_postgres_data /mnt/c/llm-stack/postgres/data
-  copy_one llm-stack_prometheus_data /mnt/c/llm-stack/prometheus/data
-  copy_one llm-stack_qdrant_data /mnt/c/llm-stack/qdrant/data
+  copy_one llm-stack_flowise_data "${host_root}/flowise/data"
+  copy_one llm-stack_forgejo_data "${host_root}/forgejo/data"
+  copy_one llm-stack_grafana_data "${host_root}/grafana/data"
+  copy_one llm-stack_postgres_data "${host_root}/postgres/data"
+  copy_one llm-stack_prometheus_data "${host_root}/prometheus/data"
+  copy_one llm-stack_qdrant_data "${host_root}/qdrant/data"
   echo "Finished salvage copy $(date)"
 } | tee "$log"
 
 echo "$log"
-

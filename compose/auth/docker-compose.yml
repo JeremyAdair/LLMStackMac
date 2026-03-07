@@ -1,6 +1,6 @@
 services:
   auth:
-    image: authelia/authelia:latest
+    image: authelia/authelia@sha256:d23ee3c721d465b4749cc58541cda4aebe5aa6f19d7b5ce0afebb44ebee69591
     volumes:
       - ../config/auth:/config
       - ../data/auth:/data

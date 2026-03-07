@@ -36,6 +36,21 @@ cp .env.example .env
 ./bin/llm-up
 ```
 
+macOS first-run shortcut:
+
+```bash
+./bin/first-run-mac
+./bin/llm-up-mac
+./bin/llm-check-core
+```
+
+The mac helper starts a safe core set and intentionally skips OpenHands runtime (`--scale openhands=0`) plus STT/TTS/OCR until image sources are verified on your Mac.
+
+Cutover day runbook:
+
+- `MAC-CUTOVER-CHECKLIST.md`
+- `docs/AI-HANDOFF.md`
+
 3) Open the UI via the reverse proxy.
 
 Add these entries to your hosts file first:
@@ -48,6 +63,25 @@ Add these entries to your hosts file first:
 127.0.0.1  grafana.llmstack.lan
 127.0.0.1  nodered.llmstack.lan
 127.0.0.1  forgejo.llmstack.lan
+```
+
+Generate this block automatically:
+
+```bash
+./bin/hosts-entries
+```
+
+macOS hosts file path: `/etc/hosts`
+
+```bash
+sudo nano /etc/hosts
+```
+
+After saving on macOS, flush DNS cache:
+
+```bash
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
 ```
 
 Then open:
@@ -211,6 +245,18 @@ New-Item -ItemType Directory -Force C:\llm-stack\pdfs
 ```
 
 ## Common tasks
+
+Live logs for real debugging:
+
+```bash
+SINCE=2h ./bin/llm-logs reverse-proxy auth open-webui flowise
+```
+
+Incident bundle (snapshot everything useful):
+
+```bash
+./bin/llm-debug-bundle
+```
 
 Run PDF ingestion:
 

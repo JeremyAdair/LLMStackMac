@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
+since="${SINCE:-30m}"
 
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
@@ -37,8 +38,17 @@ for file in "${compose_files[@]}"; do
 done
 
 env_file_arg=()
-if [[ -f "${repo_root}/.env" ]]; then
+if [[ -f "${repo_root}/.env.mac" ]]; then
+  env_file_arg=(--env-file "${repo_root}/.env.mac")
+elif [[ -f "${repo_root}/.env" ]]; then
   env_file_arg=(--env-file "${repo_root}/.env")
 fi
 
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" up -d
+if [[ "$#" -eq 0 ]]; then
+  echo "Usage: bin/llm-logs <service...>"
+  echo "Example: bin/llm-logs reverse-proxy auth open-webui"
+  echo "Optional: SINCE=2h bin/llm-logs flowise"
+  exit 1
+fi
+
+docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" logs --since "$since" -f "$@"

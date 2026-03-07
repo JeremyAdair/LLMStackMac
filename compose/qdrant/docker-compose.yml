@@ -1,12 +1,13 @@
 services:
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant@sha256:f1c7272cdac52b38c1a0e89313922d940ba50afd90d593a1605dbbc214e66ffb
     # Expose for local debugging; internal services use the network name.
     ports:
       # Change the host port if 6333 is in use.
       - "6333:6333"
     volumes:
       # Persist vector index and payload data on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/qdrant/data:/qdrant/storage
+      # For macOS, set QDRANT_DATA_MOUNT=qdrant_data in env overrides.
+      - ${QDRANT_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/qdrant/data}:/qdrant/storage
     networks:
       - llm-stack

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Prints hosts-file lines for local reverse-proxy access.
+# Override defaults with:
+#   LLMSTACK_DOMAIN=llmstack.lan LLMSTACK_HOSTS_IP=127.0.0.1 ./bin/hosts-entries
+
+domain="${LLMSTACK_DOMAIN:-llmstack.lan}"
+ip="${LLMSTACK_HOSTS_IP:-127.0.0.1}"
+
+cat <<EOF
+# LLMStack local hostnames
+${ip} ${domain}
+${ip} openwebui.${domain}
+${ip} flowise.${domain}
+${ip} openhands.${domain}
+${ip} grafana.${domain}
+${ip} nodered.${domain}
+${ip} forgejo.${domain}
+EOF

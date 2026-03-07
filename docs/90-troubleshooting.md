@@ -2,6 +2,19 @@
 
 Common issues and fixes for the LLMStack.
 
+## First response playbook
+
+When things are broken, run these first:
+
+```bash
+./bin/llm-status
+./bin/llm-doctor
+SINCE=2h ./bin/llm-logs reverse-proxy auth open-webui flowise
+./bin/llm-debug-bundle
+```
+
+`llm-debug-bundle` writes a timestamped folder under `debug-bundles/` that you can share for deep troubleshooting.
+
 ## Ports already in use
 
 Symptoms:
@@ -51,10 +64,7 @@ Fix:
 - Inspect logs for the container.
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  logs ollama
+SINCE=2h ./bin/llm-logs ollama
 ```
 
 ## Qdrant not reachable from Flowise
@@ -71,6 +81,12 @@ docker compose \
   -f compose/docker-compose.yml \
   -f compose/qdrant/docker-compose.yml \
   exec -it qdrant curl -f http://localhost:6333/collections
+```
+
+Also check Flowise + reverse-proxy logs together:
+
+```bash
+SINCE=2h ./bin/llm-logs flowise reverse-proxy
 ```
 
 ## Ollama model download or disk full
@@ -97,6 +113,24 @@ Fix:
 ```bash
 mkdir -p workspace/ingest workspace/processed workspace/indexed
 chmod -R u+rwX workspace
+```
+
+## macOS migration gotchas
+
+Symptoms:
+- Works on Windows but fails on Mac.
+
+Fix:
+- Confirm hosts entries are present: `./bin/hosts-entries`
+- Confirm DNS flushed on macOS:
+  - `sudo dscacheutil -flushcache`
+  - `sudo killall -HUP mDNSResponder`
+- Confirm env file in use (`.env.mac`) has required auth secrets.
+- Run:
+
+```bash
+./bin/llm-doctor
+./bin/llm-debug-bundle
 ```
 
 ## README not rendering

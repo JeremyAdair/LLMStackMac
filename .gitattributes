@@ -1,0 +1,15 @@
+# Normalize text files to LF in repo to avoid shell shebang issues on Unix/macOS.
+* text=auto eol=lf
+
+# Shell / automation
+bin/* text eol=lf
+*.sh text eol=lf
+Makefile text eol=lf
+
+# Compose / config
+*.yml text eol=lf
+*.yaml text eol=lf
+*.env text eol=lf
+
+# PowerShell
+*.ps1 text eol=lf

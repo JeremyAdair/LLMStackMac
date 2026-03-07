@@ -1,6 +1,6 @@
 services:
   ocr:
-    image: jitesoft/tesseract-ocr:latest
+    image: jitesoft/tesseract-ocr@sha256:dee7fa08797af4a07acb41a2c985ec6ce4e4121afa87dd12d361c040bc5334c1
     volumes:
       - ../workspace:/workspace
     networks:

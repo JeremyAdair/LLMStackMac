@@ -5,6 +5,7 @@ FLOWISE_URL="${FLOWISE_URL:-http://flowise:3000}"
 FLOWISE_INGEST_CHATFLOW_ID="${FLOWISE_INGEST_CHATFLOW_ID:-}"
 FLOWISE_INGEST_STOP_NODE_ID="${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}"
 PDF_WATCH_DIR="${PDF_WATCH_DIR:-/data/pdfs}"
+FLOWISE_WAIT_MAX_SECONDS="${FLOWISE_WAIT_MAX_SECONDS:-120}"
 
 if [ -z "$FLOWISE_INGEST_CHATFLOW_ID" ]; then
   echo "pdf-auto-ingest: FLOWISE_INGEST_CHATFLOW_ID is empty; watcher will not start"
@@ -15,6 +16,21 @@ apk add --no-cache inotify-tools curl >/dev/null
 mkdir -p "$PDF_WATCH_DIR/processed" "$PDF_WATCH_DIR/failed"
 
 INGEST_URL="$FLOWISE_URL/api/v1/vector/internal-upsert/$FLOWISE_INGEST_CHATFLOW_ID"
+
+wait_for_flowise() {
+  i=0
+  while [ "$i" -lt "$FLOWISE_WAIT_MAX_SECONDS" ]; do
+    if curl -fsS "$FLOWISE_URL" >/dev/null 2>&1; then
+      echo "pdf-auto-ingest: Flowise reachable at $FLOWISE_URL"
+      return 0
+    fi
+    i=$((i+1))
+    sleep 1
+  done
+
+  echo "pdf-auto-ingest: Flowise did not become ready within ${FLOWISE_WAIT_MAX_SECONDS}s"
+  return 1
+}
 
 ingest_file() {
   file="$1"
@@ -49,6 +65,7 @@ ingest_file() {
 }
 
 echo "pdf-auto-ingest: watching $PDF_WATCH_DIR for new PDFs"
+wait_for_flowise
 
 # Ingest any existing PDFs first.
 for f in "$PDF_WATCH_DIR"/*.pdf "$PDF_WATCH_DIR"/*.PDF; do

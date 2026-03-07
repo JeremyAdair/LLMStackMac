@@ -1,13 +1,15 @@
 services:
   node-red:
-    image: nodered/node-red:latest
+    image: nodered/node-red@sha256:cf2d5657f12faebffaf1cea10203f277a2445434dec6a997212080ec0080f6c5
+    restart: unless-stopped
     environment:
       NODE_RED_HOST: ${NODE_RED_HOST:-localhost}
       NODE_RED_PORT: ${NODE_RED_PORT:-1880}
       NODE_RED_ENABLE_SAFE_MODE: ${NODE_RED_ENABLE_SAFE_MODE:-false}
     volumes:
       # Persist flows, credentials, and installed nodes on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/node-red/data:/data
+      # For macOS, set NODERED_DATA_MOUNT=nodered_data in env overrides.
+      - ${NODERED_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/node-red/data}:/data
     networks:
       - llm-stack
     expose:

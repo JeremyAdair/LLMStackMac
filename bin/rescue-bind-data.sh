@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+if [[ -z "${BASH_VERSINFO:-}" || "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  echo "ERROR: bin/rescue-bind-data.sh requires bash 4+ (mapfile/associative arrays)." >&2
+  echo "Install modern bash and run with it (for example: /opt/homebrew/bin/bash on macOS)." >&2
+  exit 1
+fi
+
 # Recover data from older container filesystems into new host bind mounts.
 # Safe by default: no deletes, no overwrite unless explicitly approved.
 
@@ -196,4 +202,3 @@ for service in "${!CURRENT_BY_SERVICE[@]}"; do
 done
 
 log "Rescue completed."
-

@@ -117,6 +117,20 @@ This stack uses a reverse proxy on port 80. Access by LAN hostname or IP:
 
 If you want a friendly hostname, add a DNS entry or edit your LAN device hosts file to map a name to your server IP.
 
+For local macOS Docker Desktop usage with the default `llmstack.lan` domains:
+
+```bash
+./bin/hosts-entries
+sudo nano /etc/hosts
+```
+
+Add the generated lines, then flush DNS:
+
+```bash
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
+```
+
 ### Keep secrets out of git
 
 - Store secrets only in `.env` and `secrets/` (both are gitignored).

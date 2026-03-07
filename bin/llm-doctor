@@ -1,4 +1,94 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "llm-doctor: not yet implemented"
+repo_root=$(git rev-parse --show-toplevel)
+
+compose_files=(
+  "${repo_root}/compose/docker-compose.yml"
+  "${repo_root}/compose/ollama/docker-compose.yml"
+  "${repo_root}/compose/open-webui/docker-compose.yml"
+  "${repo_root}/compose/qdrant/docker-compose.yml"
+  "${repo_root}/compose/postgres/docker-compose.yml"
+  "${repo_root}/compose/redis/docker-compose.yml"
+  "${repo_root}/compose/reverse-proxy/docker-compose.yml"
+  "${repo_root}/compose/monitoring/docker-compose.yml"
+  "${repo_root}/compose/flowise/docker-compose.yml"
+  "${repo_root}/compose/forgejo/docker-compose.yml"
+  "${repo_root}/compose/openhands/docker-compose.yml"
+  "${repo_root}/compose/auth/docker-compose.yml"
+  "${repo_root}/compose/node-red/docker-compose.yml"
+  "${repo_root}/compose/landing/docker-compose.yml"
+  "${repo_root}/compose/stt/docker-compose.yml"
+  "${repo_root}/compose/tts/docker-compose.yml"
+  "${repo_root}/compose/ocr/docker-compose.yml"
+  "${repo_root}/compose/pdf-ingest/docker-compose.yml"
+  "${repo_root}/compose/rag-pipeline/docker-compose.yml"
+  "${repo_root}/compose/pgadmin/docker-compose.yml"
+  "${repo_root}/compose/redisinsight/docker-compose.yml"
+)
+
+if [[ -z "${LLMSTACK_HOST_ROOT:-}" ]] && grep -qi microsoft /proc/version 2>/dev/null; then
+  export LLMSTACK_HOST_ROOT="/mnt/c/llm-stack"
+fi
+
+args=()
+for file in "${compose_files[@]}"; do
+  args+=("-f" "$file")
+done
+
+env_file_arg=()
+if [[ -f "${repo_root}/.env.mac" ]]; then
+  env_file_arg=(--env-file "${repo_root}/.env.mac")
+elif [[ -f "${repo_root}/.env" ]]; then
+  env_file_arg=(--env-file "${repo_root}/.env")
+fi
+
+echo "== LLMStack Doctor =="
+echo "repo: $repo_root"
+echo
+
+echo "[1/6] Tooling"
+command -v docker >/dev/null || { echo "ERROR: docker not found in PATH"; exit 1; }
+docker version >/dev/null
+echo "OK docker reachable"
+echo
+
+echo "[2/6] Compose render"
+docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" config >/dev/null
+echo "OK compose config renders"
+echo
+
+echo "[3/6] Container status"
+docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" ps
+echo
+
+echo "[4/6] Quick HTTP checks"
+check_url() {
+  local label="$1"
+  local url="$2"
+  local insecure="${3:-0}"
+  local code=""
+  if [[ "$insecure" == "1" ]]; then
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" "$url" || true)
+  else
+    code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || true)
+  fi
+  printf "%-36s %-40s %s\n" "$label" "$url" "${code:-ERR}"
+}
+
+check_url "landing" "https://llmstack.lan/" 1
+check_url "open-webui" "https://openwebui.llmstack.lan/" 1
+check_url "flowise" "https://flowise.llmstack.lan/" 1
+check_url "forgejo" "https://forgejo.llmstack.lan/" 1
+check_url "grafana" "https://grafana.llmstack.lan/" 1
+check_url "nodered" "https://nodered.llmstack.lan/" 1
+check_url "qdrant" "http://localhost:6333/collections" 0
+check_url "prometheus" "http://localhost:9090/-/ready" 0
+echo
+
+echo "[5/6] Restarting containers"
+docker ps --filter "label=com.docker.compose.project=llm-stack" --format '{{.Names}} {{.Status}}' | grep -i restarting || true
+echo
+
+echo "[6/6] Next step"
+echo "If something is off, run: ./bin/llm-debug-bundle"

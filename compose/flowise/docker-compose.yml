@@ -1,6 +1,6 @@
 services:
   flowise:
-    image: flowiseai/flowise:latest
+    image: flowiseai/flowise@sha256:c8aa4b4cb910a7b1aa56c4eb30cd41a67002400d84b1289f09c0a6b276b416c3
     environment:
       # Flowise talks to Ollama over the internal network.
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
@@ -11,9 +11,10 @@ services:
       FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/}
     volumes:
       # Persist Flowise DB, chatflows, credentials, and uploads on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/flowise/data:/root/.flowise
-      # Host bind mount for drop-in PDFs on Windows.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs:/data/pdfs
+      # For macOS, set FLOWISE_DATA_MOUNT=flowise_data in env overrides.
+      - ${FLOWISE_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/flowise/data}:/root/.flowise
+      # For macOS, set PDF_DROP_MOUNT=../data/pdfs in env overrides.
+      - ${PDF_DROP_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs}:/data/pdfs
     networks:
       - llm-stack
     depends_on:
@@ -23,7 +24,7 @@ services:
       - "3000"
 
   pdf-auto-ingest:
-    image: alpine:3.20
+    image: alpine@sha256:a4f4213abb84c497377b8544c81b3564f313746700372ec4fe84653e4fb03805
     environment:
       FLOWISE_URL: ${FLOWISE_URL:-http://flowise:3000}
       FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-f2f4fce2-9c7d-4ca6-8fd7-6c4b0c97f111}
@@ -31,7 +32,7 @@ services:
       PDF_WATCH_DIR: /data/pdfs
     volumes:
       # Watch host drop folder directly.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs:/data/pdfs
+      - ${PDF_DROP_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs}:/data/pdfs
       - ./flowise/scripts:/scripts:ro
     command:
       - /bin/sh

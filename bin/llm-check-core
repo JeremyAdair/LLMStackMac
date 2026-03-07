@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+checks=(
+  "https://llmstack.lan/"
+  "https://openwebui.llmstack.lan/"
+  "https://flowise.llmstack.lan/"
+  "https://grafana.llmstack.lan/"
+  "https://nodered.llmstack.lan/"
+  "https://forgejo.llmstack.lan/"
+  "http://localhost:6333/collections"
+  "http://localhost:5050/"
+  "http://localhost:5540/"
+)
+
+for url in "${checks[@]}"; do
+  if [[ "$url" == https://* ]]; then
+    code=$(curl -k -s -o /dev/null -w "%{http_code}" "$url" || true)
+  else
+    code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || true)
+  fi
+  printf "%-45s %s\n" "$url" "$code"
+done
+

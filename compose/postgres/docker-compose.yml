@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres@sha256:fceb6f86328c36f2438fae3b851b0cc57c4a7e69a58c866d9ce24281f2cf0c9c
     # Expose for local admin tools; internal services use the network name.
     ports:
       # Change the host port if 5432 is in use.
@@ -12,7 +12,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-llmstack}
     volumes:
       # Persist PostgreSQL database files on host.
-      - ${LLMSTACK_HOST_ROOT:-C:/llm-stack}/postgres/data:/var/lib/postgresql/data
+      # For macOS, set POSTGRES_DATA_MOUNT=postgres_data in env overrides.
+      - ${POSTGRES_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/postgres/data}:/var/lib/postgresql/data
     networks:
       - llm-stack
     healthcheck:

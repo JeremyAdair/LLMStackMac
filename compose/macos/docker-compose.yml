@@ -1,0 +1,10 @@
+services:
+  reverse-proxy:
+    # macOS safe-mode: keep core web apps up even if OpenHands image source is unavailable.
+    depends_on:
+      - open-webui
+      - flowise
+      - grafana
+      - auth
+      - node-red
+      - landing
