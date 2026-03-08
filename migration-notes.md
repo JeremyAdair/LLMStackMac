@@ -20,7 +20,7 @@
 1. `./bin/first-run-mac`
 2. `cp .env.mac.example .env.mac`
 3. `./bin/hosts-entries` and add to `/etc/hosts`
-4. `./bin/llm-up-mac`
+4. `./bin/llm-up --mac-safe`
 5. `./bin/llm-check-core`
 6. Verify Forgejo URL:
    - `https://forgejo.llmstack.lan/`

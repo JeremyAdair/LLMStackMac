@@ -3,29 +3,71 @@ set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
 
-compose_files=(
-  "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/ollama/docker-compose.yml"
-  "${repo_root}/compose/open-webui/docker-compose.yml"
-  "${repo_root}/compose/qdrant/docker-compose.yml"
-  "${repo_root}/compose/postgres/docker-compose.yml"
-  "${repo_root}/compose/redis/docker-compose.yml"
-  "${repo_root}/compose/reverse-proxy/docker-compose.yml"
-  "${repo_root}/compose/monitoring/docker-compose.yml"
-  "${repo_root}/compose/flowise/docker-compose.yml"
-  "${repo_root}/compose/forgejo/docker-compose.yml"
-  "${repo_root}/compose/openhands/docker-compose.yml"
-  "${repo_root}/compose/auth/docker-compose.yml"
-  "${repo_root}/compose/node-red/docker-compose.yml"
-  "${repo_root}/compose/landing/docker-compose.yml"
-  "${repo_root}/compose/stt/docker-compose.yml"
-  "${repo_root}/compose/tts/docker-compose.yml"
-  "${repo_root}/compose/ocr/docker-compose.yml"
-  "${repo_root}/compose/pdf-ingest/docker-compose.yml"
-  "${repo_root}/compose/rag-pipeline/docker-compose.yml"
-  "${repo_root}/compose/pgadmin/docker-compose.yml"
-  "${repo_root}/compose/redisinsight/docker-compose.yml"
-)
+usage() {
+  cat <<EOF
+Usage: ./bin/llm-up [--mac-safe] [docker compose up args...]
+
+Options:
+  --mac-safe   Start a macOS-safe core set and skip heavy/on-demand services.
+               Also applies --scale openhands=0.
+EOF
+}
+
+mac_safe=0
+if [[ "${1:-}" == "--mac-safe" ]]; then
+  mac_safe=1
+  shift
+elif [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ "${mac_safe}" -eq 1 ]]; then
+  compose_files=(
+    "${repo_root}/compose/docker-compose.yml"
+    "${repo_root}/compose/ollama/docker-compose.yml"
+    "${repo_root}/compose/open-webui/docker-compose.yml"
+    "${repo_root}/compose/qdrant/docker-compose.yml"
+    "${repo_root}/compose/postgres/docker-compose.yml"
+    "${repo_root}/compose/redis/docker-compose.yml"
+    "${repo_root}/compose/redisinsight/docker-compose.yml"
+    "${repo_root}/compose/macos/data-services.yml"
+    "${repo_root}/compose/reverse-proxy/docker-compose.yml"
+    "${repo_root}/compose/macos/docker-compose.yml"
+    "${repo_root}/compose/monitoring/docker-compose.yml"
+    "${repo_root}/compose/flowise/docker-compose.yml"
+    "${repo_root}/compose/forgejo/docker-compose.yml"
+    "${repo_root}/compose/openhands/docker-compose.yml"
+    "${repo_root}/compose/auth/docker-compose.yml"
+    "${repo_root}/compose/node-red/docker-compose.yml"
+    "${repo_root}/compose/landing/docker-compose.yml"
+    "${repo_root}/compose/pgadmin/docker-compose.yml"
+  )
+else
+  compose_files=(
+    "${repo_root}/compose/docker-compose.yml"
+    "${repo_root}/compose/ollama/docker-compose.yml"
+    "${repo_root}/compose/open-webui/docker-compose.yml"
+    "${repo_root}/compose/qdrant/docker-compose.yml"
+    "${repo_root}/compose/postgres/docker-compose.yml"
+    "${repo_root}/compose/redis/docker-compose.yml"
+    "${repo_root}/compose/reverse-proxy/docker-compose.yml"
+    "${repo_root}/compose/monitoring/docker-compose.yml"
+    "${repo_root}/compose/flowise/docker-compose.yml"
+    "${repo_root}/compose/forgejo/docker-compose.yml"
+    "${repo_root}/compose/openhands/docker-compose.yml"
+    "${repo_root}/compose/auth/docker-compose.yml"
+    "${repo_root}/compose/node-red/docker-compose.yml"
+    "${repo_root}/compose/landing/docker-compose.yml"
+    "${repo_root}/compose/stt/docker-compose.yml"
+    "${repo_root}/compose/tts/docker-compose.yml"
+    "${repo_root}/compose/ocr/docker-compose.yml"
+    "${repo_root}/compose/pdf-ingest/docker-compose.yml"
+    "${repo_root}/compose/rag-pipeline/docker-compose.yml"
+    "${repo_root}/compose/pgadmin/docker-compose.yml"
+    "${repo_root}/compose/redisinsight/docker-compose.yml"
+  )
+fi
 
 if [[ -z "${LLMSTACK_HOST_ROOT:-}" ]] && grep -qi microsoft /proc/version 2>/dev/null; then
   export LLMSTACK_HOST_ROOT="/mnt/c/llm-stack"
@@ -50,4 +92,8 @@ if [[ -n "${env_file}" ]]; then
   cmd+=(--env-file "${env_file}")
 fi
 
-"${cmd[@]}" "${args[@]}" up -d
+if [[ "${mac_safe}" -eq 1 ]]; then
+  "${cmd[@]}" "${args[@]}" up -d --scale openhands=0 "$@"
+else
+  "${cmd[@]}" "${args[@]}" up -d "$@"
+fi

@@ -8,7 +8,7 @@ This is the practical runbook for migration day.
 3. Ensure helper scripts are executable (safe to run always):
    - `chmod +x bin/*`
 4. Verify scripts are executable:
-   - `bash -n bin/llm-up-mac bin/first-run-mac bin/llm-check-core`
+   - `bash -n bin/llm-up bin/first-run-mac bin/llm-check-core`
 5. Create folders:
    - `./bin/first-run-mac`
 6. Create env file:
@@ -53,7 +53,7 @@ Known unresolved image risks (may fail until we patch live):
 Use mac helper:
 
 ```bash
-./bin/llm-up-mac
+./bin/llm-up --mac-safe
 ```
 
 Notes:

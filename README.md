@@ -68,11 +68,11 @@ macOS first-run shortcut:
 
 ```bash
 ./bin/first-run-mac
-./bin/llm-up-mac
+./bin/llm-up --mac-safe
 ./bin/llm-check-core
 ```
 
-The mac helper starts a safe core set and intentionally skips OpenHands runtime (`--scale openhands=0`) plus STT/TTS/OCR until image sources are verified on your Mac.
+The `--mac-safe` mode starts a safe core set and intentionally skips OpenHands runtime (`--scale openhands=0`) plus STT/TTS/OCR until image sources are verified on your Mac.
 
 Cutover day runbook:
 
