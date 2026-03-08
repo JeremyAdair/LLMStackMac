@@ -23,6 +23,12 @@ services:
     environment:
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost/grafana/}
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      # SSO via Authelia-forwarded identity header from reverse-proxy.
+      GF_AUTH_PROXY_ENABLED: "true"
+      GF_AUTH_PROXY_HEADER_NAME: X-WEBAUTH-USER
+      GF_AUTH_PROXY_HEADER_PROPERTY: username
+      GF_AUTH_PROXY_AUTO_SIGN_UP: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
       # Optional comma-separated plugin list, for example:
       # GRAFANA_INSTALL_PLUGINS=grafana-clock-panel
       GF_INSTALL_PLUGINS: ${GRAFANA_INSTALL_PLUGINS:-}

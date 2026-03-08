@@ -11,6 +11,12 @@ services:
       FORGEJO__server__HTTP_PORT: 3000
       FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_DOMAIN:-forgejo.llmstack.lan}
       FORGEJO__server__SSH_PORT: 2222
+      # SSO via Authelia-forwarded identity header from reverse-proxy.
+      FORGEJO__service__ENABLE_REVERSE_PROXY_AUTHENTICATION: "true"
+      FORGEJO__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION: "true"
+      FORGEJO__service__REVERSE_PROXY_AUTHENTICATION_USER: X-WEBAUTH-USER
+      FORGEJO__security__REVERSE_PROXY_LIMIT: "1"
+      FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: "*"
     volumes:
       # Persist repos, users, issues, and Forgejo config on host.
       # For macOS, set FORGEJO_DATA_MOUNT=forgejo_data in env overrides.
