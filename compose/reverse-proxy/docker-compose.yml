@@ -22,4 +22,6 @@ services:
       - node-red
       - landing
     networks:
-      - llm-stack
+      llm-stack:
+        aliases:
+          - llmstack.lan

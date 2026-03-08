@@ -1,6 +1,13 @@
 services:
   auth:
     image: authelia/authelia@sha256:d23ee3c721d465b4749cc58541cda4aebe5aa6f19d7b5ce0afebb44ebee69591
+    command: >
+      /bin/sh -c '
+      if [ -f /config/configuration.local.yml ]; then
+        exec authelia --config /config/configuration.yml --config /config/configuration.local.yml;
+      else
+        exec authelia --config /config/configuration.yml;
+      fi'
     volumes:
       - ../config/auth:/config
       - ../data/auth:/data

@@ -5,6 +5,7 @@ LLMStack is a self-hosted local LLM stack built around Docker Compose. It provid
 ## Recent updates
 
 - Forgejo is now routed through the reverse proxy at `https://forgejo.llmstack.lan/`.
+- Authelia is configured as the SSO gateway for the stack so you don't have to manage separate passwords per app.
 - Flowise supports PDF drop-in via bind mount: `./data/pdfs` -> `/data/pdfs`.
 - Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise.
 - Rebuilt Flowise PDF ingestion and retrieval chatflows with current node wiring for latest Flowise compatibility.
