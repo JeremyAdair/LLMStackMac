@@ -5,10 +5,12 @@ services:
     expose:
       - "5432"
     environment:
-      # Default credentials come from .env.
-      POSTGRES_USER: ${POSTGRES_USER:-llmstack}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmstack}
-      POSTGRES_DB: ${POSTGRES_DB:-llmstack}
+      # Require explicit credentials from env file.
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in your env file}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in your env file}
+      # Strong auth defaults for new database initialization.
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     volumes:
       # Persist PostgreSQL database files.
       - ${POSTGRES_DATA_MOUNT:-postgres_data}:/var/lib/postgresql/data

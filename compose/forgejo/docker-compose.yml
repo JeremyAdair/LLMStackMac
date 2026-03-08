@@ -15,7 +15,8 @@ services:
       FORGEJO__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION: "true"
       FORGEJO__service__REVERSE_PROXY_AUTHENTICATION_USER: X-WEBAUTH-USER
       FORGEJO__security__REVERSE_PROXY_LIMIT: "1"
-      FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: "*"
+      # Trust only private/internal reverse-proxy source ranges.
+      FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
     volumes:
       # Persist repos, users, issues, and Forgejo config.
       - ${FORGEJO_DATA_MOUNT:-forgejo_data}:/data

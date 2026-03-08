@@ -15,7 +15,7 @@ services:
       OAUTH_MERGE_ACCOUNTS_BY_EMAIL: ${OPENWEBUI_OAUTH_MERGE_ACCOUNTS_BY_EMAIL:-true}
       WEBUI_URL: ${OPENWEBUI_WEBUI_URL:-https://openwebui.llmstack.lan}
       OAUTH_CLIENT_ID: ${OPENWEBUI_OAUTH_CLIENT_ID:-open-webui}
-      OAUTH_CLIENT_SECRET: ${OPENWEBUI_OAUTH_CLIENT_SECRET:-change-me}
+      OAUTH_CLIENT_SECRET: ${OPENWEBUI_OAUTH_CLIENT_SECRET:?set OPENWEBUI_OAUTH_CLIENT_SECRET in your env file}
       OPENID_PROVIDER_URL: ${OPENWEBUI_OPENID_PROVIDER_URL:-https://llmstack.lan/authelia/.well-known/openid-configuration}
       OPENID_REDIRECT_URI: ${OPENWEBUI_OPENID_REDIRECT_URI:-https://openwebui.llmstack.lan/oauth/oidc/callback}
       OAUTH_PROVIDER_NAME: ${OPENWEBUI_OAUTH_PROVIDER_NAME:-Authelia}
