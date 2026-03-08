@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+agent_id="com.llmstack.forgejo-team-sync"
+agent_dir="${HOME}/Library/LaunchAgents"
+agent_plist="${agent_dir}/${agent_id}.plist"
+log_dir="${HOME}/Library/Logs"
+log_file="${log_dir}/forgejo-team-sync.log"
+
+mkdir -p "${agent_dir}" "${log_dir}"
+chmod +x "${repo_root}/bin/forgejo-sync-developers"
+
+cat > "${agent_plist}" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${agent_id}</string>
+  <key>WorkingDirectory</key>
+  <string>${repo_root}</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"; cd "${repo_root}" &amp;&amp; ./bin/forgejo-sync-developers</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>60</integer>
+  <key>StandardOutPath</key>
+  <string>${log_file}</string>
+  <key>StandardErrorPath</key>
+  <string>${log_file}</string>
+</dict>
+</plist>
+PLIST
+
+uid="$(id -u)"
+if launchctl print "gui/${uid}/${agent_id}" >/dev/null 2>&1; then
+  launchctl bootout "gui/${uid}" "${agent_plist}" >/dev/null 2>&1 || true
+fi
+
+if launchctl bootstrap "gui/${uid}" "${agent_plist}" >/dev/null 2>&1; then
+  echo "Installed and started ${agent_id}."
+else
+  cat <<EOF
+Installed ${agent_id} plist, but bootstrap failed in this shell context.
+Run from your normal logged-in macOS Terminal:
+  launchctl bootstrap gui/${uid} "${agent_plist}"
+EOF
+fi
+
+cat <<EOF
+LaunchAgent:
+  ${agent_plist}
+Log:
+  ${log_file}
+EOF

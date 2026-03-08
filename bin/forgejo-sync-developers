@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "${repo_root}"
+
+forgejo_container="llm-stack-forgejo-1"
+org_name="${FORGEJO_ORG_NAME:-llmstack}"
+team_name="${FORGEJO_TEAM_NAME:-developers}"
+admin_user="${FORGEJO_ADMIN_USER:-home}"
+
+# Generate short-lived token each run; no long-lived secret file needed.
+token="$(docker exec -u git "${forgejo_container}" forgejo admin user generate-access-token \
+  -u "${admin_user}" -t "team-sync-$(date +%s)" \
+  --scopes read:organization,write:organization --raw)"
+
+teams_json="$(docker exec -u git "${forgejo_container}" curl -fsS \
+  -H "Authorization: token ${token}" \
+  "http://127.0.0.1:3000/api/v1/orgs/${org_name}/teams")"
+
+team_id="$(echo "${teams_json}" | sed -n "s/.*\"name\":\"${team_name}\"[^}]*\"id\":\\([0-9][0-9]*\\).*/\\1/p" | head -n1)"
+if [[ -z "${team_id}" ]]; then
+  team_id="$(echo "${teams_json}" | sed -n "s/.*\"id\":\\([0-9][0-9]*\\).*\"name\":\"${team_name}\".*/\\1/p" | head -n1)"
+fi
+
+if [[ -z "${team_id}" ]]; then
+  echo "Could not find team '${org_name}/${team_name}'" >&2
+  exit 1
+fi
+
+users="$(
+  docker exec -u git "${forgejo_container}" forgejo admin user list \
+  | awk 'NR>1 && NF>1 {print $2}'
+)"
+
+# Auto-provision users defined in Authelia local DB.
+if [[ -f "${repo_root}/config/auth/users_database.yml" ]]; then
+  authelia_users="$(
+    awk '/^  "[^"]+":/ {gsub(/"/,"",$1); gsub(/:/,"",$1); print $1}' \
+      "${repo_root}/config/auth/users_database.yml"
+  )"
+
+  for raw_user in ${authelia_users}; do
+    forgejo_user="${raw_user}"
+    if [[ "${raw_user}" == "admin" ]]; then
+      forgejo_user="admin_local"
+    fi
+
+    if ! echo "${users}" | awk '{print $1}' | grep -qx "${forgejo_user}"; then
+      docker exec -u git "${forgejo_container}" forgejo admin user create \
+        --username "${forgejo_user}" \
+        --email "${forgejo_user}@localhost" \
+        --random-password \
+        --must-change-password=false >/dev/null 2>&1 || true
+    fi
+  done
+
+  users="$(
+    docker exec -u git "${forgejo_container}" forgejo admin user list \
+    | awk 'NR>1 && NF>1 {print $2}'
+  )"
+fi
+
+for user in ${users}; do
+  docker exec -u git "${forgejo_container}" curl -fsS -o /dev/null \
+    -X PUT \
+    -H "Authorization: token ${token}" \
+    "http://127.0.0.1:3000/api/v1/teams/${team_id}/members/${user}" || true
+done
+
+echo "Synced users to ${org_name}/${team_name} (team id ${team_id})."
