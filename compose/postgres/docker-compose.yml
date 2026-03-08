@@ -1,10 +1,9 @@
 services:
   postgres:
     image: postgres@sha256:fceb6f86328c36f2438fae3b851b0cc57c4a7e69a58c866d9ce24281f2cf0c9c
-    # Expose for local admin tools; internal services use the network name.
-    ports:
-      # Change the host port if 5432 is in use.
-      - "5432:5432"
+    # Internal-only access; use the service name from other containers.
+    expose:
+      - "5432"
     environment:
       # Default credentials come from .env.
       POSTGRES_USER: ${POSTGRES_USER:-llmstack}

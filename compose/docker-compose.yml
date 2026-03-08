@@ -28,10 +28,9 @@ services:
       - 0.0.0.0
       - --port
       - "8000"
-    ports:
-      # FastAPI endpoint for Node-RED or Flowise integrations.
-      # Change the host port if 8000 is in use.
-      - "8000:8000"
+    expose:
+      # Internal API endpoint for stack services (Node-RED/Flowise).
+      - "8000"
     volumes:
       # Share the same code and scripts as the toolbox container.
       - ../python-toolbox/app:/app

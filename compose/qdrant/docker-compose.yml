@@ -1,10 +1,9 @@
 services:
   qdrant:
     image: qdrant/qdrant@sha256:f1c7272cdac52b38c1a0e89313922d940ba50afd90d593a1605dbbc214e66ffb
-    # Expose for local debugging; internal services use the network name.
-    ports:
-      # Change the host port if 6333 is in use.
-      - "6333:6333"
+    # Internal-only access; use the service name from other containers.
+    expose:
+      - "6333"
     volumes:
       # Persist vector index and payload data on host.
       # For macOS, set QDRANT_DATA_MOUNT=qdrant_data in env overrides.

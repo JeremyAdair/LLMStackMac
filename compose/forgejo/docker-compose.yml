@@ -21,9 +21,10 @@ services:
       # Persist repos, users, issues, and Forgejo config on host.
       # For macOS, set FORGEJO_DATA_MOUNT=forgejo_data in env overrides.
       - ${FORGEJO_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/forgejo/data}:/data
+    expose:
+      # Web UI stays internal behind reverse proxy + Authelia.
+      - "3000"
     ports:
-      # Web UI for Forgejo. Change the host port if 3000 is in use.
-      - "3000:3000"
       # SSH for git operations. Change the host port if 2222 is in use.
       - "2222:22"
     networks:
