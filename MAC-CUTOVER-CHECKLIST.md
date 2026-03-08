@@ -102,8 +102,8 @@ docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/open
 docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/flowise/docker-compose.yml logs --tail 200 flowise pdf-auto-ingest
 ```
 
-## 8) Rollback to Windows
+## 8) Rollback
 If cutover fails:
-1. Stop Mac stack.
-2. Restart Windows stack from previous known-good `.env`.
-3. Keep Windows as active writer until Mac is stable.
+1. Stop stack services: `./bin/llm-down`
+2. Restore the last known-good `.env.mac`.
+3. Start core services and re-check health: `./bin/llm-up && ./bin/llm-check-core`

@@ -30,15 +30,6 @@ require_cmd() {
 
 normalize_host_path() {
   local p="$1"
-  if [[ "$p" =~ ^[A-Za-z]:[\\/].* ]]; then
-    if command -v wslpath >/dev/null 2>&1; then
-      wslpath -u "$p"
-      return
-    elif command -v cygpath >/dev/null 2>&1; then
-      cygpath -u "$p"
-      return
-    fi
-  fi
   echo "$p"
 }
 

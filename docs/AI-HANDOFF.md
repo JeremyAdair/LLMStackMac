@@ -3,9 +3,8 @@
 If you are the next AI/helper on this repo, start here before changing anything.
 
 ## Current state
-- This repo is actively migrating from Windows Docker host -> macOS Apple Silicon.
+- This repo is now macOS-only (Apple Silicon / Docker Desktop).
 - Changes are intentionally pragmatic/homelab style.
-- Windows compatibility is still important; do not rip out Windows behavior unless requested.
 
 ## Fast triage commands
 If scripts are not executable after clone:

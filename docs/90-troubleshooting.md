@@ -115,10 +115,10 @@ mkdir -p workspace/ingest workspace/processed workspace/indexed
 chmod -R u+rwX workspace
 ```
 
-## macOS migration gotchas
+## macOS gotchas
 
 Symptoms:
-- Works on Windows but fails on Mac.
+- Works intermittently or fails on Mac.
 
 Fix:
 - Confirm hosts entries are present: `./bin/hosts-entries`

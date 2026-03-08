@@ -8,7 +8,7 @@
 - Added these variables to `.env.example` and `.env.mac.example`.
 
 ## Why
-- Removes hard-coded hostname assumptions from compose for easier Windows/macOS migration.
+- Removes hard-coded hostname assumptions from compose for easier local macOS operation.
 - Keeps current behavior by default (`forgejo.llmstack.lan`) unless overridden.
 
 ## Manual review still needed

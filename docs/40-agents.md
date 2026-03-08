@@ -8,13 +8,13 @@ Access it through the reverse proxy at:
 
 - `http://localhost/flowise/`
 
-You can optionally set `FLOWISE_USERNAME` and `FLOWISE_PASSWORD` in `.env` to enable basic auth.
+You can optionally set `FLOWISE_USERNAME` and `FLOWISE_PASSWORD` in `.env.mac` to enable basic auth.
 
-For PDF auto-ingest with Docker Desktop on Windows, configure:
+For PDF auto-ingest, configure:
 
-- Host folder: `C:\llm-stack\pdfs`
+- Host folder: `./data/pdfs`
 - Container path: `/data/pdfs`
-- `.env`:
+- `.env.mac`:
   - `FLOWISE_URL=http://flowise:3000`
   - `FLOWISE_INGEST_CHATFLOW_ID=<your_ingestion_chatflow_id>`
   - `FLOWISE_INGEST_STOP_NODE_ID=qdrant_0`
