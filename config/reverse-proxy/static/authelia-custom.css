@@ -1,0 +1,94 @@
+html, body {
+  background: #ffffff url('/_static/authelia-bg.png') center center / cover no-repeat fixed !important;
+}
+
+:root {
+  --neon-green: #39ff14;
+}
+
+/* Authelia app wrapper */
+#root, .layout, .container, main {
+  background: transparent !important;
+}
+
+/* White login surfaces for readability over the wallpaper */
+.MuiPaper-root,
+.MuiCard-root,
+form,
+.MuiContainer-root > .MuiPaper-root {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: var(--neon-green) !important;
+  border: 2px solid var(--neon-green) !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24) !important;
+}
+
+.MuiInputBase-root,
+.MuiOutlinedInput-root {
+  background: #000000 !important;
+  color: var(--neon-green) !important;
+  border: 1px solid var(--neon-green) !important;
+}
+
+.MuiInputBase-input,
+.MuiInputLabel-root,
+.MuiTypography-root,
+label,
+p,
+h1,
+h2,
+h3,
+h4 {
+  color: var(--neon-green) !important;
+  text-shadow: 0 0 8px rgba(57, 255, 20, 0.35);
+}
+
+.MuiInputBase-input::placeholder {
+  color: rgba(57, 255, 20, 0.7) !important;
+}
+
+.MuiButton-root {
+  background: #000000 !important;
+  color: var(--neon-green) !important;
+  border: 2px solid var(--neon-green) !important;
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.45);
+}
+
+/* Catch outlined status/chip/alert borders (including Authenticated state box) */
+.MuiAlert-root,
+.MuiChip-root,
+.MuiPaper-outlined,
+.MuiOutlinedInput-notchedOutline,
+fieldset {
+  border-color: var(--neon-green) !important;
+}
+
+/* Remember me label + checkbox/radio controls (force visible/light) */
+.MuiFormControlLabel-label,
+label[for*="remember"],
+label[for*="Remember"] {
+  color: var(--neon-green) !important;
+}
+
+.MuiCheckbox-root,
+.MuiRadio-root,
+.MuiSvgIcon-root,
+input[type="checkbox"],
+input[type="radio"] {
+  color: var(--neon-green) !important;
+  accent-color: var(--neon-green) !important;
+}
+
+.MuiCheckbox-root.Mui-checked,
+.MuiRadio-root.Mui-checked,
+.MuiCheckbox-root .MuiSvgIcon-root,
+.MuiRadio-root .MuiSvgIcon-root {
+  color: var(--neon-green) !important;
+  fill: var(--neon-green) !important;
+}
+
+/* Remove top language/header bar (e.g., "English") */
+header.MuiAppBar-root,
+[role="banner"] {
+  display: none !important;
+}

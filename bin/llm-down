@@ -3,6 +3,12 @@ set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
 
+mode="stop"
+if [[ "${1:-}" == "--remove" ]]; then
+  mode="remove"
+  shift
+fi
+
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
   "${repo_root}/compose/ollama/docker-compose.yml"
@@ -36,9 +42,22 @@ for file in "${compose_files[@]}"; do
   args+=("-f" "$file")
 done
 
-env_file_arg=()
-if [[ -f "${repo_root}/.env" ]]; then
-  env_file_arg=(--env-file "${repo_root}/.env")
+env_file=""
+if [[ -n "${LLMSTACK_ENV_FILE:-}" && -f "${LLMSTACK_ENV_FILE}" ]]; then
+  env_file="${LLMSTACK_ENV_FILE}"
+elif [[ -f "${repo_root}/.env" ]]; then
+  env_file="${repo_root}/.env"
+elif [[ -f "${repo_root}/.env.mac" ]]; then
+  env_file="${repo_root}/.env.mac"
 fi
 
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" down
+cmd=(docker compose --project-name llm-stack)
+if [[ -n "${env_file}" ]]; then
+  cmd+=(--env-file "${env_file}")
+fi
+
+if [[ "${mode}" == "remove" ]]; then
+  "${cmd[@]}" "${args[@]}" down "$@"
+else
+  "${cmd[@]}" "${args[@]}" stop "$@"
+fi

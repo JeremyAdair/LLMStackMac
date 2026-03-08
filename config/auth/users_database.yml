@@ -2,9 +2,15 @@
 # Generate a new hash with:
 #   docker run --rm authelia/authelia:latest authelia hash-password --password "your-password"
 users:
-  admin:
+  "admin":
     displayname: "LLM Stack"
-    password: "$argon2id$v=19$m=65536,t=3,p=4$daUTS9rw/sDajivvt5TBtA$JDInaNTIiBJ+GrsORUeM/8uE1Y5YCNALVpRSIxDqOuM"
-    email: admin@example.local
+    password: "$argon2id$v=19$m=65536,t=3,p=4$5X/23zmDH+swlVzsFSWI5w$j/urW9bLAKrZTkoy3hlqfDPsxExhOrnS2PTILn6xtKA"
+    email: jeremyadair87@gmail.com
+    groups:
+      - admins
+  "jeremyadair87":
+    displayname: "LLM Stack"
+    password: "$argon2id$v=19$m=65536,t=3,p=4$5X/23zmDH+swlVzsFSWI5w$j/urW9bLAKrZTkoy3hlqfDPsxExhOrnS2PTILn6xtKA"
+    email: jeremyadair87@gmail.com
     groups:
       - admins

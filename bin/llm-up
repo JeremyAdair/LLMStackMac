@@ -36,14 +36,18 @@ for file in "${compose_files[@]}"; do
   args+=("-f" "$file")
 done
 
-env_file_arg=()
-if [[ -f "${repo_root}/.env" ]]; then
-  env_file_arg=(--env-file "${repo_root}/.env")
+env_file=""
+if [[ -n "${LLMSTACK_ENV_FILE:-}" && -f "${LLMSTACK_ENV_FILE}" ]]; then
+  env_file="${LLMSTACK_ENV_FILE}"
+elif [[ -f "${repo_root}/.env" ]]; then
+  env_file="${repo_root}/.env"
+elif [[ -f "${repo_root}/.env.mac" ]]; then
+  env_file="${repo_root}/.env.mac"
 fi
 
 cmd=(docker compose --project-name llm-stack)
-if [[ ${#env_file_arg[@]} -gt 0 ]]; then
-  cmd+=("${env_file_arg[@]}")
+if [[ -n "${env_file}" ]]; then
+  cmd+=(--env-file "${env_file}")
 fi
 
 "${cmd[@]}" "${args[@]}" up -d
