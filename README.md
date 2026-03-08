@@ -56,6 +56,7 @@ Job-style services are run on demand rather than left up all the time (RAG pipel
 
 ```bash
 cp .env.mac.example .env.mac
+cp config/auth/users_database.example.yml config/auth/users_database.yml
 ```
 
 2) Start the full stack.

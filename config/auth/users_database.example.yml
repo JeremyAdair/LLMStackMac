@@ -1,0 +1,10 @@
+# Copy this file to config/auth/users_database.yml and replace with real values.
+# Generate password hashes with:
+#   docker run --rm authelia/authelia:latest authelia hash-password --password "your-password"
+users:
+  admin:
+    displayname: "Admin"
+    password: "<argon2id-hash>"
+    email: "admin@example.local"
+    groups:
+      - admins

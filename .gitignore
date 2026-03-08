@@ -21,6 +21,7 @@
 
 # Local Authelia config (contains secrets)
 /config/auth/configuration.local.yml
+/config/auth/users_database.yml
 
 # Models and artifacts
 /models/
