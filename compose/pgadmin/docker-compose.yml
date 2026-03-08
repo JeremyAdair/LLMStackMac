@@ -1,20 +1,165 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Defines infrastructure settings for this part of the stack using Docker Compose YAML.
+# It describes services, configuration, and how containers communicate.
+#
+# Why it exists:
+# Keeping service definitions in versioned YAML makes local environments reproducible.
+# This prevents manual setup drift and reduces onboarding errors for new users.
+#
+# What happens next:
+# The sections below declare concrete service/runtime settings that Docker Compose
+# reads to start, connect, and persist the containers for this component.
+############################################
+
+############################################
+# SECTION: pgAdmin Service Definition
+#
+# What this part of the program does:
+# Defines one Docker service named "pgadmin" that runs the pgAdmin web UI.
+# pgAdmin is a browser-based tool for managing PostgreSQL databases.
+#
+# Why it exists:
+# We need a stable, repeatable way to start pgAdmin with the exact same
+# version and settings every time the stack boots.
+#
+# What happens next:
+# After the service is declared, we configure environment variables that
+# control login behavior, database target defaults, and connection security.
+############################################
+############################################
+# SECTION: Service Catalog
+#
+# What this part of the program does:
+# Lists all containerized services defined in this compose file.
+#
+# Why it exists:
+# Compose reads this section to know which containers to create and run
+# as part of this stack component.
+#
+# What happens next:
+# Each service block below declares image/runtime settings, then optional
+# network and storage sections connect services together.
+############################################
+
 services:
+
+  ############################################
+  # SECTION: Service - pgadmin
+  #
+  # What this part of the program does:
+  # Defines runtime settings for the "pgadmin" container.
+  #
+  # Why it exists:
+  # This service provides one concrete capability needed by the stack
+  # (for example API, storage, UI, proxy, or worker behavior).
+  #
+  # What happens next:
+  # The nested keys configure how this container starts, connects, and
+  # persists data relative to other services.
+  ############################################
   pgadmin:
     image: dpage/pgadmin4@sha256:d243a4bcc02d2ee6b447c601692813531d2d0fbca18b583d9f7f9658da835d81
+
+    ############################################
+    # SECTION: Runtime Environment Configuration
+    #
+    # What this part of the program does:
+    # Supplies pgAdmin with startup settings through environment variables.
+    # These values tell pgAdmin who the default admin is, which Postgres
+    # instance to target, and how to authenticate users.
+    #
+    # Why it exists:
+    # Containers should be configured from the outside instead of hardcoding
+    # secrets or hostnames in image files. This keeps setup portable and safer.
+    #
+    # What happens next:
+    # Once these variables are loaded, pgAdmin starts with SSO-enabled login
+    # and preconfigured database connection defaults.
+    ############################################
     environment:
+      # Required pgAdmin bootstrap account.
+      # Compose fails fast if either value is missing, which prevents a broken
+      # startup where pgAdmin cannot initialize its internal user database.
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?set PGADMIN_DEFAULT_EMAIL in your env file}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?set PGADMIN_DEFAULT_PASSWORD in your env file}
-      # SSO via reverse proxy authenticated identity header.
+
+      # Target Postgres connection defaults used by helper automation scripts.
+      # We keep these values centralized so SSO-created users get consistent
+      # server entries and do not need manual host/port setup.
+      PGADMIN_TARGET_PGHOST: ${POSTGRES_HOST:-postgres}
+      PGADMIN_TARGET_PGPORT: ${POSTGRES_PORT:-5432}
+      PGADMIN_TARGET_PGUSER: ${POSTGRES_USER:?set POSTGRES_USER in your env file}
+      PGADMIN_TARGET_PGDB: ${POSTGRES_DB:?set POSTGRES_DB in your env file}
+      PGADMIN_TARGET_PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}
+
+      # Connection password helpers used by PostgreSQL client libraries.
+      # PGPASSWORD provides a process-level fallback, and PGPASSFILE points to
+      # an on-disk credentials file created by stack sync automation.
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}
+      PGPASSFILE: /var/lib/pgadmin/.pgpass
+
+      # Enable webserver-auth mode so identity comes from the reverse proxy.
+      # In this stack, Authelia authenticates the user first, then Nginx
+      # forwards the trusted identity header to pgAdmin.
       PGADMIN_CONFIG_AUTHENTICATION_SOURCES: "['webserver']"
       PGADMIN_CONFIG_WEBSERVER_REMOTE_USER: "'HTTP_X_FORWARDED_USER'"
       PGADMIN_CONFIG_WEBSERVER_AUTO_CREATE_USER: "True"
-      # Keep pgAdmin data encrypted at rest with a per-user master password.
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "True"
+
+      # In SSO-only mode, forcing a master password can produce session key
+      # confusion for new users. We disable the hard requirement to prevent
+      # lockouts while still keeping cookie hardening enabled.
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
       PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+
+    ############################################
+    # SECTION: Network Exposure
+    #
+    # What this part of the program does:
+    # Exposes port 80 only inside the Docker network.
+    #
+    # Why it exists:
+    # We do not want pgAdmin directly published to the host. Access should
+    # always flow through the reverse proxy and SSO layer.
+    #
+    # What happens next:
+    # Reverse proxy routes authenticated browser traffic into this internal port.
+    ############################################
     expose:
       - "80"
+
+    ############################################
+    # SECTION: Persistent Data Storage
+    #
+    # What this part of the program does:
+    # Mounts a Docker volume at /var/lib/pgadmin for pgAdmin state.
+    #
+    # Why it exists:
+    # pgAdmin stores users, server definitions, and metadata in SQLite files.
+    # Without a persistent volume, all setup would be lost on container recreate.
+    #
+    # What happens next:
+    # The service starts with stable data and can be safely restarted/upgraded.
+    ############################################
     volumes:
-      # Use a Docker volume because pgAdmin needs chmod/chown on SQLite files.
+      # Named volume is preferred because pgAdmin expects to manage file
+      # ownership and permissions for its SQLite database.
       - pgadmin_data:/var/lib/pgadmin
+
+    ############################################
+    # SECTION: Service Network Membership
+    #
+    # What this part of the program does:
+    # Attaches pgAdmin to the shared llm-stack network.
+    #
+    # Why it exists:
+    # This allows pgAdmin to resolve and reach internal services like
+    # "postgres" by container DNS name.
+    #
+    # What happens next:
+    # pgAdmin can connect to Postgres over the private Docker network.
+    ############################################
     networks:
       - llm-stack

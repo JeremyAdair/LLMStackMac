@@ -1,3 +1,21 @@
+/*
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Implements an automation/helper script used by the LLMStack tooling layer.
+# This script performs a focused operational task in a repeatable way.
+#
+# Why it exists:
+# Automating this workflow reduces manual commands, avoids common mistakes,
+# and keeps stack operations consistent for beginner users.
+#
+# What happens next:
+# The code below validates inputs/environment, then executes the task logic,
+# and returns status/output that other scripts or users can rely on.
+############################################
+*/
+
 const flowId = process.argv[2];
 
 if (!flowId) {

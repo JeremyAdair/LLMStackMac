@@ -1,3 +1,19 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Defines infrastructure settings for this part of the stack using Docker Compose YAML.
+# It describes services, configuration, and how containers communicate.
+#
+# Why it exists:
+# Keeping service definitions in versioned YAML makes local environments reproducible.
+# This prevents manual setup drift and reduces onboarding errors for new users.
+#
+# What happens next:
+# The sections below declare concrete service/runtime settings that Docker Compose
+# reads to start, connect, and persist the containers for this component.
+############################################
+
 global:
   scrape_interval: 15s
 

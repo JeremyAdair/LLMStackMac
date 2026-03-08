@@ -1,4 +1,50 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Defines infrastructure settings for this part of the stack using Docker Compose YAML.
+# It describes services, configuration, and how containers communicate.
+#
+# Why it exists:
+# Keeping service definitions in versioned YAML makes local environments reproducible.
+# This prevents manual setup drift and reduces onboarding errors for new users.
+#
+# What happens next:
+# The sections below declare concrete service/runtime settings that Docker Compose
+# reads to start, connect, and persist the containers for this component.
+############################################
+
+############################################
+# SECTION: Service Catalog
+#
+# What this part of the program does:
+# Lists all containerized services defined in this compose file.
+#
+# Why it exists:
+# Compose reads this section to know which containers to create and run
+# as part of this stack component.
+#
+# What happens next:
+# Each service block below declares image/runtime settings, then optional
+# network and storage sections connect services together.
+############################################
+
 services:
+
+  ############################################
+  # SECTION: Service - ollama
+  #
+  # What this part of the program does:
+  # Defines runtime settings for the "ollama" container.
+  #
+  # Why it exists:
+  # This service provides one concrete capability needed by the stack
+  # (for example API, storage, UI, proxy, or worker behavior).
+  #
+  # What happens next:
+  # The nested keys configure how this container starts, connects, and
+  # persists data relative to other services.
+  ############################################
   ollama:
     image: ollama/ollama@sha256:0ff452f6a4c3c5bb4ab063a1db190b261d5834741a519189ed5301d50e4434d1
     profiles:

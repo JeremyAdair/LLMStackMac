@@ -1,3 +1,19 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Implements an automation/helper script used by the LLMStack tooling layer.
+# This script performs a focused operational task in a repeatable way.
+#
+# Why it exists:
+# Automating this workflow reduces manual commands, avoids common mistakes,
+# and keeps stack operations consistent for beginner users.
+#
+# What happens next:
+# The script below parses context/inputs, runs the operational steps,
+# and reports success or failure to the caller.
+############################################
+
 $ErrorActionPreference = "Stop"
 
 $ingestionId = "7ee5bbb5-d588-4de7-8723-5d95ed843216"
