@@ -15,6 +15,8 @@ ${ip} openwebui.${domain}
 ${ip} flowise.${domain}
 ${ip} openhands.${domain}
 ${ip} grafana.${domain}
+${ip} prometheus.${domain}
+${ip} pgadmin.${domain}
 ${ip} nodered.${domain}
 ${ip} forgejo.${domain}
 EOF
