@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+desktop_dir="${HOME}/Desktop"
+
+mkdir -p "${desktop_dir}"
+
+cat > "${desktop_dir}/LLMUP.command" <<EOF
+#!/bin/zsh
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\$PATH"
+cd "${repo_root}"
+if ! docker info >/dev/null 2>&1; then
+  open -ga Docker
+  echo "Waiting for Docker to become ready..."
+  for i in {1..90}; do
+    if docker info >/dev/null 2>&1; then
+      break
+    fi
+    sleep 2
+  done
+fi
+./bin/llm-up
+echo ""
+echo "LLM stack is up."
+read -k "?Press any key to close..."
+echo ""
+EOF
+
+cat > "${desktop_dir}/LLMDOWN.command" <<EOF
+#!/bin/zsh
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\$PATH"
+cd "${repo_root}"
+./bin/llm-down
+echo ""
+echo "LLM stack has been stopped."
+read -k "?Press any key to close..."
+echo ""
+EOF
+
+chmod +x "${desktop_dir}/LLMUP.command" "${desktop_dir}/LLMDOWN.command"
+
+cat <<EOF
+Desktop launchers installed:
+  ${desktop_dir}/LLMUP.command
+  ${desktop_dir}/LLMDOWN.command
+EOF

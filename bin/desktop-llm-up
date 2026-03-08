@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+cd /Users/home/llmstackmac
+if ! docker info >/dev/null 2>&1; then
+  open -ga Docker
+  for i in {1..90}; do
+    if docker info >/dev/null 2>&1; then
+      break
+    fi
+    sleep 2
+  done
+fi
+./bin/llm-up
