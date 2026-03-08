@@ -2,7 +2,14 @@
 
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $headers = @{ Host = 'flowise.llmstack.lan'; 'x-request-from' = 'internal' }
-$loginBody = @{ email = 'flowise-admin@example.invalid'; password = 'REDACTED_PASSWORD' } | ConvertTo-Json -Compress
+$flowiseEmail = $env:FLOWISE_ADMIN_EMAIL
+$flowisePassword = $env:FLOWISE_ADMIN_PASSWORD
+
+if ([string]::IsNullOrWhiteSpace($flowiseEmail) -or [string]::IsNullOrWhiteSpace($flowisePassword)) {
+    throw "Set FLOWISE_ADMIN_EMAIL and FLOWISE_ADMIN_PASSWORD before running this script."
+}
+
+$loginBody = @{ email = $flowiseEmail; password = $flowisePassword } | ConvertTo-Json -Compress
 Invoke-WebRequest -Method Post -Uri 'https://127.0.0.1/api/v1/auth/login' -Headers $headers -WebSession $session -ContentType 'application/json' -Body $loginBody | Out-Null
 
 $existing = Invoke-RestMethod -Method Get -Uri 'https://127.0.0.1/api/v1/chatflows' -Headers $headers -WebSession $session
@@ -200,4 +207,3 @@ $verify = Invoke-RestMethod -Method Get -Uri 'https://127.0.0.1/api/v1/chatflows
 $verify | Where-Object { $_.name -in @('PDF Ingestion - Qdrant', 'PDF Retrieval QA - Qdrant') } |
     Select-Object id, name, type, updatedDate |
     ConvertTo-Json -Depth 10
-

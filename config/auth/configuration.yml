@@ -8,10 +8,12 @@ log:
 
 identity_validation:
   reset_password:
+    # Overridden in compose via AUTHELIA_JWT_SECRET.
     jwt_secret: "change-me"
 
 session:
   name: authelia_session
+  # Overridden in compose via AUTHELIA_SESSION_SECRET.
   secret: "change-me"
   expiration: 3600
   inactivity: 300
@@ -21,6 +23,7 @@ session:
       default_redirection_url: "https://llmstack.lan/"
 
 storage:
+  # Overridden in compose via AUTHELIA_STORAGE_ENCRYPTION_KEY.
   encryption_key: "change-me-change-me-change-me-change-me"
   local:
     path: /data/db.sqlite3

@@ -1,5 +1,8 @@
 # Environment
 .env
+.env.mac
+.env.local
+.env.*.local
 
 # Data directories
 /data/
