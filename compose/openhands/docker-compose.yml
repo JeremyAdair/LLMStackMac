@@ -7,7 +7,7 @@ services:
       # Sandbox runtime image used for agent sessions.
       SANDBOX_RUNTIME_CONTAINER_IMAGE: ${OPENHANDS_RUNTIME_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik}
       # Recommended runtime mount configuration for sandbox containers.
-      SANDBOX_VOLUMES: ${OPENHANDS_SANDBOX_VOLUMES:-${OPENHANDS_REPOS_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/repos}:/workspace:rw}
+      SANDBOX_VOLUMES: ${OPENHANDS_SANDBOX_VOLUMES:-${OPENHANDS_REPOS_MOUNT:-../repos}:/workspace:rw}
       # Attach sandbox sessions to the shared stack network for forgejo/ollama DNS access.
       SANDBOX_ADDITIONAL_NETWORKS: ${OPENHANDS_SANDBOX_NETWORKS:-["llm-stack_llm-stack"]}
       # Persist OpenHands state inside mounted storage.
@@ -26,12 +26,10 @@ services:
     volumes:
       # Docker socket is required for OpenHands runtime containers.
       - /var/run/docker.sock:/var/run/docker.sock
-      # Persist OpenHands state and session metadata on host.
-      # For macOS, set OPENHANDS_STATE_MOUNT=openhands_data in env overrides.
-      - ${OPENHANDS_STATE_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/openhands/state}:/.openhands
+      # Persist OpenHands state and session metadata.
+      - ${OPENHANDS_STATE_MOUNT:-openhands_data}:/.openhands
       # Host-visible workspace for repositories and edits.
-      # For macOS, set OPENHANDS_REPOS_MOUNT=../repos in env overrides.
-      - ${OPENHANDS_REPOS_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/repos}:/workspace
+      - ${OPENHANDS_REPOS_MOUNT:-../repos}:/workspace
     networks:
       - llm-stack
     expose:

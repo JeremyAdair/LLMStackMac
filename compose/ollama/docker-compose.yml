@@ -9,8 +9,7 @@ services:
     expose:
       - "11434"
     volumes:
-      # Persist downloaded models and blobs on host.
-      # For macOS, set OLLAMA_DATA_MOUNT=ollama_data in env overrides.
-      - ${OLLAMA_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/ollama/data}:/root/.ollama
+      # Persist downloaded models and blobs.
+      - ${OLLAMA_DATA_MOUNT:-ollama_data}:/root/.ollama
     networks:
       - llm-stack

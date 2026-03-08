@@ -6,11 +6,9 @@ services:
       - "9090"
     volumes:
       # Host-managed Prometheus config.
-      # For macOS, set PROMETHEUS_CONFIG_MOUNT=./monitoring/prometheus.yml in env overrides.
-      - ${PROMETHEUS_CONFIG_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/config/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
-      # Persist Prometheus TSDB metrics data on host.
-      # For macOS, set PROMETHEUS_DATA_MOUNT=prometheus_data in env overrides.
-      - ${PROMETHEUS_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/prometheus/data}:/prometheus
+      - ${PROMETHEUS_CONFIG_MOUNT:-./compose/monitoring/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
+      # Persist Prometheus TSDB metrics data.
+      - ${PROMETHEUS_DATA_MOUNT:-prometheus_data}:/prometheus
     networks:
       - llm-stack
 
@@ -33,12 +31,10 @@ services:
       # GRAFANA_INSTALL_PLUGINS=grafana-clock-panel
       GF_INSTALL_PLUGINS: ${GRAFANA_INSTALL_PLUGINS:-}
     volumes:
-      # Persist Grafana database/dashboards/settings on host.
-      # For macOS, set GRAFANA_DATA_MOUNT=grafana_data in env overrides.
-      - ${GRAFANA_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/data}:/var/lib/grafana
+      # Persist Grafana database/dashboards/settings.
+      - ${GRAFANA_DATA_MOUNT:-grafana_data}:/var/lib/grafana
       # Optional provisioning from host (datasources/dashboards).
-      # For macOS, set GRAFANA_PROVISIONING_MOUNT=../config/grafana/provisioning in env overrides.
-      - ${GRAFANA_PROVISIONING_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/grafana/provisioning}:/etc/grafana/provisioning:ro
+      - ${GRAFANA_PROVISIONING_MOUNT:-./config/grafana/provisioning}:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
     networks:

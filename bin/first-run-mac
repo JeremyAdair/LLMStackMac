@@ -26,5 +26,5 @@ Next:
    sudo killall -HUP mDNSResponder
 
 3) Bring up core stack:
-   ./bin/llm-up --mac-safe
+   ./bin/llm-up
 EOF

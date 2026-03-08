@@ -16,7 +16,10 @@ compose_files=(
   "${repo_root}/compose/qdrant/docker-compose.yml"
   "${repo_root}/compose/postgres/docker-compose.yml"
   "${repo_root}/compose/redis/docker-compose.yml"
+  "${repo_root}/compose/redisinsight/docker-compose.yml"
+  "${repo_root}/compose/macos/data-services.yml"
   "${repo_root}/compose/reverse-proxy/docker-compose.yml"
+  "${repo_root}/compose/macos/docker-compose.yml"
   "${repo_root}/compose/monitoring/docker-compose.yml"
   "${repo_root}/compose/flowise/docker-compose.yml"
   "${repo_root}/compose/forgejo/docker-compose.yml"
@@ -30,12 +33,7 @@ compose_files=(
   "${repo_root}/compose/pdf-ingest/docker-compose.yml"
   "${repo_root}/compose/rag-pipeline/docker-compose.yml"
   "${repo_root}/compose/pgadmin/docker-compose.yml"
-  "${repo_root}/compose/redisinsight/docker-compose.yml"
 )
-
-if [[ -z "${LLMSTACK_HOST_ROOT:-}" ]] && grep -qi microsoft /proc/version 2>/dev/null; then
-  export LLMSTACK_HOST_ROOT="/mnt/c/llm-stack"
-fi
 
 args=()
 for file in "${compose_files[@]}"; do
@@ -45,10 +43,10 @@ done
 env_file=""
 if [[ -n "${LLMSTACK_ENV_FILE:-}" && -f "${LLMSTACK_ENV_FILE}" ]]; then
   env_file="${LLMSTACK_ENV_FILE}"
-elif [[ -f "${repo_root}/.env" ]]; then
-  env_file="${repo_root}/.env"
 elif [[ -f "${repo_root}/.env.mac" ]]; then
   env_file="${repo_root}/.env.mac"
+elif [[ -f "${repo_root}/.env" ]]; then
+  env_file="${repo_root}/.env"
 fi
 
 cmd=(docker compose --project-name llm-stack)

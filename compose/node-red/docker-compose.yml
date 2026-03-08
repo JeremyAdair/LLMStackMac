@@ -7,9 +7,8 @@ services:
       NODE_RED_PORT: ${NODE_RED_PORT:-1880}
       NODE_RED_ENABLE_SAFE_MODE: ${NODE_RED_ENABLE_SAFE_MODE:-false}
     volumes:
-      # Persist flows, credentials, and installed nodes on host.
-      # For macOS, set NODERED_DATA_MOUNT=nodered_data in env overrides.
-      - ${NODERED_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/node-red/data}:/data
+      # Persist flows, credentials, and installed nodes.
+      - ${NODERED_DATA_MOUNT:-nodered_data}:/data
     networks:
       - llm-stack
     expose:

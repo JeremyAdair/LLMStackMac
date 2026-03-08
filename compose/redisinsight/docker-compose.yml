@@ -4,8 +4,7 @@ services:
     expose:
       - "5540"
     volumes:
-      # Persist RedisInsight connections/workspace state on host.
-      # For macOS, set REDISINSIGHT_DATA_MOUNT=redisinsight_data in env overrides.
-      - ${REDISINSIGHT_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/redisinsight/data}:/data
+      # Persist RedisInsight connections/workspace state.
+      - ${REDISINSIGHT_DATA_MOUNT:-redisinsight_data}:/data
     networks:
       - llm-stack

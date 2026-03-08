@@ -10,9 +10,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmstack}
       POSTGRES_DB: ${POSTGRES_DB:-llmstack}
     volumes:
-      # Persist PostgreSQL database files on host.
-      # For macOS, set POSTGRES_DATA_MOUNT=postgres_data in env overrides.
-      - ${POSTGRES_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/postgres/data}:/var/lib/postgresql/data
+      # Persist PostgreSQL database files.
+      - ${POSTGRES_DATA_MOUNT:-postgres_data}:/var/lib/postgresql/data
     networks:
       - llm-stack
     healthcheck:

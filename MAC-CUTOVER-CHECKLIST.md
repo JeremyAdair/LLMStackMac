@@ -53,7 +53,7 @@ Known unresolved image risks (may fail until we patch live):
 Use mac helper:
 
 ```bash
-./bin/llm-up --mac-safe
+./bin/llm-up
 ```
 
 Notes:

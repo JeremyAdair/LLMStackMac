@@ -10,8 +10,7 @@ services:
       # Keep account creation disabled in hardened mode.
       ENABLE_SIGNUP: "false"
     volumes:
-      # Persist Open WebUI users, chats, files, and settings on host.
-      # For macOS, set OPENWEBUI_DATA_MOUNT=openwebui_data in env overrides.
-      - ${OPENWEBUI_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/openwebui/data}:/app/backend/data
+      # Persist Open WebUI users, chats, files, and settings.
+      - ${OPENWEBUI_DATA_MOUNT:-openwebui_data}:/app/backend/data
     networks:
       - llm-stack

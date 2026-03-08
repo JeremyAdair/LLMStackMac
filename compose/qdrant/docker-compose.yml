@@ -5,8 +5,7 @@ services:
     expose:
       - "6333"
     volumes:
-      # Persist vector index and payload data on host.
-      # For macOS, set QDRANT_DATA_MOUNT=qdrant_data in env overrides.
-      - ${QDRANT_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/qdrant/data}:/qdrant/storage
+      # Persist vector index and payload data.
+      - ${QDRANT_DATA_MOUNT:-qdrant_data}:/qdrant/storage
     networks:
       - llm-stack

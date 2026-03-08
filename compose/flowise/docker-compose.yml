@@ -10,11 +10,9 @@ services:
       # Serve Flowise under a path on the reverse proxy.
       FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/}
     volumes:
-      # Persist Flowise DB, chatflows, credentials, and uploads on host.
-      # For macOS, set FLOWISE_DATA_MOUNT=flowise_data in env overrides.
-      - ${FLOWISE_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/flowise/data}:/root/.flowise
-      # For macOS, set PDF_DROP_MOUNT=../data/pdfs in env overrides.
-      - ${PDF_DROP_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs}:/data/pdfs
+      # Persist Flowise DB, chatflows, credentials, and uploads.
+      - ${FLOWISE_DATA_MOUNT:-flowise_data}:/root/.flowise
+      - ${PDF_DROP_MOUNT:-../data/pdfs}:/data/pdfs
     networks:
       - llm-stack
     expose:
@@ -30,7 +28,7 @@ services:
       PDF_WATCH_DIR: /data/pdfs
     volumes:
       # Watch host drop folder directly.
-      - ${PDF_DROP_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/pdfs}:/data/pdfs
+      - ${PDF_DROP_MOUNT:-../data/pdfs}:/data/pdfs
       - ./flowise/scripts:/scripts:ro
     command:
       - /bin/sh

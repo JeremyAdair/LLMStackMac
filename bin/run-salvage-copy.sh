@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-host_root="${LLMSTACK_HOST_ROOT:-/mnt/c/llm-stack}"
+host_root="${LLMSTACK_HOST_ROOT:-/Volumes/LLM_DATA}"
 log="${LOG_FILE:-${repo_root}/salvage-copy-$(date +%Y%m%d-%H%M%S).log}"
 
 copy_one() {

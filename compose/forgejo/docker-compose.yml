@@ -4,7 +4,6 @@ services:
     environment:
       USER_UID: ${FORGEJO_UID:-1000}
       USER_GID: ${FORGEJO_GID:-1000}
-      # Keep defaults for existing Windows flow; override in env for macOS/local domain changes.
       FORGEJO__server__DOMAIN: ${FORGEJO_DOMAIN:-forgejo.llmstack.lan}
       FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-https://forgejo.llmstack.lan/}
       FORGEJO__server__PROTOCOL: http
@@ -18,9 +17,8 @@ services:
       FORGEJO__security__REVERSE_PROXY_LIMIT: "1"
       FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: "*"
     volumes:
-      # Persist repos, users, issues, and Forgejo config on host.
-      # For macOS, set FORGEJO_DATA_MOUNT=forgejo_data in env overrides.
-      - ${FORGEJO_DATA_MOUNT:-${LLMSTACK_HOST_ROOT:-C:/llm-stack}/forgejo/data}:/data
+      # Persist repos, users, issues, and Forgejo config.
+      - ${FORGEJO_DATA_MOUNT:-forgejo_data}:/data
     expose:
       # Web UI stays internal behind reverse proxy + Authelia.
       - "3000"
