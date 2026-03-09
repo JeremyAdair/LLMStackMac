@@ -1,0 +1,21 @@
+############################################
+# SECTION: Blackbox Probe Modules
+#
+# What this part of the program does:
+# Defines reusable probe behaviors for HTTP availability checks.
+#
+# Why it exists:
+# Prometheus asks blackbox-exporter to run one of these modules against
+# target URLs, then stores pass/fail and latency metrics.
+#
+# What happens next:
+# Prometheus uses the http_2xx module to check Open WebUI and Ollama health.
+############################################
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200]

@@ -23,30 +23,62 @@ LLMStack is a self-hosted local LLM stack built around Docker Compose. It provid
 - Local speech-to-text, text-to-speech, and OCR utilities.
 - Authelia authentication gateway for protected web access.
 
-## Container roles
+## Service layers
 
-Use this as a quick reference for what each service does and whether you usually need it running.
+Use this as a quick reference for what each service does, grouped by operational layer.
+
+### 1) Core runtime layer
+
+This is the stuff that makes AI actually run.
 
 | Service | Purpose | Typical need |
 |---|---|---|
-| `reverse-proxy` | Single web entrypoint on 80/443, routes to all UIs. | Core |
-| `auth` (Authelia) | Login + access control in front of protected routes. | Core |
-| `landing` | Landing page with links to stack tools. | Optional |
-| `open-webui` | Main chat UI for local LLM use. | Core |
-| `ollama` | Model runtime/backend for local inference. | Core |
-| `qdrant` | Vector database for RAG and embeddings search. | Core for RAG |
-| `flowise` | Visual workflow/agent builder and API flows. | Optional |
-| `pdf-auto-ingest` | Watches PDF folder and auto-upserts to Flowise/RAG. | Optional |
-| `python-api` | FastAPI endpoints for automation scripts and jobs. | Optional |
-| `python-toolbox` | Interactive script/runtime container (`exec` into it). | Optional |
-| `postgres` | Relational DB used by optional components/workflows. | Optional |
-| `redis` | Cache/queue support used by optional components/workflows. | Optional |
-| `node-red` | Low-code automation and orchestration. | Optional |
-| `prometheus` | Metrics scraping and storage. | Optional |
-| `grafana` | Metrics dashboards (reads from Prometheus). | Optional |
-| `pgadmin` | UI admin tool for Postgres. | Optional |
-| `redisinsight` | UI admin tool for Redis. | Optional |
+| `open-webui` | Main chat interface and user-facing AI workspace. | Core |
+| `ollama` | Local model inference backend. | Core |
+| `postgres` | Structured app state and relational data storage. | Core |
+| `qdrant` | Vector index and similarity retrieval for RAG. | Core for RAG |
+
+### 2) Platform services layer
+
+This is the stuff that supports the runtime.
+
+| Service | Purpose | Typical need |
+|---|---|---|
+| `reverse-proxy` | Single web entrypoint on 80/443 and routing for all UIs. | Core |
+| `auth` (Authelia) | Login and access control in front of protected routes. | Core |
+| `redis` | Cache/queue support for supporting services and workflows. | Optional |
+| `python-api` | FastAPI endpoints for stack automation jobs. | Optional |
+| `python-toolbox` | Script runtime container for maintenance/one-off jobs. | Optional |
+| `landing` | Landing page and navigation for stack services. | Optional |
 | `forgejo` | Self-hosted Git service for local repos/collaboration. | Optional |
+
+### 3) Observability layer
+
+This is how you inspect and understand the system.
+
+| Service | Purpose | Typical need |
+|---|---|---|
+| `prometheus` | Metrics scraping and storage. | Optional |
+| `grafana` | Metrics dashboards and alert visualization. | Optional |
+| `pgadmin` | Postgres inspection and query administration. | Optional |
+| `redisinsight` | Redis inspection and operational troubleshooting. | Optional |
+
+### 4) Automation and tooling layer
+
+This is where the stack starts doing useful work beyond just chatting.
+
+| Service | Purpose | Typical need |
+|---|---|---|
+| `flowise` | Visual workflow/agent builder and API flows. | Optional |
+| `node-red` | Low-code automation and orchestration. | Optional |
+| `pdf-auto-ingest` | Watches PDF folder and auto-upserts to Flowise/RAG. | Optional |
+
+### 5) Experimental layer
+
+This is the stuff you are testing, learning, or may remove later.
+
+| Service | Purpose | Typical need |
+|---|---|---|
 | `openhands` | Agentic coding workspace service. | Optional |
 
 Job-style services are run on demand rather than left up all the time (RAG pipeline, PDF ingest jobs, STT, TTS, OCR).

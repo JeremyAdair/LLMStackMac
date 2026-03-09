@@ -1,0 +1,16 @@
+{
+  "uid": "llmstack-service-health",
+  "title": "LLMStack Service Health",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "timezone": "browser",
+  "tags": ["llmstack", "blackbox", "availability"],
+  "panels": [
+    {"type":"stat","title":"Open WebUI Probe","gridPos":{"h":6,"w":12,"x":0,"y":0},"targets":[{"expr":"probe_success{instance=\"http://open-webui:8080/\"}","refId":"A"}]},
+    {"type":"stat","title":"Ollama Probe","gridPos":{"h":6,"w":12,"x":12,"y":0},"targets":[{"expr":"probe_success{instance=\"http://ollama:11434/api/tags\"}","refId":"A"}]},
+    {"type":"timeseries","title":"Probe Duration (seconds)","gridPos":{"h":8,"w":24,"x":0,"y":6},"targets":[{"expr":"probe_duration_seconds{job=\"service_health\"}","refId":"A"}]}
+  ],
+  "templating":{"list":[]},
+  "time":{"from":"now-6h","to":"now"}
+}

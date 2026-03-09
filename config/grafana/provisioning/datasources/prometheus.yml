@@ -1,0 +1,23 @@
+############################################
+# SECTION: Grafana Data Source Provisioning
+#
+# What this part of the program does:
+# Preconfigures Grafana with a Prometheus data source named "Prometheus".
+#
+# Why it exists:
+# Provisioning removes manual setup steps and keeps monitoring reproducible
+# across container restarts and fresh environments.
+#
+# What happens next:
+# Grafana auto-loads this data source at startup so dashboards can query
+# metrics immediately.
+############################################
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true

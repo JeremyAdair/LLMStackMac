@@ -1,0 +1,17 @@
+{
+  "uid": "llmstack-containers",
+  "title": "LLMStack Container Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "timezone": "browser",
+  "tags": ["llmstack", "cadvisor", "docker"],
+  "panels": [
+    {"type":"timeseries","title":"Container CPU Cores (rate)","gridPos":{"h":8,"w":24,"x":0,"y":0},"targets":[{"expr":"sum by (id) (rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[5m]))","refId":"A"}]},
+    {"type":"timeseries","title":"Container Memory (bytes)","gridPos":{"h":8,"w":24,"x":0,"y":8},"targets":[{"expr":"sum by (id) (container_memory_usage_bytes{id=~\"/docker/.+\"})","refId":"A"}]},
+    {"type":"timeseries","title":"Container Network RX Bytes/s","gridPos":{"h":8,"w":12,"x":0,"y":16},"targets":[{"expr":"sum by (id) (rate(container_network_receive_bytes_total{id=~\"/docker/.+\"}[5m]))","refId":"A"}]},
+    {"type":"timeseries","title":"Container Network TX Bytes/s","gridPos":{"h":8,"w":12,"x":12,"y":16},"targets":[{"expr":"sum by (id) (rate(container_network_transmit_bytes_total{id=~\"/docker/.+\"}[5m]))","refId":"A"}]}
+  ],
+  "templating":{"list":[]},
+  "time":{"from":"now-6h","to":"now"}
+}

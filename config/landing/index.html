@@ -4,51 +4,125 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LLMStack</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260309-2" />
   </head>
   <body>
     <main class="container">
       <header>
         <h1>LLMStack</h1>
-        <p>Self-hosted local AI lab stack</p>
+        <p>Self-hosted local platform stack</p>
       </header>
 
-      <section class="links">
-        <a class="button" href="https://llmstack.lan/authelia/">Authelia Login</a>
-        <a class="button" href="https://openwebui.llmstack.lan/">Open WebUI</a>
-        <a class="button" href="https://flowise.llmstack.lan/">Flowise</a>
-        <a class="button" href="https://nodered.llmstack.lan/">Node-RED</a>
-        <a class="button" href="https://grafana.llmstack.lan/grafana/">Grafana</a>
-        <a class="button" href="https://openhands.llmstack.lan/">OpenHands</a>
-        <a class="button" href="http://localhost:6333/dashboard">Qdrant Dashboard</a>
-        <a class="button" href="https://prometheus.llmstack.lan/">Prometheus UI</a>
-        <a class="button" href="https://pgadmin.llmstack.lan/">pgAdmin</a>
-        <a class="button" href="http://localhost:5540">RedisInsight</a>
-        <a class="button" href="https://forgejo.llmstack.lan/">Forgejo</a>
-        <a class="button" href="http://localhost:8000/ui">Python Scripts API</a>
-        <a class="button" href="/docs.html">Docs</a>
-      </section>
+      <div class="layers-grid">
+        <section class="layer">
+          <h2>Core Runtime Layer</h2>
+          <div class="links">
+            <a class="button" href="https://openwebui.llmstack.lan/">Open WebUI</a>
+            <a class="button" href="http://localhost:6333/dashboard">Qdrant Dashboard</a>
+          </div>
+        </section>
+
+        <section class="layer">
+          <h2>Platform Services Layer</h2>
+          <div class="links">
+            <a class="button" href="https://llmstack.lan/authelia/">Authelia Login</a>
+            <a class="button" href="https://forgejo.llmstack.lan/">Forgejo</a>
+            <a class="button" href="http://localhost:5540">RedisInsight</a>
+            <a class="button" href="/docs.html">Docs</a>
+          </div>
+        </section>
+
+        <section class="layer">
+          <h2>Observability Layer</h2>
+          <div class="links">
+            <a class="button" href="https://grafana.llmstack.lan/grafana/">Grafana</a>
+            <a class="button" href="https://prometheus.llmstack.lan/">Prometheus UI</a>
+            <a class="button" href="https://pgadmin.llmstack.lan/">pgAdmin</a>
+          </div>
+        </section>
+
+        <section class="layer">
+          <h2>Automation and Tooling Layer</h2>
+          <div class="links">
+            <a class="button" href="https://flowise.llmstack.lan/">Flowise</a>
+            <a class="button" href="https://nodered.llmstack.lan/">Node-RED</a>
+            <a class="button" href="http://localhost:8000/ui">Python Scripts API</a>
+          </div>
+        </section>
+
+        <section class="layer">
+          <h2>Experimental Layer</h2>
+          <div class="links">
+            <a class="button" href="https://openhands.llmstack.lan/">OpenHands</a>
+          </div>
+        </section>
+      </div>
 
       <section class="note">
         <p>
           These links assume you added the llmstack.lan hostnames to your hosts file.
         </p>
-        <h2>What Each Service Is For</h2>
+
+        <h2>1. Core runtime layer</h2>
+        <p>This is the core runtime that keeps the system functional.</p>
+        <p>Examples:</p>
         <ul>
-          <li><strong>Authelia Login:</strong> Sign in to access protected apps.</li>
-          <li><strong>Open WebUI:</strong> Main chat interface for local LLM use.</li>
-          <li><strong>Flowise:</strong> Build visual AI flows, tools, and RAG chains.</li>
-          <li><strong>Node-RED:</strong> Low-code automations and workflow orchestration.</li>
-          <li><strong>Grafana:</strong> Metrics dashboards for service health.</li>
-          <li><strong>OpenHands:</strong> Agentic coding workspace and task runner.</li>
-          <li><strong>Qdrant Dashboard:</strong> Inspect collections and vector data.</li>
-          <li><strong>Prometheus UI:</strong> Query raw metrics and targets.</li>
-          <li><strong>pgAdmin:</strong> Manage Postgres databases and queries.</li>
-          <li><strong>RedisInsight:</strong> Inspect Redis keys, memory, and commands.</li>
-          <li><strong>Forgejo:</strong> Self-hosted Git repos and code collaboration.</li>
-          <li><strong>Python Scripts API:</strong> Run toolbox scripts and helper endpoints.</li>
-          <li><strong>Docs:</strong> Runbooks, setup notes, and troubleshooting.</li>
+          <li><strong>Ollama:</strong> Runs local model inference.</li>
+          <li><strong>Open WebUI:</strong> Provides the main user chat interface.</li>
+          <li><strong>Postgres:</strong> Stores structured application data.</li>
+          <li><strong>Qdrant:</strong> Stores and retrieves vectors for semantic search.</li>
         </ul>
+        <p>If it cannot serve requests, store data, or retrieve indexed content, it belongs here.</p>
+
+        <h2>2. Platform services layer</h2>
+        <p>This is the stuff that supports the runtime.</p>
+        <p>Examples:</p>
+        <ul>
+          <li><strong>Reverse proxy:</strong> Routes incoming web requests to the right service.</li>
+          <li><strong>Authelia:</strong> Handles authentication and access control.</li>
+          <li><strong>Redis:</strong> Provides fast cache and queue primitives.</li>
+          <li><strong>Python-runner:</strong> Executes utility scripts and automation tasks.</li>
+          <li><strong>File storage:</strong> Keeps persistent files and uploads available.</li>
+          <li><strong>Background job services:</strong> Process long-running tasks asynchronously.</li>
+        </ul>
+        <p>These are support systems that keep the runtime secure and stable.</p>
+
+        <h2>3. Observability layer</h2>
+        <p>This is how you inspect and understand the system.</p>
+        <p>Examples:</p>
+        <ul>
+          <li><strong>Prometheus:</strong> Scrapes and stores time-series metrics.</li>
+          <li><strong>Grafana:</strong> Visualizes metrics in dashboards and panels.</li>
+          <li><strong>pgAdmin:</strong> Inspects and manages PostgreSQL state.</li>
+          <li><strong>Logs:</strong> Provide event history and troubleshooting context.</li>
+        </ul>
+        <p>This is your historian / HMI layer.</p>
+
+        <h2>4. Automation and tooling layer</h2>
+        <p>This is where the stack starts doing repeatable useful work.</p>
+        <p>Examples:</p>
+        <ul>
+          <li><strong>Flowise:</strong> Builds and runs workflow-based automations.</li>
+          <li><strong>Python-runner scripts:</strong> Execute repeatable utility workflows.</li>
+          <li><strong>Ingestion jobs:</strong> Import and preprocess source content.</li>
+          <li><strong>Export jobs:</strong> Package and move results out of the stack.</li>
+          <li><strong>Summarizers:</strong> Generate condensed outputs from larger inputs.</li>
+          <li><strong>Maintenance scripts:</strong> Perform routine operational upkeep.</li>
+        </ul>
+        <p>This is where your runner makes sense.</p>
+
+        <h2>5. Experimental layer</h2>
+        <p>This is the stuff you are testing, learning, or may remove later.</p>
+        <p>Examples:</p>
+        <ul>
+          <li><strong>Temporary agents:</strong> Short-lived experiments under evaluation.</li>
+          <li><strong>Test containers:</strong> Trial services used for validation.</li>
+          <li><strong>Scratch integrations:</strong> In-progress connector prototypes.</li>
+          <li><strong>One-off scripts:</strong> Ad hoc commands not yet productionized.</li>
+          <li><strong>Alternate UIs:</strong> Optional frontends being compared.</li>
+          <li><strong>Random side tools:</strong> Miscellaneous utilities with uncertain long-term value.</li>
+        </ul>
+        <p>This layer is allowed to be messy - but it must be clearly labeled as experimental.</p>
       </section>
     </main>
   </body>

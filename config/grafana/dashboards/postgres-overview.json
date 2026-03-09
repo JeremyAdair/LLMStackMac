@@ -1,0 +1,18 @@
+{
+  "uid": "llmstack-postgres",
+  "title": "LLMStack PostgreSQL Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "timezone": "browser",
+  "tags": ["llmstack", "postgres", "postgres_exporter"],
+  "panels": [
+    {"type":"stat","title":"Postgres Up","gridPos":{"h":6,"w":6,"x":0,"y":0},"targets":[{"expr":"pg_up","refId":"A"}]},
+    {"type":"timeseries","title":"Connections","gridPos":{"h":6,"w":9,"x":6,"y":0},"targets":[{"expr":"sum(pg_stat_activity_count)","refId":"A"}]},
+    {"type":"timeseries","title":"Transactions/s","gridPos":{"h":6,"w":9,"x":15,"y":0},"targets":[{"expr":"sum(rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m]))","refId":"A"}]},
+    {"type":"timeseries","title":"Database Size (bytes)","gridPos":{"h":8,"w":12,"x":0,"y":6},"targets":[{"expr":"pg_database_size_bytes","refId":"A"}]},
+    {"type":"timeseries","title":"Postmaster Uptime (seconds)","gridPos":{"h":8,"w":12,"x":12,"y":6},"targets":[{"expr":"pg_postmaster_start_time_seconds","refId":"A"}]}
+  ],
+  "templating":{"list":[]},
+  "time":{"from":"now-6h","to":"now"}
+}

@@ -1,0 +1,280 @@
+{
+  "uid": "llmstack-ops-center",
+  "title": "LLMStack Operations Center",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "10s",
+  "timezone": "browser",
+  "graphTooltip": 2,
+  "tags": ["llmstack", "operations", "noc"],
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {"list": []},
+  "panels": [
+    {"id": 1, "type": "row", "title": "NOC SUMMARY", "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}},
+
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Host CPU",
+      "description": "Overall host CPU busy percentage.",
+      "gridPos": {"h": 6, "w": 4, "x": 0, "y": 1},
+      "targets": [{"refId": "A", "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 80}, {"color": "red", "value": 95}]}}},
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Memory Used",
+      "description": "Host memory utilization percentage.",
+      "gridPos": {"h": 6, "w": 4, "x": 4, "y": 1},
+      "targets": [{"refId": "A", "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 80}, {"color": "red", "value": 95}]}}},
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Disk Used (/)",
+      "description": "Root filesystem usage percentage.",
+      "gridPos": {"h": 6, "w": 4, "x": 8, "y": 1},
+      "targets": [{"refId": "A", "expr": "100 * (1 - (node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}))"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 85}, {"color": "red", "value": 95}]}}},
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "PostgreSQL",
+      "description": "Database exporter connectivity status.",
+      "gridPos": {"h": 6, "w": 4, "x": 12, "y": 1},
+      "targets": [{"refId": "A", "expr": "max(pg_up)"}],
+      "fieldConfig": {"defaults": {"unit": "none", "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "OpenWebUI",
+      "description": "Blackbox probe for Open WebUI.",
+      "gridPos": {"h": 6, "w": 4, "x": 16, "y": 1},
+      "targets": [{"refId": "A", "expr": "probe_success{job=\"service_health\",instance=\"http://open-webui:8080/\"}"}],
+      "fieldConfig": {"defaults": {"unit": "none", "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Ollama",
+      "description": "Blackbox probe for Ollama API.",
+      "gridPos": {"h": 6, "w": 4, "x": 20, "y": 1},
+      "targets": [{"refId": "A", "expr": "probe_success{job=\"service_health\",instance=\"http://ollama:11434/api/tags\"}"}],
+      "fieldConfig": {"defaults": {"unit": "none", "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+
+    {"id": 10, "type": "row", "title": "SYSTEM HEALTH", "gridPos": {"h": 1, "w": 24, "x": 0, "y": 7}},
+
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "CPU Usage % by Core",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [{"refId": "A", "expr": "100 - (avg by (cpu) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "core {{cpu}}"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 80}, {"color": "red", "value": 95}]}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom"}}
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Load Average Trend",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "targets": [
+        {"refId": "A", "expr": "node_load1", "legendFormat": "1m"},
+        {"refId": "B", "expr": "node_load5", "legendFormat": "5m"},
+        {"refId": "C", "expr": "node_load15", "legendFormat": "15m"}
+      ],
+      "options": {"legend": {"displayMode": "list", "placement": "right"}}
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Disk IO Throughput",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(node_disk_read_bytes_total[5m]))", "legendFormat": "read"},
+        {"refId": "B", "expr": "sum(rate(node_disk_written_bytes_total[5m]))", "legendFormat": "write"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "Bps"}}
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Network Throughput",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo\"}[5m]))", "legendFormat": "rx"},
+        {"refId": "B", "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo\"}[5m]))", "legendFormat": "tx"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "Bps"}}
+    },
+
+    {"id": 20, "type": "row", "title": "DOCKER CONTAINERS", "gridPos": {"h": 1, "w": 24, "x": 0, "y": 24}},
+
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Container Restart Events (1h)",
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 25},
+      "targets": [{"refId": "A", "expr": "sum(changes(container_start_time_seconds{id=~\"/docker/.+\"}[1h]))"}],
+      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 3}]}}},
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 22,
+      "type": "stat",
+      "title": "Container CPU Series",
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 25},
+      "targets": [{"refId": "A", "expr": "count(container_cpu_usage_seconds_total{id=~\"/docker/.+\"})"}],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "Container Memory Series",
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 25},
+      "targets": [{"refId": "A", "expr": "count(container_memory_usage_bytes{id=~\"/docker/.+\"})"}],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Top Container CPU Consumers",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 31},
+      "targets": [{"refId": "A", "expr": "topk(10, sum by (id) (rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[5m])))", "legendFormat": "{{id}}"}],
+      "fieldConfig": {"defaults": {"unit": "cores"}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom"}}
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Top Container Memory Consumers",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 31},
+      "targets": [{"refId": "A", "expr": "topk(10, sum by (id) (container_memory_usage_bytes{id=~\"/docker/.+\"}))", "legendFormat": "{{id}}"}],
+      "fieldConfig": {"defaults": {"unit": "bytes"}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom"}}
+    },
+
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Container Network Throughput",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 39},
+      "targets": [
+        {"refId": "A", "expr": "topk(8, sum by (id) (rate(container_network_receive_bytes_total{id=~\"/docker/.+\"}[5m])))", "legendFormat": "rx {{id}}"},
+        {"refId": "B", "expr": "topk(8, sum by (id) (rate(container_network_transmit_bytes_total{id=~\"/docker/.+\"}[5m])))", "legendFormat": "tx {{id}}"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "Bps"}}
+    },
+
+    {"id": 30, "type": "row", "title": "DATABASE (POSTGRESQL)", "gridPos": {"h": 1, "w": 24, "x": 0, "y": 47}},
+
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "Active Connections",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 48},
+      "targets": [{"refId": "A", "expr": "sum(pg_stat_activity_count)"}],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 32,
+      "type": "stat",
+      "title": "Database Size",
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 48},
+      "targets": [{"refId": "A", "expr": "sum(pg_database_size_bytes)"}],
+      "fieldConfig": {"defaults": {"unit": "bytes"}},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 33,
+      "type": "stat",
+      "title": "Transactions/s",
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 48},
+      "targets": [{"refId": "A", "expr": "sum(rate(pg_stat_database_xact_commit[5m]) + rate(pg_stat_database_xact_rollback[5m]))"}],
+      "fieldConfig": {"defaults": {"unit": "ops", "decimals": 2}},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "Slowest Active Tx (s)",
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 48},
+      "targets": [{"refId": "A", "expr": "max(pg_stat_activity_max_tx_duration)"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 30}, {"color": "red", "value": 120}]}}},
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+
+    {
+      "id": 35,
+      "type": "timeseries",
+      "title": "Transactions (Commit/Rollback)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 54},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(pg_stat_database_xact_commit[5m]))", "legendFormat": "commit/s"},
+        {"refId": "B", "expr": "sum(rate(pg_stat_database_xact_rollback[5m]))", "legendFormat": "rollback/s"}
+      ]
+    },
+    {
+      "id": 36,
+      "type": "timeseries",
+      "title": "Database Size by Database",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 54},
+      "targets": [{"refId": "A", "expr": "pg_database_size_bytes", "legendFormat": "{{datname}}"}],
+      "fieldConfig": {"defaults": {"unit": "bytes"}}
+    },
+
+    {"id": 40, "type": "row", "title": "AI STACK SERVICES", "gridPos": {"h": 1, "w": 24, "x": 0, "y": 62}},
+
+    {
+      "id": 41,
+      "type": "stat",
+      "title": "OpenWebUI Availability",
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 63},
+      "targets": [{"refId": "A", "expr": "probe_success{job=\"service_health\",instance=\"http://open-webui:8080/\"}"}],
+      "fieldConfig": {"defaults": {"unit": "none", "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 42,
+      "type": "stat",
+      "title": "Ollama Availability",
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 63},
+      "targets": [{"refId": "A", "expr": "probe_success{job=\"service_health\",instance=\"http://ollama:11434/api/tags\"}"}],
+      "fieldConfig": {"defaults": {"unit": "none", "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+    {
+      "id": 43,
+      "type": "stat",
+      "title": "Scrape Health Ratio",
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 63},
+      "targets": [{"refId": "A", "expr": "sum(up) / count(up) * 100"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 90}, {"color": "green", "value": 99}]}}},
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}}
+    },
+
+    {
+      "id": 44,
+      "type": "timeseries",
+      "title": "Probe Latency (OpenWebUI / Ollama)",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 69},
+      "targets": [{"refId": "A", "expr": "probe_duration_seconds{job=\"service_health\"}", "legendFormat": "{{instance}}"}],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    }
+  ]
+}
