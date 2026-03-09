@@ -4,6 +4,7 @@ set -eu
 FLOWISE_URL="${FLOWISE_URL:-http://flowise:3000}"
 FLOWISE_INGEST_CHATFLOW_ID="${FLOWISE_INGEST_CHATFLOW_ID:-}"
 FLOWISE_INGEST_STOP_NODE_ID="${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}"
+FLOWISE_API_KEY="${FLOWISE_API_KEY:-}"
 PDF_WATCH_DIR="${PDF_WATCH_DIR:-/data/pdfs}"
 FLOWISE_WAIT_MAX_SECONDS="${FLOWISE_WAIT_MAX_SECONDS:-120}"
 
@@ -52,10 +53,23 @@ ingest_file() {
   metadata="{\"filename\":\"$base\"}"
   echo "pdf-auto-ingest: ingesting $base -> $INGEST_URL"
 
-  if curl -fsS -X POST "$INGEST_URL" \
+  uploaded="0"
+  if [ -n "$FLOWISE_API_KEY" ]; then
+    if curl -fsS -X POST "$INGEST_URL" \
+        -H "Authorization: Bearer $FLOWISE_API_KEY" \
+        -F "files=@$file;type=application/pdf" \
+        -F "stopNodeId=$FLOWISE_INGEST_STOP_NODE_ID" \
+        -F "metadata=$metadata" >/dev/null; then
+      uploaded="1"
+    fi
+  elif curl -fsS -X POST "$INGEST_URL" \
       -F "files=@$file;type=application/pdf" \
       -F "stopNodeId=$FLOWISE_INGEST_STOP_NODE_ID" \
       -F "metadata=$metadata" >/dev/null; then
+    uploaded="1"
+  fi
+
+  if [ "$uploaded" = "1" ]; then
     echo "pdf-auto-ingest: success $base"
     mv "$file" "$PDF_WATCH_DIR/processed/$base"
   else

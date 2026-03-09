@@ -86,6 +86,7 @@ services:
       FLOWISE_URL: ${FLOWISE_URL:-http://flowise:3000}
       FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-f2f4fce2-9c7d-4ca6-8fd7-6c4b0c97f111}
       FLOWISE_INGEST_STOP_NODE_ID: ${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}
+      FLOWISE_API_KEY: ${FLOWISE_API_KEY:-}
       PDF_WATCH_DIR: /data/pdfs
     volumes:
       # Watch host drop folder directly.
