@@ -31,6 +31,7 @@ ${ip} ${domain}
 ${ip} openwebui.${domain}
 ${ip} flowise.${domain}
 ${ip} openhands.${domain}
+${ip} openclaw.${domain}
 ${ip} grafana.${domain}
 ${ip} prometheus.${domain}
 ${ip} pgadmin.${domain}

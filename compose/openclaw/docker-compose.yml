@@ -32,10 +32,10 @@
 services:
 
   ############################################
-  # SECTION: Service - workspace
+  # SECTION: Service - openclaw
   #
   # What this part of the program does:
-  # Defines runtime settings for the "workspace" container.
+  # Defines runtime settings for the "openclaw" container.
   #
   # Why it exists:
   # This service provides one concrete capability needed by the stack
@@ -45,18 +45,28 @@ services:
   # The nested keys configure how this container starts, connects, and
   # persists data relative to other services.
   ############################################
-  workspace:
-    build:
-      context: .
-      args:
-        WORKSPACE_UID: ${WORKSPACE_UID:-1000}
-        WORKSPACE_GID: ${WORKSPACE_GID:-1000}
-    image: llmstack/workspace:local
-    user: "${WORKSPACE_UID:-1000}:${WORKSPACE_GID:-1000}"
-    working_dir: /workspace
+  openclaw:
+    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    user: "0:0"
+    # Seed runtime config into volume on first boot, then start gateway.
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        if [ ! -f /data/openclaw.json ]; then
+          cp /config/openclaw.json /data/openclaw.json
+        fi
+        exec node dist/index.js gateway
+    environment:
+      # Use volume-backed runtime config (tokens/secrets never written to git files).
+      OPENCLAW_CONFIG_PATH: /data/openclaw.json
+      # Persist runtime state (auth token, logs, caches) across restarts.
+      OPENCLAW_STATE_DIR: /data
     volumes:
-      - ../workspace:/workspace
-    command: ["sleep", "infinity"]
-    read_only: true
+      - ../config/openclaw/openclaw.json:/config/openclaw.json:ro
+      - ${OPENCLAW_STATE_MOUNT:-openclaw_data}:/data
     networks:
       - llm-stack
+    expose:
+      # Internal-only port; reverse proxy publishes it.
+      - "18789"

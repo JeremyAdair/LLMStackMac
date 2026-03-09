@@ -45,6 +45,7 @@ compose_files=(
   "${repo_root}/compose/monitoring/docker-compose.yml"
   "${repo_root}/compose/flowise/docker-compose.yml"
   "${repo_root}/compose/forgejo/docker-compose.yml"
+  "${repo_root}/compose/openclaw/docker-compose.yml"
   "${repo_root}/compose/openhands/docker-compose.yml"
   "${repo_root}/compose/auth/docker-compose.yml"
   "${repo_root}/compose/node-red/docker-compose.yml"

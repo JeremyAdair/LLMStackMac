@@ -1,0 +1,18 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "auth": {
+      "mode": "token",
+      "token": "llmstack-openclaw-gateway-token"
+    },
+    "trustedProxies": [
+      "172.18.0.0/16"
+    ],
+    "controlUi": {
+      "allowedOrigins": [
+        "https://openclaw.llmstack.lan"
+      ]
+    }
+  }
+}

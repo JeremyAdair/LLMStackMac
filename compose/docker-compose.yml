@@ -144,4 +144,5 @@ volumes:
   redisinsight_data:
   nodered_data:
   pdf_drop_data:
+  openclaw_data:
   # Removing a volume here or running `docker compose down -v` deletes its data.

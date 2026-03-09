@@ -79,6 +79,7 @@ This is the stuff you are testing, learning, or may remove later.
 
 | Service | Purpose | Typical need |
 |---|---|---|
+| `openclaw` | Agent gateway/runtime UI for advanced local workflows. | Optional |
 | `openhands` | Agentic coding workspace service. | Optional |
 
 Job-style services are run on demand rather than left up all the time (RAG pipeline, PDF ingest jobs, STT, TTS, OCR).
@@ -120,6 +121,7 @@ Add these entries to your hosts file first:
 127.0.0.1  openwebui.llmstack.lan
 127.0.0.1  flowise.llmstack.lan
 127.0.0.1  openhands.llmstack.lan
+127.0.0.1  openclaw.llmstack.lan
 127.0.0.1  grafana.llmstack.lan
 127.0.0.1  nodered.llmstack.lan
 127.0.0.1  forgejo.llmstack.lan
@@ -151,6 +153,7 @@ Then open:
 - Open WebUI: https://openwebui.llmstack.lan/
 - Flowise: https://flowise.llmstack.lan/
 - OpenHands: https://openhands.llmstack.lan/
+- OpenClaw: https://openclaw.llmstack.lan/
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
 - Forgejo: https://forgejo.llmstack.lan/
@@ -227,15 +230,15 @@ mapping if the port is already in use.
 ### Persistent data and reset behavior
 
 Named volumes store service data across restarts. Removing a volume deletes that
-service data. Bind mounts under `workspace/` and `workspaces/` are local folders and
-can be cleaned by deleting their contents.
+service data. Bind mounts under `workspace/` are local folders and can be cleaned
+by deleting their contents.
 
 - Named volumes include `ollama_data`, `openwebui_data`, `qdrant_data`,
   `postgres_data`, `redis_data`, `flowise_data`, `openhands_data`, `prometheus_data`,
   `grafana_data`, and `forgejo_data`.
 - `docker compose down` keeps named volumes.
 - `docker compose down -v` removes named volumes, which wipes stored data.
-- The `workspaces/` folder is safe to delete when you want a clean OpenHands workspace.
+- The `workspace/` folder is safe to clean when you want a fresh OpenHands workspace.
 - Flowise PDF drop folder uses a local bind mount: `./data/pdfs` -> `/data/pdfs`.
 
 If you run Ollama on bare metal, keep port `11434` available on the host and point
@@ -268,7 +271,7 @@ See `docs/git-local.md` for setup and backup details.
 ## OpenHands Workspace
 
 The workspace container provides a safe play area for OpenHands and CLI tools. It
-mounts `./workspaces` to `/workspace` and runs as a non-root user.
+mounts `./workspace` to `/workspace` and runs as a non-root user.
 
 ```bash
 docker compose \
