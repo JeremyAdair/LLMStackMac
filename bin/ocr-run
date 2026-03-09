@@ -37,7 +37,7 @@ mkdir -p "${repo_root}/workspace/ocr/out"
 
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/ocr/docker-compose.yml"
+  "${repo_root}/compose/lab/ocr/docker-compose.yml"
 )
 
 args=()

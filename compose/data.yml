@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres@sha256:fceb6f86328c36f2438fae3b851b0cc57c4a7e69a58c866d9ce24281f2cf0c9c
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in your env file}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in your env file}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    volumes:
+      - ${POSTGRES_DATA_MOUNT:-postgres_data}:/var/lib/postgresql/data
+    networks:
+      llm-stack:
+        aliases:
+          - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmstack}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis@sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065
+    command: ["redis-server", "--appendonly", "yes"]
+    expose:
+      - "6379"
+    volumes:
+      - ${REDIS_DATA_MOUNT:-redis_data}:/data
+    networks:
+      llm-stack:
+        aliases:
+          - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant@sha256:f1c7272cdac52b38c1a0e89313922d940ba50afd90d593a1605dbbc214e66ffb
+    expose:
+      - "6333"
+    volumes:
+      - ${QDRANT_DATA_MOUNT:-qdrant_data}:/qdrant/storage
+    networks:
+      llm-stack:
+        aliases:
+          - qdrant
+    restart: unless-stopped
+
+networks:
+  llm-stack:
+    name: llm-shared
+    external: true
+
+volumes:
+  postgres_data:
+    name: llm-stack_postgres_data
+    external: true
+  redis_data:
+    name: llm-stack_redis_data
+    external: true
+  qdrant_data:
+    name: llm-stack_qdrant_data
+    external: true

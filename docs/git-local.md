@@ -10,7 +10,7 @@ dependencies.
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/forgejo/docker-compose.yml \
+  -f compose/admin/forgejo/docker-compose.yml \
   up -d
 ```
 
@@ -71,7 +71,7 @@ To restore, stop Forgejo and extract the tarball into the volume:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/forgejo/docker-compose.yml \
+  -f compose/admin/forgejo/docker-compose.yml \
   down
 
 docker run --rm \

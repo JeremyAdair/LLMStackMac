@@ -68,6 +68,8 @@ services:
   # persists data relative to other services.
   ############################################
   python-toolbox:
+    profiles:
+      - lab
     build:
       context: ../python-toolbox
       dockerfile: Dockerfile
@@ -96,6 +98,8 @@ services:
   # persists data relative to other services.
   ############################################
   python-api:
+    profiles:
+      - lab
     image: llmstack/python-toolbox:local
     command:
       - uvicorn

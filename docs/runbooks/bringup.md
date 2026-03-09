@@ -111,10 +111,10 @@ Optional: start only the core services (Ollama, Open WebUI, Qdrant, reverse prox
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/open-webui/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
-  -f compose/reverse-proxy/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/open-webui/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
+  -f compose/core/reverse-proxy/docker-compose.yml \
   up -d
 ```
 
@@ -157,7 +157,7 @@ Use this when you want to convert PDFs to markdown before indexing.
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/pdf-ingest/docker-compose.yml \
+  -f compose/lab/pdf-ingest/docker-compose.yml \
   run --rm pdf-ingest
 ```
 
@@ -168,13 +168,13 @@ This reads markdown from the workspace, embeds it through Ollama, and writes vec
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
   up -d
 
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/rag-pipeline/docker-compose.yml \
+  -f compose/lab/rag-pipeline/docker-compose.yml \
   run --rm rag-pipeline
 ```
 
@@ -223,7 +223,7 @@ test -f workspace/ocr/out/sample.txt
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/node-red/docker-compose.yml \
+  -f compose/lab/node-red/docker-compose.yml \
   up -d
 ```
 
@@ -246,7 +246,7 @@ docker compose \
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/node-red/docker-compose.yml \
+  -f compose/lab/node-red/docker-compose.yml \
   stop node-red
 ```
 

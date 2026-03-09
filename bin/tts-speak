@@ -33,7 +33,7 @@ echo "$text" > "${repo_root}/workspace/audio/tts_in.txt"
 
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/tts/docker-compose.yml"
+  "${repo_root}/compose/lab/tts/docker-compose.yml"
 )
 
 args=()

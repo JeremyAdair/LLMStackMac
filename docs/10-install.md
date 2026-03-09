@@ -151,11 +151,11 @@ Check container status:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/open-webui/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
-  -f compose/reverse-proxy/docker-compose.yml \
-  -f compose/auth/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/open-webui/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
+  -f compose/core/reverse-proxy/docker-compose.yml \
+  -f compose/core/auth/docker-compose.yml \
   ps
 ```
 
@@ -190,9 +190,9 @@ Start optional services when needed:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/flowise/docker-compose.yml \
-  -f compose/monitoring/docker-compose.yml \
-  -f compose/node-red/docker-compose.yml \
+  -f compose/core/flowise/docker-compose.yml \
+  -f compose/observability/monitoring/docker-compose.yml \
+  -f compose/lab/node-red/docker-compose.yml \
   up -d
 ```
 
@@ -205,7 +205,7 @@ Example:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
   exec -it ollama ollama pull llama3
 ```
 

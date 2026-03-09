@@ -21,7 +21,7 @@ cp ~/Documents/example.pdf workspace/ingest/
 
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/pdf-ingest/docker-compose.yml \
+  -f compose/lab/pdf-ingest/docker-compose.yml \
   run --rm pdf-ingest
 ```
 
@@ -47,8 +47,8 @@ Start Flowise + watcher:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/flowise/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/flowise/docker-compose.yml \
   up -d flowise pdf-auto-ingest
 ```
 
@@ -65,9 +65,9 @@ Run the ingestion job after PDF conversion:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
-  -f compose/rag-pipeline/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
+  -f compose/lab/rag-pipeline/docker-compose.yml \
   run --rm rag-pipeline
 ```
 

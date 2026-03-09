@@ -1,0 +1,228 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Defines infrastructure settings for this part of the stack using Docker Compose YAML.
+# It describes services, configuration, and how containers communicate.
+#
+# Why it exists:
+# Keeping service definitions in versioned YAML makes local environments reproducible.
+# This prevents manual setup drift and reduces onboarding errors for new users.
+#
+# What happens next:
+# The sections below declare concrete service/runtime settings that Docker Compose
+# reads to start, connect, and persist the containers for this component.
+############################################
+
+############################################
+# SECTION: Service Catalog
+#
+# What this part of the program does:
+# Lists all containerized services defined in this compose file.
+#
+# Why it exists:
+# Compose reads this section to know which containers to create and run
+# as part of this stack component.
+#
+# What happens next:
+# Each service block below declares image/runtime settings, then optional
+# network and storage sections connect services together.
+############################################
+
+services:
+
+  ############################################
+  # SECTION: Service - prometheus
+  #
+  # What this part of the program does:
+  # Defines runtime settings for the "prometheus" container.
+  #
+  # Why it exists:
+  # This service provides one concrete capability needed by the stack
+  # (for example API, storage, UI, proxy, or worker behavior).
+  #
+  # What happens next:
+  # The nested keys configure how this container starts, connects, and
+  # persists data relative to other services.
+  ############################################
+  prometheus:
+    profiles:
+      - observability
+    image: prom/prometheus@sha256:4a61322ac1103a0e3aea2a61ef1718422a48fa046441f299d71e660a3bc71ae9
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      # Host-managed Prometheus config.
+      - ${PROMETHEUS_CONFIG_MOUNT:-./monitoring/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
+      # Prometheus alerting rules.
+      - ${PROMETHEUS_ALERT_RULES_MOUNT:-./monitoring/alerts.yml}:/etc/prometheus/alerts.yml:ro
+      # Persist Prometheus TSDB metrics data.
+      - ${PROMETHEUS_DATA_MOUNT:-prometheus_data}:/prometheus
+    networks:
+      - llm-stack
+
+
+  ############################################
+  # SECTION: Service - grafana
+  #
+  # What this part of the program does:
+  # Defines runtime settings for the "grafana" container.
+  #
+  # Why it exists:
+  # This service provides one concrete capability needed by the stack
+  # (for example API, storage, UI, proxy, or worker behavior).
+  #
+  # What happens next:
+  # The nested keys configure how this container starts, connects, and
+  # persists data relative to other services.
+  ############################################
+  grafana:
+    profiles:
+      - observability
+    image: grafana/grafana@sha256:b0ae311af06228bcfd4a620504b653db80f5b91e94dc3dc2a5b7dab202bcde20
+    restart: unless-stopped
+    # Expose Grafana on host port 3001 to avoid collisions with other UIs.
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost/grafana/}
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      # Send users to a visual dashboard immediately after login.
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: ${GRAFANA_DEFAULT_HOME_DASHBOARD_PATH:-/etc/grafana/dashboards/host-overview.json}
+      # SSO via Authelia-forwarded identity header from reverse-proxy.
+      GF_AUTH_PROXY_ENABLED: "true"
+      GF_AUTH_PROXY_HEADER_NAME: X-WEBAUTH-USER
+      GF_AUTH_PROXY_HEADER_PROPERTY: username
+      GF_AUTH_PROXY_AUTO_SIGN_UP: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      # Optional comma-separated plugin list, for example:
+      # GRAFANA_INSTALL_PLUGINS=grafana-clock-panel
+      GF_INSTALL_PLUGINS: ${GRAFANA_INSTALL_PLUGINS:-}
+    volumes:
+      # Persist Grafana database/dashboards/settings.
+      - ${GRAFANA_DATA_MOUNT:-grafana_data}:/var/lib/grafana
+      # Optional provisioning from host (datasources/dashboards).
+      - ${GRAFANA_PROVISIONING_MOUNT:-../config/grafana/provisioning}:/etc/grafana/provisioning:ro
+      # Dashboard JSON files loaded by provisioning provider.
+      - ${GRAFANA_DASHBOARDS_MOUNT:-../config/grafana/dashboards}:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - llm-stack
+
+  ############################################
+  # SECTION: Service - node-exporter
+  #
+  # What this part of the program does:
+  # Exposes host-level CPU, memory, filesystem, and load metrics.
+  #
+  # Why it exists:
+  # Prometheus needs a stable source for machine telemetry beyond per-container
+  # metrics to detect host pressure and capacity issues.
+  #
+  # What happens next:
+  # Prometheus scrapes this endpoint every 15 seconds.
+  ############################################
+  node-exporter:
+    profiles:
+      - observability
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)
+      - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|pstore|securityfs|squashfs|sysfs|tracefs)$
+    volumes:
+      - /:/host:ro
+    networks:
+      - llm-stack
+
+  ############################################
+  # SECTION: Service - cadvisor
+  #
+  # What this part of the program does:
+  # Exposes Docker container CPU, memory, network, and restart metadata.
+  #
+  # Why it exists:
+  # This is the primary source for per-container resource telemetry.
+  #
+  # What happens next:
+  # Prometheus scrapes cAdvisor and Grafana dashboards visualize container health.
+  ############################################
+  cadvisor:
+    profiles:
+      - observability
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    restart: unless-stopped
+    expose:
+      - "8080"
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - llm-stack
+
+  ############################################
+  # SECTION: Service - postgres-exporter
+  #
+  # What this part of the program does:
+  # Exposes PostgreSQL activity metrics like connections and transactions.
+  #
+  # Why it exists:
+  # Database pressure is one of the fastest ways AI stacks degrade. Exporting
+  # DB metrics makes this visible in Grafana and alert-friendly in Prometheus.
+  #
+  # What happens next:
+  # Prometheus scrapes this exporter and stores PostgreSQL telemetry in TSDB.
+  ############################################
+  postgres-exporter:
+    profiles:
+      - observability-plus
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    restart: unless-stopped
+    expose:
+      - "9187"
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER:?set POSTGRES_USER in your env file}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}@postgres:5432/${POSTGRES_DB:?set POSTGRES_DB in your env file}?sslmode=disable
+    depends_on:
+      - postgres
+    networks:
+      - llm-stack
+
+  ############################################
+  # SECTION: Service - blackbox-exporter
+  #
+  # What this part of the program does:
+  # Probes HTTP endpoints and publishes availability metrics such as
+  # probe_success and probe_duration_seconds.
+  #
+  # Why it exists:
+  # Some app services do not expose Prometheus-native /metrics endpoints.
+  # Blackbox probes provide reliable uptime checks for those services.
+  #
+  # What happens next:
+  # Prometheus scrapes this exporter and records Open WebUI/Ollama health probes.
+  ############################################
+  blackbox-exporter:
+    profiles:
+      - observability-plus
+    image: prom/blackbox-exporter:v0.26.0
+    restart: unless-stopped
+    expose:
+      - "9115"
+    command:
+      - --config.file=/etc/blackbox_exporter/config.yml
+    volumes:
+      - ${BLACKBOX_CONFIG_MOUNT:-./monitoring/blackbox.yml}:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - llm-stack

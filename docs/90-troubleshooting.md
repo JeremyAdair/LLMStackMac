@@ -41,7 +41,7 @@ Fix:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/reverse-proxy/docker-compose.yml \
+  -f compose/core/reverse-proxy/docker-compose.yml \
   restart reverse-proxy
 ```
 
@@ -79,7 +79,7 @@ Fix:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
   exec -it qdrant curl -f http://localhost:6333/collections
 ```
 

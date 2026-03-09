@@ -85,21 +85,21 @@ Run:
 ```bash
 docker compose --env-file .env.mac \
   -f compose/docker-compose.yml \
-  -f compose/monitoring/docker-compose.yml \
-  -f compose/node-red/docker-compose.yml \
-  -f compose/postgres/docker-compose.yml \
-  -f compose/redis/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
-  -f compose/redisinsight/docker-compose.yml \
+  -f compose/observability/monitoring/docker-compose.yml \
+  -f compose/lab/node-red/docker-compose.yml \
+  -f compose/data/postgres/docker-compose.yml \
+  -f compose/data/redis/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
+  -f compose/admin/redisinsight/docker-compose.yml \
   ps
 ```
 
 ## 7) First Debug Commands
 ```bash
-docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/reverse-proxy/docker-compose.yml logs --tail 200 reverse-proxy
-docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/auth/docker-compose.yml logs --tail 200 auth
-docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/open-webui/docker-compose.yml logs --tail 200 open-webui
-docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/flowise/docker-compose.yml logs --tail 200 flowise pdf-auto-ingest
+docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/core/reverse-proxy/docker-compose.yml logs --tail 200 reverse-proxy
+docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/core/auth/docker-compose.yml logs --tail 200 auth
+docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/core/open-webui/docker-compose.yml logs --tail 200 open-webui
+docker compose --env-file .env.mac -f compose/docker-compose.yml -f compose/core/flowise/docker-compose.yml logs --tail 200 flowise pdf-auto-ingest
 ```
 
 ## 8) Rollback

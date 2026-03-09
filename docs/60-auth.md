@@ -73,7 +73,7 @@ After editing, restart Authelia:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/auth/docker-compose.yml \
+  -f compose/core/auth/docker-compose.yml \
   restart auth
 ```
 
@@ -93,7 +93,7 @@ For debugging only, you can remove the auth checks in the reverse proxy:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/reverse-proxy/docker-compose.yml \
+  -f compose/core/reverse-proxy/docker-compose.yml \
   restart reverse-proxy
 ```
 

@@ -1,5 +1,7 @@
 # Operations Quickstart
 
+This file is superseded by `docs/stack-modes.md` for day-to-day stack lifecycle in the layered compose architecture.
+
 This guide covers daily operations: start, stop, status, logs, updates, and backups.
 
 ## Start the stack
@@ -8,18 +10,39 @@ This guide covers daily operations: start, stop, status, logs, updates, and back
 ./bin/llm-up
 ```
 
+This starts the default core services only.
+
+## Start observability
+
+```bash
+./bin/llm-up --profile observability
+```
+
+Add deep probe/database exporters when needed:
+
+```bash
+./bin/llm-up --profile observability --profile observability-plus
+```
+
+## Start admin tools
+
+```bash
+./bin/llm-up --profile admin
+```
+
+## Start lab services
+
+```bash
+./bin/llm-up --profile lab
+```
+
 On macOS, this also starts host (bare-metal) Ollama if `ollama` is installed locally.
 Disable with `LLMSTACK_MANAGE_HOST_OLLAMA=0`.
 
-## Start landing page and proxy only
+## Start full lab stack
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/reverse-proxy/docker-compose.yml \
-  -f compose/auth/docker-compose.yml \
-  -f compose/landing/docker-compose.yml \
-  up -d
+./bin/llm-up --profile admin --profile observability --profile observability-plus --profile lab
 ```
 
 ## Stop the stack
@@ -44,8 +67,8 @@ All logs (tail):
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/reverse-proxy/docker-compose.yml \
-  -f compose/auth/docker-compose.yml \
+  -f compose/core/reverse-proxy/docker-compose.yml \
+  -f compose/core/auth/docker-compose.yml \
   logs -f
 ```
 
@@ -54,7 +77,7 @@ Service-specific logs:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
   logs -f ollama
 ```
 
@@ -63,7 +86,7 @@ docker compose \
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/open-webui/docker-compose.yml \
+  -f compose/core/open-webui/docker-compose.yml \
   restart open-webui
 ```
 
@@ -72,16 +95,16 @@ docker compose \
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/open-webui/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/open-webui/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
   pull
 
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/open-webui/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/open-webui/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
   up -d
 ```
 
@@ -121,4 +144,5 @@ tar -xzf backups/llmstack-data-YYYY-MM-DD.tar.gz
 2) Add any config under `config/<service>/`.
 3) Add persistent data under `data/<service>/` (gitignored).
 4) Add the compose file to `bin/llm-up`, `bin/llm-down`, and `bin/llm-status`.
-5) Document the service in `docs/`.
+5) Assign service profile (`core` unprofiled, or `observability`, `observability-plus`, `admin`, `lab`).
+6) Document the service in `docs/`.

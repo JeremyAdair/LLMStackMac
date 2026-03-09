@@ -17,7 +17,7 @@ surprises.
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/workspace/docker-compose.yml \
+  -f compose/lab/workspace/docker-compose.yml \
   up -d
 ```
 
@@ -30,7 +30,7 @@ docker compose \
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/workspace/docker-compose.yml \
+  -f compose/lab/workspace/docker-compose.yml \
   exec workspace git status
 ```
 
@@ -40,7 +40,7 @@ to match your host user and rebuild the workspace image:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/workspace/docker-compose.yml \
+  -f compose/lab/workspace/docker-compose.yml \
   build --no-cache
 ```
 

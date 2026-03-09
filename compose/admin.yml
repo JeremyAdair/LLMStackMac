@@ -1,0 +1,83 @@
+services:
+  pgadmin:
+    image: dpage/pgadmin4@sha256:d243a4bcc02d2ee6b447c601692813531d2d0fbca18b583d9f7f9658da835d81
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?set PGADMIN_DEFAULT_EMAIL in your env file}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?set PGADMIN_DEFAULT_PASSWORD in your env file}
+      PGADMIN_TARGET_PGHOST: ${POSTGRES_HOST:-postgres}
+      PGADMIN_TARGET_PGPORT: ${POSTGRES_PORT:-5432}
+      PGADMIN_TARGET_PGUSER: ${POSTGRES_USER:?set POSTGRES_USER in your env file}
+      PGADMIN_TARGET_PGDB: ${POSTGRES_DB:?set POSTGRES_DB in your env file}
+      PGADMIN_TARGET_PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your env file}
+      PGPASSFILE: /var/lib/pgadmin/.pgpass
+      PGADMIN_CONFIG_AUTHENTICATION_SOURCES: "['webserver']"
+      PGADMIN_CONFIG_WEBSERVER_REMOTE_USER: "'HTTP_X_FORWARDED_USER'"
+      PGADMIN_CONFIG_WEBSERVER_AUTO_CREATE_USER: "True"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+    expose:
+      - "80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      llm-stack:
+        aliases:
+          - pgadmin
+    restart: unless-stopped
+
+  redisinsight:
+    image: redis/redisinsight@sha256:55542a762210bb1cd681410282642bac0970f780f39bc134565394a81b1f1fd9
+    expose:
+      - "5540"
+    volumes:
+      - ${REDISINSIGHT_DATA_MOUNT:-redisinsight_data}:/data
+    networks:
+      llm-stack:
+        aliases:
+          - redisinsight
+    restart: unless-stopped
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo@sha256:ea792343484a45f387b05540874aa0836fd0c251522f94d488f1df65faa1763e
+    environment:
+      USER_UID: ${FORGEJO_UID:-1000}
+      USER_GID: ${FORGEJO_GID:-1000}
+      FORGEJO__server__DOMAIN: ${FORGEJO_DOMAIN:-forgejo.llmstack.lan}
+      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-https://forgejo.llmstack.lan/}
+      FORGEJO__server__PROTOCOL: http
+      FORGEJO__server__HTTP_PORT: 3000
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_DOMAIN:-forgejo.llmstack.lan}
+      FORGEJO__server__SSH_PORT: 2222
+      FORGEJO__service__ENABLE_REVERSE_PROXY_AUTHENTICATION: "true"
+      FORGEJO__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION: "true"
+      FORGEJO__service__REVERSE_PROXY_AUTHENTICATION_USER: X-WEBAUTH-USER
+      FORGEJO__security__REVERSE_PROXY_LIMIT: "1"
+      FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    volumes:
+      - ${FORGEJO_DATA_MOUNT:-forgejo_data}:/data
+    expose:
+      - "3000"
+    ports:
+      - "2222:22"
+    networks:
+      llm-stack:
+        aliases:
+          - forgejo
+    restart: unless-stopped
+
+networks:
+  llm-stack:
+    name: llm-shared
+    external: true
+
+volumes:
+  pgadmin_data:
+    name: llm-stack_pgadmin_data
+    external: true
+  redisinsight_data:
+    name: llm-stack_redisinsight_data
+    external: true
+  forgejo_data:
+    name: llm-stack_forgejo_data
+    external: true

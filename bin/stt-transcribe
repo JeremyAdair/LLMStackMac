@@ -37,7 +37,7 @@ mkdir -p "${repo_root}/workspace/audio/out"
 
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/stt/docker-compose.yml"
+  "${repo_root}/compose/lab/stt/docker-compose.yml"
 )
 
 args=()

@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- Refactor stack into layered multi-project Compose entrypoints (`llm-core`, `llm-data`, `llm-observability`, `llm-admin`, `llm-lab`) for cleaner Docker Desktop grouping.
+- Reorganize `compose/` service modules by layer (`core/`, `data/`, `observability/`, `admin/`, `lab/`) and update script/doc references.
+- Add new `scripts/llm-*` operator workflow (`llm-up-*`, `llm-down-*`, `llm-ps-*`, `llm-validate-*`) and wire `bin/llm-up`, `bin/llm-down`, `bin/llm-status`.
+- Preserve existing persistent volume identities across projects via explicit external volume names.
+- Merge duplicate lab `python-api` + `python-toolbox` runtime into one toolbox service with `python-api` network alias compatibility.
+- Fix reverse-proxy DNS startup behavior across layered projects and restore landing static asset routing (buttons/theme/background).
 - Move Authelia storage from local SQLite to Postgres-backed storage.
 - Reorganize setup-only scripts into `bin/temp-scripts/` to reduce root `bin/` clutter.
 - Replace legacy `bin/models-pull` + `models/models.yml` flow with `bin/llm-models-pull`.

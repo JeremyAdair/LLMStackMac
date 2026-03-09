@@ -160,7 +160,7 @@ by deleting their contents.
 If you run Ollama on bare metal, keep port `11434` available on the host and point
 `OLLAMA_BASE_URL` to `http://localhost:11434` in `.env`. The Ollama container does not
 publish a host port by default. If you need to expose the container port, add a ports
-mapping in `compose/ollama/docker-compose.yml`.
+mapping in `compose/lab/ollama/docker-compose.yml`.
 
 ## Local Git
 
@@ -171,14 +171,14 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 - SSH: port 2222
 
 If these ports are in use, update the port mappings in
-`compose/forgejo/docker-compose.yml`.
+`compose/admin/forgejo/docker-compose.yml`.
 
 `./bin/llm-up` starts Forgejo with the rest of the stack. To start only Forgejo:
 
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/forgejo/docker-compose.yml \
+  -f compose/admin/forgejo/docker-compose.yml \
   up -d forgejo
 ```
 
@@ -192,7 +192,7 @@ mounts `./workspace` to `/workspace` and runs as a non-root user.
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/workspace/docker-compose.yml \
+  -f compose/lab/workspace/docker-compose.yml \
   up -d
 ```
 
@@ -230,7 +230,7 @@ Run PDF ingestion:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/pdf-ingest/docker-compose.yml \
+  -f compose/lab/pdf-ingest/docker-compose.yml \
   run --rm pdf-ingest
 ```
 
@@ -239,13 +239,13 @@ Run the RAG pipeline (Ollama + Qdrant + ingestion job):
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
   up -d
 
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/rag-pipeline/docker-compose.yml \
+  -f compose/lab/rag-pipeline/docker-compose.yml \
   run --rm rag-pipeline
 ```
 
@@ -262,8 +262,8 @@ Start only Flowise:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/flowise/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/flowise/docker-compose.yml \
   up -d
 ```
 

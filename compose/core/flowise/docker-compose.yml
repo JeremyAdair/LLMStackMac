@@ -1,0 +1,105 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Defines infrastructure settings for this part of the stack using Docker Compose YAML.
+# It describes services, configuration, and how containers communicate.
+#
+# Why it exists:
+# Keeping service definitions in versioned YAML makes local environments reproducible.
+# This prevents manual setup drift and reduces onboarding errors for new users.
+#
+# What happens next:
+# The sections below declare concrete service/runtime settings that Docker Compose
+# reads to start, connect, and persist the containers for this component.
+############################################
+
+############################################
+# SECTION: Service Catalog
+#
+# What this part of the program does:
+# Lists all containerized services defined in this compose file.
+#
+# Why it exists:
+# Compose reads this section to know which containers to create and run
+# as part of this stack component.
+#
+# What happens next:
+# Each service block below declares image/runtime settings, then optional
+# network and storage sections connect services together.
+############################################
+
+services:
+
+  ############################################
+  # SECTION: Service - flowise
+  #
+  # What this part of the program does:
+  # Defines runtime settings for the "flowise" container.
+  #
+  # Why it exists:
+  # This service provides one concrete capability needed by the stack
+  # (for example API, storage, UI, proxy, or worker behavior).
+  #
+  # What happens next:
+  # The nested keys configure how this container starts, connects, and
+  # persists data relative to other services.
+  ############################################
+  flowise:
+    profiles:
+      - lab
+    image: flowiseai/flowise@sha256:c8aa4b4cb910a7b1aa56c4eb30cd41a67002400d84b1289f09c0a6b276b416c3
+    environment:
+      # Flowise talks to Ollama over the internal network.
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      # Optional basic auth credentials.
+      FLOWISE_USERNAME: ${FLOWISE_USERNAME:-}
+      FLOWISE_PASSWORD: ${FLOWISE_PASSWORD:-}
+      # Serve Flowise under a path on the reverse proxy.
+      FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/}
+    volumes:
+      # Persist Flowise DB, chatflows, credentials, and uploads.
+      - ${FLOWISE_DATA_MOUNT:-flowise_data}:/root/.flowise
+      - ${PDF_DROP_MOUNT:-../data/pdfs}:/data/pdfs
+    networks:
+      - llm-stack
+    expose:
+      # Internal-only port; reverse proxy publishes it.
+      - "3000"
+
+
+  ############################################
+  # SECTION: Service - pdf-auto-ingest
+  #
+  # What this part of the program does:
+  # Defines runtime settings for the "pdf-auto-ingest" container.
+  #
+  # Why it exists:
+  # This service provides one concrete capability needed by the stack
+  # (for example API, storage, UI, proxy, or worker behavior).
+  #
+  # What happens next:
+  # The nested keys configure how this container starts, connects, and
+  # persists data relative to other services.
+  ############################################
+  pdf-auto-ingest:
+    profiles:
+      - lab
+    image: alpine@sha256:a4f4213abb84c497377b8544c81b3564f313746700372ec4fe84653e4fb03805
+    environment:
+      FLOWISE_URL: ${FLOWISE_URL:-http://flowise:3000}
+      FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-f2f4fce2-9c7d-4ca6-8fd7-6c4b0c97f111}
+      FLOWISE_INGEST_STOP_NODE_ID: ${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}
+      FLOWISE_API_KEY: ${FLOWISE_API_KEY:-}
+      PDF_WATCH_DIR: /data/pdfs
+    volumes:
+      # Watch host drop folder directly.
+      - ${PDF_DROP_MOUNT:-../data/pdfs}:/data/pdfs
+      - ./flowise/scripts:/scripts:ro
+    command:
+      - /bin/sh
+      - /scripts/pdf-auto-ingest.sh
+    networks:
+      - llm-stack
+    depends_on:
+      - flowise

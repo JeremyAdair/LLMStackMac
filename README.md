@@ -2,12 +2,44 @@
 
 LLMStack is a self-hosted local LLM stack built around Docker Compose. It provides a modular setup for running models, a web UI, vector search, RAG ingestion, and optional agent tooling.
 
+## Layered stacks (Docker Desktop groups)
+
+The stack now runs as multiple compose projects so Docker Desktop shows clean grouped stacks:
+
+- `llm-data`
+- `llm-core`
+- `llm-observability`
+- `llm-admin`
+- `llm-lab`
+
+Primary scripts:
+
+- `./scripts/llm-up-core.sh`
+- `./scripts/llm-up-observability.sh`
+- `./scripts/llm-up-admin.sh`
+- `./scripts/llm-up-lab.sh`
+- `./scripts/llm-up-full.sh`
+- `./scripts/llm-down-all.sh`
+- `./scripts/llm-ps-stack.sh`
+
+Compatibility wrappers remain:
+
+- `./bin/llm-up` (defaults to full)
+- `./bin/llm-down`
+- `./bin/llm-status`
+
+See:
+
+- `docs/architecture.md`
+- `docs/service-map.md`
+- `docs/stack-modes.md`
+
 ## Recent updates
 
 - Forgejo is now routed through the reverse proxy at `https://forgejo.llmstack.lan/`.
 - Authelia is configured as the SSO gateway for the stack so you don't have to manage separate passwords per app.
 - Flowise supports PDF drop-in via bind mount: `./data/pdfs` -> `/data/pdfs`.
-- Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise.
+- Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise (lab profile).
 - Rebuilt Flowise PDF ingestion and retrieval chatflows with current node wiring for latest Flowise compatibility.
 - OpenWebUI API proxy auth handling was adjusted to prevent chat timeout/500 issues.
 
@@ -46,11 +78,11 @@ This is the stuff that supports the runtime.
 |---|---|---|
 | `reverse-proxy` | Single web entrypoint on 80/443 and routing for all UIs. | Core |
 | `auth` (Authelia) | Login and access control in front of protected routes. | Core |
-| `redis` | Cache/queue support for supporting services and workflows. | Optional |
-| `python-api` | FastAPI endpoints for stack automation jobs. | Optional |
-| `python-toolbox` | Script runtime container for maintenance/one-off jobs. | Optional |
-| `landing` | Landing page and navigation for stack services. | Optional |
-| `forgejo` | Self-hosted Git service for local repos/collaboration. | Optional |
+| `redis` | Cache/queue support for supporting services and workflows. | Core |
+| `python-api` | FastAPI endpoints for stack automation jobs. | Lab profile |
+| `python-toolbox` | Script runtime container for maintenance/one-off jobs. | Lab profile |
+| `landing` | Landing page and navigation for stack services. | Core |
+| `forgejo` | Self-hosted Git service for local repos/collaboration. | Admin profile |
 
 ### 3) Observability layer
 
@@ -58,10 +90,10 @@ This is how you inspect and understand the system.
 
 | Service | Purpose | Typical need |
 |---|---|---|
-| `prometheus` | Metrics scraping and storage. | Optional |
-| `grafana` | Metrics dashboards and alert visualization. | Optional |
-| `pgadmin` | Postgres inspection and query administration. | Optional |
-| `redisinsight` | Redis inspection and operational troubleshooting. | Optional |
+| `prometheus` | Metrics scraping and storage. | Observability profile |
+| `grafana` | Metrics dashboards and alert visualization. | Observability profile |
+| `pgadmin` | Postgres inspection and query administration. | Admin profile |
+| `redisinsight` | Redis inspection and operational troubleshooting. | Admin profile |
 
 ### 4) Automation and tooling layer
 
@@ -69,9 +101,9 @@ This is where the stack starts doing useful work beyond just chatting.
 
 | Service | Purpose | Typical need |
 |---|---|---|
-| `flowise` | Visual workflow/agent builder and API flows. | Optional |
-| `node-red` | Low-code automation and orchestration. | Optional |
-| `pdf-auto-ingest` | Watches PDF folder and auto-upserts to Flowise/RAG. | Optional |
+| `flowise` | Visual workflow/agent builder and API flows. | Lab profile |
+| `node-red` | Low-code automation and orchestration. | Lab profile |
+| `pdf-auto-ingest` | Watches PDF folder and auto-upserts to Flowise/RAG. | Lab profile |
 
 ### 5) Experimental layer
 
@@ -79,8 +111,8 @@ This is the stuff you are testing, learning, or may remove later.
 
 | Service | Purpose | Typical need |
 |---|---|---|
-| `openclaw` | Agent gateway/runtime UI for advanced local workflows. | Optional |
-| `openhands` | Agentic coding workspace service. | Optional |
+| `openclaw` | Agent gateway/runtime UI for advanced local workflows. | Lab profile |
+| `openhands` | Agentic coding workspace service. | Lab profile |
 
 Job-style services are run on demand rather than left up all the time (RAG pipeline, PDF ingest jobs, STT, TTS, OCR).
 
@@ -93,11 +125,21 @@ cp .env.mac.example .env.mac
 cp config/auth/users_database.example.yml config/auth/users_database.yml
 ```
 
-2) Start the full stack.
+2) Start the core stack (default).
 
 ```bash
 ./bin/llm-up
 ```
+
+Enable optional groups only when needed:
+
+```bash
+./bin/llm-up --profile observability
+./bin/llm-up --profile admin
+./bin/llm-up --profile lab
+```
+
+See `docs/25-service-profiles.md` for architecture, overlap audit, and mode commands.
 
 On macOS, `./bin/llm-up` also starts host (bare-metal) Ollama when installed locally,
 and `./bin/llm-down` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable this behavior.
@@ -247,7 +289,7 @@ by deleting their contents.
 If you run Ollama on bare metal, keep port `11434` available on the host and point
 `OLLAMA_BASE_URL` to `http://localhost:11434` in `.env`. The Ollama container does not
 publish a host port by default. If you need to expose the container port, add a ports
-mapping in `compose/ollama/docker-compose.yml`.
+mapping in `compose/lab/ollama/docker-compose.yml`.
 
 ## Local Git
 
@@ -258,14 +300,14 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 - SSH: port 2222
 
 If these ports are in use, update the port mappings in
-`compose/forgejo/docker-compose.yml`.
+`compose/admin/forgejo/docker-compose.yml`.
 
 `./bin/llm-up` starts Forgejo with the rest of the stack. To start only Forgejo:
 
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/forgejo/docker-compose.yml \
+  -f compose/admin/forgejo/docker-compose.yml \
   up -d forgejo
 ```
 
@@ -279,7 +321,7 @@ mounts `./workspace` to `/workspace` and runs as a non-root user.
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/workspace/docker-compose.yml \
+  -f compose/lab/workspace/docker-compose.yml \
   up -d
 ```
 
@@ -329,7 +371,7 @@ Run PDF ingestion:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/pdf-ingest/docker-compose.yml \
+  -f compose/lab/pdf-ingest/docker-compose.yml \
   run --rm pdf-ingest
 ```
 
@@ -338,13 +380,13 @@ Run the RAG pipeline (Ollama + Qdrant + ingestion job):
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/qdrant/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/data/qdrant/docker-compose.yml \
   up -d
 
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/rag-pipeline/docker-compose.yml \
+  -f compose/lab/rag-pipeline/docker-compose.yml \
   run --rm rag-pipeline
 ```
 
@@ -361,8 +403,8 @@ Start only Flowise:
 ```bash
 docker compose \
   -f compose/docker-compose.yml \
-  -f compose/ollama/docker-compose.yml \
-  -f compose/flowise/docker-compose.yml \
+  -f compose/lab/ollama/docker-compose.yml \
+  -f compose/core/flowise/docker-compose.yml \
   up -d
 ```
 

@@ -1,29 +1,20 @@
 #!/usr/bin/env bash
 
-############################################
-# SECTION: File Overview
-#
-# What this part of the program does:
-# Implements an automation/helper script used by the LLMStack tooling layer.
-# This script performs a focused operational task in a repeatable way.
-#
-# Why it exists:
-# Automating this workflow reduces manual commands, avoids common mistakes,
-# and keeps stack operations consistent for beginner users.
-#
-# What happens next:
-# The script below parses context/inputs, runs the operational steps,
-# and reports success or failure to the caller.
-############################################
-
 set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
 
 usage() {
-  cat <<EOF
-Usage: ./bin/llm-up [docker compose up args...]
-EOF
+  cat <<USAGE
+Usage: ./bin/llm-up [mode]
+
+Modes:
+  full            Start all layers (default)
+  core            Start data + core
+  observability   Start observability layer
+  admin           Start admin layer
+  lab             Start lab layer
+USAGE
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -43,13 +34,6 @@ should_manage_host_ollama() {
   if ! command -v ollama >/dev/null 2>&1; then
     return 1
   fi
-
-  # Skip host management when explicitly using the containerized Ollama profile.
-  for arg in "$@"; do
-    if [[ "${arg}" == *"container-ollama"* ]]; then
-      return 1
-    fi
-  done
 
   return 0
 }
@@ -76,59 +60,34 @@ start_host_ollama() {
   nohup ollama serve >/tmp/llmstack-ollama-serve.log 2>&1 &
 }
 
-compose_files=(
-  "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/ollama/docker-compose.yml"
-  "${repo_root}/compose/open-webui/docker-compose.yml"
-  "${repo_root}/compose/qdrant/docker-compose.yml"
-  "${repo_root}/compose/postgres/docker-compose.yml"
-  "${repo_root}/compose/redis/docker-compose.yml"
-  "${repo_root}/compose/redisinsight/docker-compose.yml"
-  "${repo_root}/compose/macos/data-services.yml"
-  "${repo_root}/compose/reverse-proxy/docker-compose.yml"
-  "${repo_root}/compose/macos/docker-compose.yml"
-  "${repo_root}/compose/monitoring/docker-compose.yml"
-  "${repo_root}/compose/flowise/docker-compose.yml"
-  "${repo_root}/compose/forgejo/docker-compose.yml"
-  "${repo_root}/compose/openclaw/docker-compose.yml"
-  "${repo_root}/compose/openhands/docker-compose.yml"
-  "${repo_root}/compose/auth/docker-compose.yml"
-  "${repo_root}/compose/node-red/docker-compose.yml"
-  "${repo_root}/compose/landing/docker-compose.yml"
-  "${repo_root}/compose/stt/docker-compose.yml"
-  "${repo_root}/compose/tts/docker-compose.yml"
-  "${repo_root}/compose/ocr/docker-compose.yml"
-  "${repo_root}/compose/pdf-ingest/docker-compose.yml"
-  "${repo_root}/compose/rag-pipeline/docker-compose.yml"
-  "${repo_root}/compose/pgadmin/docker-compose.yml"
-)
+mode="${1:-full}"
 
-args=()
-for file in "${compose_files[@]}"; do
-  args+=("-f" "$file")
-done
-
-env_file=""
-if [[ -n "${LLMSTACK_ENV_FILE:-}" && -f "${LLMSTACK_ENV_FILE}" ]]; then
-  env_file="${LLMSTACK_ENV_FILE}"
-elif [[ -f "${repo_root}/.env.mac" ]]; then
-  env_file="${repo_root}/.env.mac"
-elif [[ -f "${repo_root}/.env" ]]; then
-  env_file="${repo_root}/.env"
-fi
-
-cmd=(docker compose --project-name llm-stack)
-if [[ -n "${env_file}" ]]; then
-  cmd+=(--env-file "${env_file}")
-fi
-
-if should_manage_host_ollama "$@"; then
+if should_manage_host_ollama; then
   start_host_ollama
 fi
 
-"${cmd[@]}" "${args[@]}" up -d "$@"
+case "${mode}" in
+  full)
+    "${repo_root}/scripts/llm-up-full.sh"
+    ;;
+  core)
+    "${repo_root}/scripts/llm-up-core.sh"
+    ;;
+  observability)
+    "${repo_root}/scripts/llm-up-observability.sh"
+    ;;
+  admin)
+    "${repo_root}/scripts/llm-up-admin.sh"
+    ;;
+  lab)
+    "${repo_root}/scripts/llm-up-lab.sh"
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
 
-# Keep pgAdmin SSO users in a usable state after startup.
 if [[ -x "${repo_root}/bin/pgadmin-sync-sso-users" ]]; then
   "${repo_root}/bin/pgadmin-sync-sso-users" || true
 fi
