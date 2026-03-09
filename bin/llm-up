@@ -31,6 +31,51 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+should_manage_host_ollama() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return 1
+  fi
+
+  if [[ "${LLMSTACK_MANAGE_HOST_OLLAMA:-1}" == "0" ]]; then
+    return 1
+  fi
+
+  if ! command -v ollama >/dev/null 2>&1; then
+    return 1
+  fi
+
+  # Skip host management when explicitly using the containerized Ollama profile.
+  for arg in "$@"; do
+    if [[ "${arg}" == *"container-ollama"* ]]; then
+      return 1
+    fi
+  done
+
+  return 0
+}
+
+start_host_ollama() {
+  local brew_formula=""
+
+  if command -v brew >/dev/null 2>&1; then
+    brew_formula="$(brew list --formula 2>/dev/null | grep -E '^ollama(@[0-9.]+)?$' | head -n1 || true)"
+  fi
+
+  if [[ -n "${brew_formula}" ]]; then
+    echo "Starting host Ollama with brew services (${brew_formula})..."
+    brew services start "${brew_formula}" >/dev/null
+    return 0
+  fi
+
+  if pgrep -f '[o]llama serve' >/dev/null 2>&1; then
+    echo "Host Ollama already running."
+    return 0
+  fi
+
+  echo "Starting host Ollama via 'ollama serve' fallback..."
+  nohup ollama serve >/tmp/llmstack-ollama-serve.log 2>&1 &
+}
+
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
   "${repo_root}/compose/ollama/docker-compose.yml"
@@ -75,6 +120,10 @@ fi
 cmd=(docker compose --project-name llm-stack)
 if [[ -n "${env_file}" ]]; then
   cmd+=(--env-file "${env_file}")
+fi
+
+if should_manage_host_ollama "$@"; then
+  start_host_ollama
 fi
 
 "${cmd[@]}" "${args[@]}" up -d "$@"

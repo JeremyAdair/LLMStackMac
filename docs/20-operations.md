@@ -8,6 +8,9 @@ This guide covers daily operations: start, stop, status, logs, updates, and back
 ./bin/llm-up
 ```
 
+On macOS, this also starts host (bare-metal) Ollama if `ollama` is installed locally.
+Disable with `LLMSTACK_MANAGE_HOST_OLLAMA=0`.
+
 ## Start landing page and proxy only
 
 ```bash
@@ -24,6 +27,9 @@ docker compose \
 ```bash
 ./bin/llm-down
 ```
+
+On macOS, this also stops host (bare-metal) Ollama unless disabled via
+`LLMSTACK_MANAGE_HOST_OLLAMA=0`.
 
 ## Status
 

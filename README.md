@@ -99,6 +99,9 @@ cp config/auth/users_database.example.yml config/auth/users_database.yml
 ./bin/llm-up
 ```
 
+On macOS, `./bin/llm-up` also starts host (bare-metal) Ollama when installed locally,
+and `./bin/llm-down` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable this behavior.
+
 macOS first-run shortcut:
 
 ```bash

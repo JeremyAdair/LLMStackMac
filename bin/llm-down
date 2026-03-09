@@ -26,6 +26,48 @@ if [[ "${1:-}" == "--remove" ]]; then
   shift
 fi
 
+should_manage_host_ollama() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return 1
+  fi
+
+  if [[ "${LLMSTACK_MANAGE_HOST_OLLAMA:-1}" == "0" ]]; then
+    return 1
+  fi
+
+  if ! command -v ollama >/dev/null 2>&1; then
+    return 1
+  fi
+
+  # Skip host management when explicitly using the containerized Ollama profile.
+  for arg in "$@"; do
+    if [[ "${arg}" == *"container-ollama"* ]]; then
+      return 1
+    fi
+  done
+
+  return 0
+}
+
+stop_host_ollama() {
+  local brew_formula=""
+
+  if command -v brew >/dev/null 2>&1; then
+    brew_formula="$(brew list --formula 2>/dev/null | grep -E '^ollama(@[0-9.]+)?$' | head -n1 || true)"
+  fi
+
+  if [[ -n "${brew_formula}" ]]; then
+    echo "Stopping host Ollama brew service (${brew_formula})..."
+    brew services stop "${brew_formula}" >/dev/null || true
+    return 0
+  fi
+
+  if pgrep -f '[o]llama serve' >/dev/null 2>&1; then
+    echo "Stopping host Ollama process..."
+    pkill -f '[o]llama serve' || true
+  fi
+}
+
 compose_files=(
   "${repo_root}/compose/docker-compose.yml"
   "${repo_root}/compose/ollama/docker-compose.yml"
@@ -76,4 +118,8 @@ if [[ "${mode}" == "remove" ]]; then
   "${cmd[@]}" "${args[@]}" down "$@"
 else
   "${cmd[@]}" "${args[@]}" stop "$@"
+fi
+
+if should_manage_host_ollama "$@"; then
+  stop_host_ollama
 fi
