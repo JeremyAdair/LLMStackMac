@@ -43,3 +43,28 @@
 # Python bytecode/cache
 __pycache__/
 *.py[cod]
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
+
+# Common local caches and temp outputs
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.log
+*.tmp
+*.temp
+tmp/
+.tmp/
+
+# Local virtual environments
+.venv/
+venv/
+
+# Editor/IDE folders
+.vscode/
+.idea/
+*.swp
+*.swo
