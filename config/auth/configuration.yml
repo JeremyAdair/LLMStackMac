@@ -25,8 +25,13 @@ session:
 storage:
   # Overridden in compose via AUTHELIA_STORAGE_ENCRYPTION_KEY.
   encryption_key: "change-me-change-me-change-me-change-me"
-  local:
-    path: /data/db.sqlite3
+  postgres:
+    # Overridden in compose via AUTHELIA_STORAGE_POSTGRES_*.
+    address: "tcp://postgres:5432"
+    database: "llmstack"
+    schema: "public"
+    username: "llmstack"
+    password: "change-me"
 
 authentication_backend:
   file:

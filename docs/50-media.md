@@ -6,21 +6,21 @@ This document explains how to use the local STT (speech-to-text), TTS (text-to-s
 
 Models and voices are large binary files. They are stored under `data/` and gitignored to keep the repository small and avoid committing artifacts.
 
-- STT models: `data/stt/models/`
-- TTS voices: `data/tts/voices/`
+For Ollama, pull the project model set with `bin/llm-models-pull`. The model list is sourced from `prompts/system/install-ollama-and-models.md`.
 
-The `bin/models-pull` script downloads the exact model and voice files listed in `models/models.yml`.
-
-## Install models and voices
+## Pull Ollama models
 
 ```bash
-./bin/models-pull
+./bin/llm-models-pull
 ```
 
-Smoke test:
+Note: STT/TTS model assets are optional and are not bootstrapped by `llm-models-pull`.
+If you enable STT/TTS later, initialize those assets as part of STT/TTS setup.
+
+Ollama smoke test:
 
 ```bash
-ls -1 data/stt/models data/tts/voices
+ollama list
 ```
 
 ## STT (Whisper)

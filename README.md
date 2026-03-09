@@ -105,7 +105,7 @@ and `./bin/llm-down` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable th
 macOS first-run shortcut:
 
 ```bash
-./bin/first-run-mac
+./bin/temp-scripts/first-run-mac
 ./bin/llm-up
 ./bin/llm-check-core
 ```
@@ -380,10 +380,10 @@ sent to Flowise vector upsert, and logged to stdout by `pdf-auto-ingest`.
 If Flowise opens a blank screen after updates, hard refresh (`Ctrl+F5`) or open
 Flowise in an incognito window once to clear stale frontend state.
 
-Install speech and OCR models:
+Install the standard Ollama model set:
 
 ```bash
-./bin/models-pull
+./bin/llm-models-pull
 ```
 
 Run a speech-to-text example:

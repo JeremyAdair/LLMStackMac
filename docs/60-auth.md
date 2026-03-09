@@ -6,7 +6,8 @@ This stack uses Authelia as a self-hosted authentication gateway. It sits in fro
 
 - Protects web routes at the reverse proxy level.
 - Requires login before accessing Open WebUI, Flowise, OpenHands, and Grafana.
-- Stores its own user database (file-based for now).
+- Stores session/state data in Postgres.
+- Uses a file-based user directory (`config/auth/users_database.yml`).
 
 ## What it does not do
 

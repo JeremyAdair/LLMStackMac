@@ -136,18 +136,18 @@ Smoke test:
 2) Log in with your configured user and confirm Open WebUI loads.
 3) Open http://localhost/nodered/ and confirm the editor loads.
 
-## Step 10: Download speech and OCR models
+## Step 10: Pull Ollama models
 
-This pulls the Whisper and Piper models defined in `models/models.yml` into `data/`.
+This pulls the standard Ollama model set defined in `prompts/system/install-ollama-and-models.md`.
 
 ```bash
-./bin/models-pull
+./bin/llm-models-pull
 ```
 
 Smoke test:
 
 ```bash
-ls -1 data/stt/models data/tts/voices
+ollama list
 ```
 
 ## Step 11: Run PDF ingestion (optional)
