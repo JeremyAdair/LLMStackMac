@@ -71,7 +71,7 @@ cd LLMStack
 
 - `compose/`: per-service Docker Compose files.
 - `config/`: service configuration (reverse proxy, auth).
-- `workspace/`: user inputs and outputs (gitignored).
+- `data/`: user inputs and outputs (gitignored).
 - `docs/`: documentation and runbooks.
 
 ## Configuration
@@ -120,7 +120,7 @@ If you want a friendly hostname, add a DNS entry or edit your LAN device hosts f
 For local macOS Docker Desktop usage with the default `llmstack.lan` domains:
 
 ```bash
-./bin/hosts-entries
+./bin/CreateHostEntries/llm-hosts-update --print
 sudo nano /etc/hosts
 ```
 
@@ -150,7 +150,6 @@ Check container status:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/ollama/docker-compose.yml \
   -f compose/core/open-webui/docker-compose.yml \
   -f compose/data/qdrant/docker-compose.yml \
@@ -189,7 +188,6 @@ Start optional services when needed:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/core/flowise/docker-compose.yml \
   -f compose/observability/monitoring/docker-compose.yml \
   -f compose/lab/node-red/docker-compose.yml \
@@ -204,7 +202,6 @@ Example:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/ollama/docker-compose.yml \
   exec -it ollama ollama pull llama3
 ```
@@ -229,6 +226,5 @@ docker compose \
 ## File locations
 
 - Persistent data: `data/`
-- User inputs and outputs: `workspace/`
+- User inputs and outputs: `data/`
 - Service configs: `config/`
-

@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<USAGE
+Usage: ./bin/Backup/llm-restore-check <backup-dir>
+
+Validates a backup created by ./bin/Backup/llm-backup:
+- required structure exists
+- checksums match
+- tar/gzip archives are readable
+- reports available db/volume artifacts
+USAGE
+}
+
+if [[ $# -ne 1 ]]; then
+  usage
+  exit 1
+fi
+
+backup_dir="$1"
+
+if [[ ! -d "${backup_dir}" ]]; then
+  echo "ERROR: backup dir not found: ${backup_dir}" >&2
+  exit 1
+fi
+
+command -v shasum >/dev/null 2>&1 || { echo "shasum not found" >&2; exit 1; }
+command -v tar >/dev/null 2>&1 || { echo "tar not found" >&2; exit 1; }
+
+echo "== LLM Restore Check =="
+echo "backup: ${backup_dir}"
+echo
+
+required=(
+  "${backup_dir}/meta"
+  "${backup_dir}/files"
+  "${backup_dir}/volumes"
+  "${backup_dir}/checksums.sha256"
+)
+
+for item in "${required[@]}"; do
+  if [[ -e "${item}" ]]; then
+    echo "OK   found: ${item}"
+  else
+    echo "ERR  missing: ${item}"
+    exit 1
+  fi
+done
+
+echo
+echo "[1/3] Verify checksums"
+(
+  cd "${backup_dir}"
+  shasum -a 256 -c checksums.sha256
+)
+
+echo
+echo "[2/3] Validate archive readability"
+failed=0
+while IFS= read -r archive; do
+  [[ -z "${archive}" ]] && continue
+  if tar -tzf "${archive}" >/dev/null 2>&1; then
+    echo "OK   $(basename "${archive}")"
+  else
+    echo "ERR  unreadable archive: ${archive}"
+    failed=$((failed + 1))
+  fi
+done < <(find "${backup_dir}" -type f -name '*.tar.gz' | sort)
+
+if [[ -f "${backup_dir}/db/postgres-dumpall.sql.gz" ]]; then
+  if gzip -t "${backup_dir}/db/postgres-dumpall.sql.gz"; then
+    echo "OK   postgres-dumpall.sql.gz"
+  else
+    echo "ERR  invalid gzip: ${backup_dir}/db/postgres-dumpall.sql.gz"
+    failed=$((failed + 1))
+  fi
+else
+  echo "WARN postgres dump missing (may have been skipped at backup time)"
+fi
+
+echo
+echo "[3/3] Summary"
+vol_count="$(find "${backup_dir}/volumes" -maxdepth 1 -type f -name '*.tar.gz' | wc -l | tr -d ' ')"
+echo "volume archives: ${vol_count}"
+ls -1 "${backup_dir}/volumes"/*.tar.gz 2>/dev/null | sed 's|.*/||' || true
+
+if [[ "${failed}" -gt 0 ]]; then
+  echo
+  echo "Restore check failed with ${failed} archive error(s)."
+  exit 1
+fi
+
+echo
+echo "Restore check passed."

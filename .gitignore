@@ -6,8 +6,12 @@
 
 # Data directories
 /data/
+!/data/
+/data/*
+!/data/pdfs/
+/data/pdfs/*
+!/data/pdfs/README.md
 /secrets/
-/workspace/
 /workspaces/
 !/workspaces/
 !/workspaces/README.md

@@ -24,8 +24,8 @@
 | openclaw | lab | Optional | none | `openclaw_data` | Experimental agent gateway |
 | openhands | lab | Optional | none | `openhands_data`, repos bind | Agent coding workspace |
 | pdf-auto-ingest | lab | Optional | flowise reachable | `data/pdfs` bind | PDF watcher/upsert job |
-| rag-pipeline | lab | Optional | qdrant, Ollama endpoint | workspace bind | Batch indexer |
-| pdf-ingest | lab | Optional | none | workspace bind | PDF conversion job |
-| ocr | lab | Optional | none | workspace bind | OCR utility |
+| rag-pipeline | lab | Optional | qdrant, Ollama endpoint | `data/pdfs` bind | Batch indexer |
+| pdf-ingest | lab | Optional | none | `data/pdfs` bind | PDF conversion job |
+| ocr | lab | Optional | none | `data/ocr` bind | OCR utility |
 | stt | lab | Optional | none | `data/stt/models` bind | Speech-to-text utility |
 | tts | lab | Optional | none | `data/tts/voices` bind | Text-to-speech utility |

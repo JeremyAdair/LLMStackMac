@@ -5,8 +5,8 @@ import fitz
 
 
 def main():
-    input_dir = Path(os.getenv("INGEST_INPUT_DIR", "/workspace/ingest"))
-    output_dir = Path(os.getenv("INGEST_OUTPUT_DIR", "/workspace/processed"))
+    input_dir = Path(os.getenv("INGEST_INPUT_DIR", "/data/pdfs/ingest"))
+    output_dir = Path(os.getenv("INGEST_OUTPUT_DIR", "/data/pdfs/processed"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for path in sorted(input_dir.glob("*")):

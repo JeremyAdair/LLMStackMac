@@ -59,6 +59,8 @@ services:
       - ../config/tls:/etc/nginx/certs:ro
       # Static assets for custom login styling.
       - ../config/reverse-proxy/static:/usr/share/nginx/html/llmstack-static:ro
+      # Shared static assets (landing backgrounds, icons, etc.).
+      - ../assets:/usr/share/nginx/html/llmstack-assets:ro
     depends_on:
       - open-webui
       - auth

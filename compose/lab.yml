@@ -124,11 +124,11 @@ services:
       RAG_COLLECTION: ${RAG_COLLECTION:-documents}
       RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
       RAG_VECTOR_SIZE: ${RAG_VECTOR_SIZE:-768}
-      RAG_SOURCE_DIRS: ${RAG_SOURCE_DIRS:-/workspace/processed,/workspace/ingest}
+      RAG_SOURCE_DIRS: ${RAG_SOURCE_DIRS:-/data/pdfs/processed}
       RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-400}
       RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
     volumes:
-      - ../workspace:/workspace
+      - ../data:/data
     networks:
       - llm-stack
 
@@ -137,17 +137,17 @@ services:
       context: ..
       dockerfile: compose/lab/pdf-ingest/Dockerfile
     environment:
-      INGEST_INPUT_DIR: /workspace/ingest
-      INGEST_OUTPUT_DIR: /workspace/processed
+      INGEST_INPUT_DIR: /data/pdfs/ingest
+      INGEST_OUTPUT_DIR: /data/pdfs/processed
     volumes:
-      - ../workspace:/workspace
+      - ../data:/data
     networks:
       - llm-stack
 
   ocr:
     image: jitesoft/tesseract-ocr@sha256:dee7fa08797af4a07acb41a2c985ec6ce4e4121afa87dd12d361c040bc5334c1
     volumes:
-      - ../workspace:/workspace
+      - ../data:/data
     networks:
       - llm-stack
 
@@ -158,7 +158,7 @@ services:
       STT_MODEL_PATH: ${STT_MODEL_PATH:-/models/ggml-base.en.bin}
     volumes:
       - ../data/stt/models:/models
-      - ../workspace:/workspace
+      - ../data:/data
     networks:
       - llm-stack
 
@@ -169,7 +169,7 @@ services:
       TTS_VOICE_MODEL: ${TTS_VOICE_MODEL:-/voices/en_US-amy-low.onnx}
     volumes:
       - ../data/tts/voices:/voices
-      - ../workspace:/workspace
+      - ../data:/data
     networks:
       - llm-stack
 

@@ -78,14 +78,14 @@ Set strong values for the authentication secrets:
 - `AUTHELIA_SESSION_SECRET`
 - `AUTHELIA_STORAGE_ENCRYPTION_KEY`
 
-## Step 6: Create the workspace folders
+## Step 6: Create working folders
 
-These folders are where you drop PDFs and where the ingestion outputs are written. They are gitignored.
+These folders are where you drop PDFs and where media outputs are written. They are gitignored.
 
 ```bash
-mkdir -p workspace/ingest workspace/processed workspace/indexed
-mkdir -p workspace/audio/in workspace/audio/out
-mkdir -p workspace/ocr/in workspace/ocr/out
+mkdir -p data/pdfs/ingest data/pdfs/processed data/pdfs/indexed data/pdfs/failed
+mkdir -p data/audio/in data/audio/out
+mkdir -p data/ocr/in data/ocr/out
 ```
 
 ## Step 7: Create the first auth user
@@ -110,7 +110,6 @@ Optional: start only the core services (Ollama, Open WebUI, Qdrant, reverse prox
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/ollama/docker-compose.yml \
   -f compose/core/open-webui/docker-compose.yml \
   -f compose/data/qdrant/docker-compose.yml \
@@ -156,31 +155,28 @@ Use this when you want to convert PDFs to markdown before indexing.
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/pdf-ingest/docker-compose.yml \
   run --rm pdf-ingest
 ```
 
 ## Step 12: Run the RAG pipeline (optional)
 
-This reads markdown from the workspace, embeds it through Ollama, and writes vectors to Qdrant.
+This reads markdown from `data/pdfs/processed`, embeds it through Ollama, and writes vectors to Qdrant.
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/ollama/docker-compose.yml \
   -f compose/data/qdrant/docker-compose.yml \
   up -d
 
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/rag-pipeline/docker-compose.yml \
   run --rm rag-pipeline
 ```
 
 ## Step 13: Run speech-to-text (optional)
 
-Place an audio file in `workspace/audio/in`, then run:
+Place an audio file in `data/audio/in`, then run:
 
 ```bash
 ./bin/stt-transcribe sample.wav
@@ -189,7 +185,7 @@ Place an audio file in `workspace/audio/in`, then run:
 Smoke test:
 
 ```bash
-test -f workspace/audio/out/sample.txt
+test -f data/audio/out/sample.txt
 ```
 
 ## Step 14: Run text-to-speech (optional)
@@ -201,12 +197,12 @@ test -f workspace/audio/out/sample.txt
 Smoke test:
 
 ```bash
-test -f workspace/audio/out/tts_output.wav
+test -f data/audio/out/tts_output.wav
 ```
 
 ## Step 15: Run OCR (optional)
 
-Place an image in `workspace/ocr/in`, then run:
+Place an image in `data/ocr/in`, then run:
 
 ```bash
 ./bin/ocr-run sample.png
@@ -215,14 +211,13 @@ Place an image in `workspace/ocr/in`, then run:
 Smoke test:
 
 ```bash
-test -f workspace/ocr/out/sample.txt
+test -f data/ocr/out/sample.txt
 ```
 
 ## Step 16: Start Node-RED (optional)
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/node-red/docker-compose.yml \
   up -d
 ```
@@ -237,7 +232,6 @@ docker compose \
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 ```
 
@@ -245,7 +239,6 @@ docker compose \
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/lab/node-red/docker-compose.yml \
   stop node-red
 ```

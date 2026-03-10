@@ -20,44 +20,8 @@ set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
 since="${SINCE:-30m}"
-
-compose_files=(
-  "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/lab/ollama/docker-compose.yml"
-  "${repo_root}/compose/core/open-webui/docker-compose.yml"
-  "${repo_root}/compose/data/qdrant/docker-compose.yml"
-  "${repo_root}/compose/data/postgres/docker-compose.yml"
-  "${repo_root}/compose/data/redis/docker-compose.yml"
-  "${repo_root}/compose/admin/redisinsight/docker-compose.yml"
-  "${repo_root}/compose/lab/macos/data-services.yml"
-  "${repo_root}/compose/core/reverse-proxy/docker-compose.yml"
-  "${repo_root}/compose/lab/macos/docker-compose.yml"
-  "${repo_root}/compose/observability/monitoring/docker-compose.yml"
-  "${repo_root}/compose/core/flowise/docker-compose.yml"
-  "${repo_root}/compose/admin/forgejo/docker-compose.yml"
-  "${repo_root}/compose/lab/openhands/docker-compose.yml"
-  "${repo_root}/compose/core/auth/docker-compose.yml"
-  "${repo_root}/compose/lab/node-red/docker-compose.yml"
-  "${repo_root}/compose/core/landing/docker-compose.yml"
-  "${repo_root}/compose/lab/stt/docker-compose.yml"
-  "${repo_root}/compose/lab/tts/docker-compose.yml"
-  "${repo_root}/compose/lab/ocr/docker-compose.yml"
-  "${repo_root}/compose/lab/pdf-ingest/docker-compose.yml"
-  "${repo_root}/compose/lab/rag-pipeline/docker-compose.yml"
-  "${repo_root}/compose/admin/pgadmin/docker-compose.yml"
-)
-
-args=()
-for file in "${compose_files[@]}"; do
-  args+=("-f" "$file")
-done
-
-env_file_arg=()
-if [[ -f "${repo_root}/.env.mac" ]]; then
-  env_file_arg=(--env-file "${repo_root}/.env.mac")
-elif [[ -f "${repo_root}/.env" ]]; then
-  env_file_arg=(--env-file "${repo_root}/.env")
-fi
+source "${repo_root}/scripts/llm-stack-lib.sh"
+projects=(llm-data llm-core llm-observability llm-admin llm-lab)
 
 if [[ "$#" -eq 0 ]]; then
   echo "Usage: bin/llm-logs <service...>"
@@ -66,4 +30,10 @@ if [[ "$#" -eq 0 ]]; then
   exit 1
 fi
 
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" logs --since "$since" -f "$@"
+for project in "${projects[@]}"; do
+  for svc in "$@"; do
+    docker compose --env-file "${env_file}" -p "${project}" ps --services 2>/dev/null | grep -qx "${svc}" || continue
+    echo "== ${project}/${svc} =="
+    docker compose --env-file "${env_file}" -p "${project}" logs --since "${since}" -f "${svc}" || true
+  done
+done

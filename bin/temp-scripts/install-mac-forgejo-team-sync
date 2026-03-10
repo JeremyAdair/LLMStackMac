@@ -26,7 +26,7 @@ log_dir="${HOME}/Library/Logs"
 log_file="${log_dir}/forgejo-team-sync.log"
 
 mkdir -p "${agent_dir}" "${log_dir}"
-chmod +x "${repo_root}/bin/forgejo-sync-developers"
+chmod +x "${repo_root}/bin/Daemon/forgejo-sync-developers"
 
 cat > "${agent_plist}" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -41,7 +41,7 @@ cat > "${agent_plist}" <<PLIST
   <array>
     <string>/bin/zsh</string>
     <string>-lc</string>
-    <string>export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"; cd "${repo_root}" &amp;&amp; ./bin/forgejo-sync-developers</string>
+    <string>export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"; cd "${repo_root}" &amp;&amp; ./bin/Daemon/forgejo-sync-developers</string>
   </array>
   <key>RunAtLoad</key>
   <true/>

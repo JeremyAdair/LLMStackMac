@@ -30,7 +30,7 @@ Node-RED stores flows and context under:
 
 This directory is gitignored to avoid committing flows or credentials.
 
-If you build file-watching automations, use the shared workspace directories under `workspace/`.
+If you build file-watching automations, use `data/pdfs`, `data/audio`, and `data/ocr`.
 
 ## Example flow ideas
 

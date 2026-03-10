@@ -15,25 +15,25 @@ This starts the default core services only.
 ## Start observability
 
 ```bash
-./bin/llm-up --profile observability
+./bin/llm-up observability
 ```
 
 Add deep probe/database exporters when needed:
 
 ```bash
-./bin/llm-up --profile observability --profile observability-plus
+./bin/llm-up observability
 ```
 
 ## Start admin tools
 
 ```bash
-./bin/llm-up --profile admin
+./bin/llm-up admin
 ```
 
 ## Start lab services
 
 ```bash
-./bin/llm-up --profile lab
+./bin/llm-up lab
 ```
 
 On macOS, this also starts host (bare-metal) Ollama if `ollama` is installed locally.
@@ -42,7 +42,7 @@ Disable with `LLMSTACK_MANAGE_HOST_OLLAMA=0`.
 ## Start full lab stack
 
 ```bash
-./bin/llm-up --profile admin --profile observability --profile observability-plus --profile lab
+./bin/llm-up full
 ```
 
 ## Stop the stack
@@ -65,47 +65,26 @@ On macOS, this also stops host (bare-metal) Ollama unless disabled via
 All logs (tail):
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/core/reverse-proxy/docker-compose.yml \
-  -f compose/core/auth/docker-compose.yml \
-  logs -f
+./bin/llm-logs reverse-proxy auth
 ```
 
 Service-specific logs:
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/ollama/docker-compose.yml \
-  logs -f ollama
+SINCE=2h ./bin/llm-logs flowise
 ```
 
 ## Restart a service
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/core/open-webui/docker-compose.yml \
-  restart open-webui
+./bin/llm-up core
 ```
 
 ## Update images safely
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/ollama/docker-compose.yml \
-  -f compose/core/open-webui/docker-compose.yml \
-  -f compose/data/qdrant/docker-compose.yml \
-  pull
-
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/ollama/docker-compose.yml \
-  -f compose/core/open-webui/docker-compose.yml \
-  -f compose/data/qdrant/docker-compose.yml \
-  up -d
+./bin/llm-down core
+./bin/llm-up core
 ```
 
 ## Backups

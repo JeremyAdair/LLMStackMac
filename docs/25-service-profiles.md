@@ -3,7 +3,7 @@
 Deprecated: this profile-based layout was replaced by multi-project layered compose files.
 Use `docs/architecture.md` and `docs/stack-modes.md`.
 
-This stack now uses Docker Compose profiles to keep default startup focused on daily-use core services.
+This stack now uses layered Docker Compose projects to keep default startup focused on daily-use core services.
 
 ## Architecture by role
 
@@ -23,11 +23,6 @@ This stack now uses Docker Compose profiles to keep default startup focused on d
 - `grafana`: dashboards and alert visualization.
 - `node-exporter`: host metrics.
 - `cadvisor`: container metrics.
-
-### Observability-plus (optional)
-
-- `blackbox-exporter`: HTTP probe metrics for endpoint uptime.
-- `postgres-exporter`: deep PostgreSQL metrics.
 
 ### Admin (optional)
 
@@ -67,9 +62,9 @@ This stack now uses Docker Compose profiles to keep default startup focused on d
 
 ## What changed in compose
 
-- Added profiles to optional services:
-  - `admin`, `lab`, `observability`, `observability-plus`.
-- Left core services unprofiled so `./bin/llm-up` starts only core.
+- Added layered startup modes:
+  - `core`, `observability`, `admin`, `lab`, `full`.
+- `./bin/llm-up` defaults to `full` for complete bring-up.
 - Reduced `reverse-proxy` `depends_on` to core web dependencies:
   - `open-webui`, `auth`, `landing`.
 - Preserved all existing data volume mounts and env variable names.
@@ -85,19 +80,20 @@ Daily use (core only):
 Core + observability dashboards:
 
 ```bash
-./bin/llm-up --profile observability
+./bin/llm-up observability
 ```
 
-Admin/debug session (core + admin + observability + deep exporters):
+Admin/debug session:
 
 ```bash
-./bin/llm-up --profile admin --profile observability --profile observability-plus
+./bin/llm-up admin
+./bin/llm-up observability
 ```
 
 Full lab session (everything):
 
 ```bash
-./bin/llm-up --profile admin --profile observability --profile observability-plus --profile lab
+./bin/llm-up full
 ```
 
 Stop everything currently running:
@@ -111,5 +107,5 @@ Stop everything currently running:
 - No persistent storage paths changed.
 - Existing named volumes remain valid.
 - Existing `.env` / `.env.mac` keys remain valid.
-- Optional services will now stay down unless their profile is requested.
-- If you previously expected all services on `./bin/llm-up`, use the full lab command above.
+- Optional layers stay down unless explicitly started.
+- For one-command everything, use `./bin/llm-up full`.

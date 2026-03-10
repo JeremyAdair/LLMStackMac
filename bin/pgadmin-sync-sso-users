@@ -18,14 +18,31 @@
 
 set -euo pipefail
 
-container="${PGADMIN_CONTAINER:-llm-stack-pgadmin-1}"
+resolve_pgadmin_container() {
+  local found=""
+
+  found="$(docker ps --filter 'label=com.docker.compose.project=llm-admin' --filter 'label=com.docker.compose.service=pgadmin' --format '{{.Names}}' | head -n1)"
+  if [[ -n "${found}" ]]; then
+    printf '%s' "${found}"
+    return 0
+  fi
+
+  if docker ps --format '{{.Names}}' | grep -qx 'llm-stack-pgadmin-1'; then
+    printf '%s' 'llm-stack-pgadmin-1'
+    return 0
+  fi
+
+  return 1
+}
+
+container="${PGADMIN_CONTAINER:-$(resolve_pgadmin_container || true)}"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker not found; skipping pgAdmin SSO sync" >&2
   exit 0
 fi
 
-if ! docker ps --format '{{.Names}}' | grep -qx "${container}"; then
+if [[ -z "${container}" ]] || ! docker ps --format '{{.Names}}' | grep -qx "${container}"; then
   echo "pgAdmin container ${container} not running; skipping SSO sync" >&2
   exit 0
 fi

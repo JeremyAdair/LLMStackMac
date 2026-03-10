@@ -21,44 +21,8 @@ set -euo pipefail
 repo_root=$(git rev-parse --show-toplevel)
 out_dir="${repo_root}/debug-bundles/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$out_dir"
-
-compose_files=(
-  "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/lab/ollama/docker-compose.yml"
-  "${repo_root}/compose/core/open-webui/docker-compose.yml"
-  "${repo_root}/compose/data/qdrant/docker-compose.yml"
-  "${repo_root}/compose/data/postgres/docker-compose.yml"
-  "${repo_root}/compose/data/redis/docker-compose.yml"
-  "${repo_root}/compose/admin/redisinsight/docker-compose.yml"
-  "${repo_root}/compose/lab/macos/data-services.yml"
-  "${repo_root}/compose/core/reverse-proxy/docker-compose.yml"
-  "${repo_root}/compose/lab/macos/docker-compose.yml"
-  "${repo_root}/compose/observability/monitoring/docker-compose.yml"
-  "${repo_root}/compose/core/flowise/docker-compose.yml"
-  "${repo_root}/compose/admin/forgejo/docker-compose.yml"
-  "${repo_root}/compose/lab/openhands/docker-compose.yml"
-  "${repo_root}/compose/core/auth/docker-compose.yml"
-  "${repo_root}/compose/lab/node-red/docker-compose.yml"
-  "${repo_root}/compose/core/landing/docker-compose.yml"
-  "${repo_root}/compose/lab/stt/docker-compose.yml"
-  "${repo_root}/compose/lab/tts/docker-compose.yml"
-  "${repo_root}/compose/lab/ocr/docker-compose.yml"
-  "${repo_root}/compose/lab/pdf-ingest/docker-compose.yml"
-  "${repo_root}/compose/lab/rag-pipeline/docker-compose.yml"
-  "${repo_root}/compose/admin/pgadmin/docker-compose.yml"
-)
-
-args=()
-for file in "${compose_files[@]}"; do
-  args+=("-f" "$file")
-done
-
-env_file_arg=()
-if [[ -f "${repo_root}/.env.mac" ]]; then
-  env_file_arg=(--env-file "${repo_root}/.env.mac")
-elif [[ -f "${repo_root}/.env" ]]; then
-  env_file_arg=(--env-file "${repo_root}/.env")
-fi
+source "${repo_root}/scripts/llm-stack-lib.sh"
+layers=(data core observability admin lab)
 
 echo "Writing debug bundle to: $out_dir"
 
@@ -71,14 +35,22 @@ echo "Writing debug bundle to: $out_dir"
 
 docker version > "${out_dir}/docker-version.txt" 2>&1 || true
 docker info > "${out_dir}/docker-info.txt" 2>&1 || true
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" config > "${out_dir}/compose-config.yml" 2>&1 || true
-docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" ps > "${out_dir}/compose-ps.txt" 2>&1 || true
 docker ps -a > "${out_dir}/docker-ps-a.txt" 2>&1 || true
 docker volume ls > "${out_dir}/docker-volume-ls.txt" 2>&1 || true
 
-core_services=(reverse-proxy auth open-webui flowise ollama qdrant postgres redis forgejo grafana prometheus node-red pgadmin redisinsight openhands)
-for svc in "${core_services[@]}"; do
-  docker compose --project-name llm-stack "${env_file_arg[@]}" "${args[@]}" logs --since 2h "$svc" > "${out_dir}/logs-${svc}.txt" 2>&1 || true
+for layer in "${layers[@]}"; do
+  project="llm-${layer}"
+  docker compose --env-file "${env_file}" -p "${project}" -f "${repo_root}/compose/${layer}.yml" config > "${out_dir}/compose-${layer}-config.yml" 2>&1 || true
+  docker compose --env-file "${env_file}" -p "${project}" -f "${repo_root}/compose/${layer}.yml" ps > "${out_dir}/compose-${layer}-ps.txt" 2>&1 || true
+done
+
+core_services=(reverse-proxy auth open-webui flowise qdrant postgres redis forgejo grafana prometheus node-red pgadmin redisinsight openhands openclaw pdf-auto-ingest python-toolbox)
+projects=(llm-data llm-core llm-observability llm-admin llm-lab)
+for project in "${projects[@]}"; do
+  for svc in "${core_services[@]}"; do
+    docker compose --env-file "${env_file}" -p "${project}" ps --services 2>/dev/null | grep -qx "${svc}" || continue
+    docker compose --env-file "${env_file}" -p "${project}" logs --since 2h "${svc}" > "${out_dir}/logs-${project}-${svc}.txt" 2>&1 || true
+  done
 done
 
 echo "Bundle complete: $out_dir"

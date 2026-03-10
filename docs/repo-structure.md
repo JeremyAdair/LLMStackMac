@@ -32,7 +32,6 @@ LLMStackMac/
   data/
   docs/
   python-toolbox/
-  workspace/
 ```
 
 ## Why service-module compose directories were retained

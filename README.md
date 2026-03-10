@@ -79,7 +79,7 @@ This is the stuff that supports the runtime.
 | `reverse-proxy` | Single web entrypoint on 80/443 and routing for all UIs. | Core |
 | `auth` (Authelia) | Login and access control in front of protected routes. | Core |
 | `redis` | Cache/queue support for supporting services and workflows. | Core |
-| `python-api` | FastAPI endpoints for stack automation jobs. | Lab profile |
+| `python-toolbox` | FastAPI endpoints + toolbox scripts for stack automation jobs. | Lab profile |
 | `python-toolbox` | Script runtime container for maintenance/one-off jobs. | Lab profile |
 | `landing` | Landing page and navigation for stack services. | Core |
 | `forgejo` | Self-hosted Git service for local repos/collaboration. | Admin profile |
@@ -134,9 +134,9 @@ cp config/auth/users_database.example.yml config/auth/users_database.yml
 Enable optional groups only when needed:
 
 ```bash
-./bin/llm-up --profile observability
-./bin/llm-up --profile admin
-./bin/llm-up --profile lab
+./bin/llm-up observability
+./bin/llm-up admin
+./bin/llm-up lab
 ```
 
 See `docs/25-service-profiles.md` for architecture, overlap audit, and mode commands.
@@ -155,7 +155,6 @@ macOS first-run shortcut:
 Cutover day runbook:
 
 - `MAC-CUTOVER-CHECKLIST.md`
-- `docs/AI-HANDOFF.md`
 
 3) Open the UI via the reverse proxy.
 
@@ -175,7 +174,7 @@ Add these entries to your hosts file first:
 Generate this block automatically:
 
 ```bash
-./bin/hosts-entries
+./bin/CreateHostEntries/llm-hosts-update --print
 ```
 
 macOS hosts file path: `/etc/hosts`
@@ -227,26 +226,26 @@ service menu.
 ## Python toolbox
 
 The python-toolbox container is a CLI-first environment for running scripts under
-`python-toolbox/app`. The python-api container uses the same image but serves a
-FastAPI surface on port 8000 for Node-RED or Flowise triggers.
+`python-toolbox/app` and also serves the FastAPI surface on port 8000 for Node-RED
+or Flowise triggers.
 
 Build the image:
 
 ```bash
-docker compose -f compose/docker-compose.yml build python-toolbox
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml build python-toolbox
 ```
 
 Start the toolbox container and exec into it:
 
 ```bash
-docker compose -f compose/docker-compose.yml up -d python-toolbox
-docker compose -f compose/docker-compose.yml exec python-toolbox bash
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml up -d python-toolbox
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml exec python-toolbox bash
 ```
 
-Start the API container:
+Start the API surface (same `python-toolbox` service):
 
 ```bash
-docker compose -f compose/docker-compose.yml up -d python-api
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml up -d python-toolbox
 ```
 
 Example script runs:
@@ -275,7 +274,7 @@ mapping if the port is already in use.
 ### Persistent data and reset behavior
 
 Named volumes store service data across restarts. Removing a volume deletes that
-service data. Bind mounts under `workspace/` are local folders and can be cleaned
+service data. Bind mounts under `data/` are local folders and can be cleaned
 by deleting their contents.
 
 - Named volumes include `ollama_data`, `openwebui_data`, `qdrant_data`,
@@ -283,7 +282,7 @@ by deleting their contents.
   `grafana_data`, and `forgejo_data`.
 - `docker compose down` keeps named volumes.
 - `docker compose down -v` removes named volumes, which wipes stored data.
-- The `workspace/` folder is safe to clean when you want a fresh OpenHands workspace.
+- The OpenHands repo bind mount is `./repos` and is safe to clean when you want a fresh workspace.
 - Flowise PDF drop folder uses a local bind mount: `./data/pdfs` -> `/data/pdfs`.
 
 If you run Ollama on bare metal, keep port `11434` available on the host and point
@@ -302,13 +301,10 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 If these ports are in use, update the port mappings in
 `compose/admin/forgejo/docker-compose.yml`.
 
-`./bin/llm-up` starts Forgejo with the rest of the stack. To start only Forgejo:
+`./bin/llm-up` starts Forgejo with the rest of the stack. To start only admin services (including Forgejo):
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/admin/forgejo/docker-compose.yml \
-  up -d forgejo
+./bin/llm-up admin
 ```
 
 See `docs/git-local.md` for setup and backup details.
@@ -316,40 +312,28 @@ See `docs/git-local.md` for setup and backup details.
 ## OpenHands Workspace
 
 The workspace container provides a safe play area for OpenHands and CLI tools. It
-mounts `./workspace` to `/workspace` and runs as a non-root user.
+mounts `./repos` to `/workspace` and runs as a non-root user.
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/workspace/docker-compose.yml \
-  up -d
+./bin/llm-up lab
 ```
 
 See `docs/workspace-container.md` for guardrails and reset guidance.
 
 ## Workspace convention
 
-The ingestion pipeline uses a shared workspace directory in the repo root:
+PDF ingestion uses a single canonical host path:
 
-- `workspace/ingest/` for PDFs or markdown you want to ingest.
-- `workspace/processed/` for cleaned markdown output.
-- `workspace/indexed/` for markers or logs.
+- `data/pdfs/` for incoming PDFs
+- `data/pdfs/processed/` for converted markdown and successfully ingested files
+- `data/pdfs/failed/` for failed Flowise upserts
 
-Flowise auto-ingest uses a separate host bind mount path:
+This keeps PDF ingest and indexing state consolidated under `data/`.
 
-- Host (macOS repo): `./data/pdfs`
-- Container path: `/data/pdfs`
-
-These folders are gitignored. Create them when needed:
+Create the PDF folders when needed:
 
 ```bash
-mkdir -p workspace/ingest workspace/processed workspace/indexed
-```
-
-Create the Flowise PDF drop-in folder:
-
-```bash
-mkdir -p data/pdfs
+mkdir -p data/pdfs data/pdfs/processed data/pdfs/failed
 ```
 
 ## Common tasks
@@ -369,43 +353,27 @@ Incident bundle (snapshot everything useful):
 Run PDF ingestion:
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/pdf-ingest/docker-compose.yml \
-  run --rm pdf-ingest
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm pdf-ingest
 ```
 
 Run the RAG pipeline (Ollama + Qdrant + ingestion job):
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/ollama/docker-compose.yml \
-  -f compose/data/qdrant/docker-compose.yml \
-  up -d
-
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/rag-pipeline/docker-compose.yml \
-  run --rm rag-pipeline
+./bin/llm-up core
+./bin/llm-up data
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm rag-pipeline
 ```
 
 Run a Python one-off job:
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 ```
 
 Start only Flowise:
 
 ```bash
-docker compose \
-  -f compose/docker-compose.yml \
-  -f compose/lab/ollama/docker-compose.yml \
-  -f compose/core/flowise/docker-compose.yml \
-  up -d
+./bin/llm-up core
 ```
 
 Configure Flowise auto-ingest watcher in `.env.mac`:
@@ -434,7 +402,7 @@ Run a speech-to-text example:
 ./bin/stt-transcribe sample.wav
 ```
 
-Place `sample.wav` in `workspace/audio/in/` before running the command.
+Place `sample.wav` in `data/audio/in/` before running the command.
 
 ## Documentation
 
@@ -455,16 +423,6 @@ Regenerate landing-page README mirrors:
 ```bash
 powershell -ExecutionPolicy Bypass -File scripts/generate-landing-readmes.ps1
 ```
-
-## Future hopes
-
-The following items are planned but not complete yet. Each has a placeholder folder under `roadmap/` to track work.
-
-| Item | Status | Notes |
-| --- | --- | --- |
-| Landing page | Work in progress | Simple UI that links to all protected web apps. |
-| Backups | Work in progress | Backup and restore guidance for persistent data. |
-| CI tests | Work in progress | Automated compose validation and lint checks. |
 
 ### Normal chat (no RAG)
 
@@ -543,7 +501,7 @@ The following items are planned but not complete yet. Each has a placeholder fol
 
 ```
 [You drop PDF]
-into workspace/ingest/
+into data/pdfs/
       |
       | OCR
       v
@@ -551,7 +509,7 @@ into workspace/ingest/
       |
       | write markdown
       v
-workspace/processed/
+data/pdfs/processed/
       |
       | chunk + embed
       v
@@ -566,11 +524,11 @@ workspace/processed/
 
 ```
 [Audio file]
-workspace/audio/in/
+data/audio/in/
       |
       | STT
       v
-[STT Service]  -------------> workspace/audio/out/transcript.txt
+[STT Service]  -------------> data/audio/out/transcript.txt
       |
       | optional RAG query
       v
@@ -578,7 +536,7 @@ workspace/audio/in/
       |
       | TTS
       v
-[TTS Service] -----------------> workspace/audio/out/reply.wav
+[TTS Service] -----------------> data/audio/out/reply.wav
 ```
 
 ### If something breaks, tell me (alerts + dashboards)
@@ -640,14 +598,14 @@ workspace/audio/in/
 ┌───────────────────────────┐
 │ 1) LOAD AUDIO              │
 │ You drop file into:        │
-│ workspace/audio/in/        │
+│ data/audio/in/        │
 └───────────────────────────┘
         |
         v
 ┌───────────────────────────┐
 │ 2) TRANSCRIBE              │
 │ STT writes transcript to:  │
-│ workspace/audio/out/       │
+│ data/audio/out/       │
 └───────────────────────────┘
         |
         v

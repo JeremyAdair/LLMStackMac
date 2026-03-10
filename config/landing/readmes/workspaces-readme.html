@@ -1,15 +1,15 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Workspace README</title>
+    <title>PDF Ingestion README</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="container">
       <header>
-        <h1>Workspace README</h1>
+        <h1>PDF Ingestion README</h1>
       </header>
 
       <section class="links">
@@ -19,29 +19,21 @@
       </section>
 
       <section class="note">
-        <pre style="white-space: pre-wrap;"># Workspace play area
-
-This directory is a local, disposable workspace for running OpenHands and CLI tooling
-against git working copies. Only this directory is mounted writable into the workspace
-container.
-
-Usage:
-
-1) Clone repositories into `./workspace`.
-2) Run OpenHands against `/workspace/&lt;repo&gt;` paths.
-3) Review `git status` and `git diff` before committing.
-4) Do not push automatically. Push only after review.
-
-Notes:
-
-- This folder is shared with ingestion/media jobs in this stack.
-- Keep OpenHands repos under a dedicated subfolder (for example `./workspace/repos`)
-  so they stay separate from `./workspace/ingest`, `./workspace/processed`, and
-  other pipeline paths.
-- The workspace container runs as a non-root user. Set `WORKSPACE_UID` and
-  `WORKSPACE_GID` in `.env` if you need ownership to match your host user.
-- Resetting this directory does not affect the git server volume.
-</pre>
+        <p>Source path: <code>data/pdfs/README.md</code></p>
+        <p>This page now documents the canonical PDF ingestion path:</p>
+        <ul>
+          <li><code>data/pdfs/</code> for incoming PDFs</li>
+          <li><code>data/pdfs/processed/</code> for converted markdown and successful ingest outputs</li>
+          <li><code>data/pdfs/failed/</code> for failed ingest files</li>
+        </ul>
+        <p>
+          Conversion job:
+          <code>docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm pdf-ingest</code>
+        </p>
+        <p>
+          Indexing job:
+          <code>docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm rag-pipeline</code>
+        </p>
       </section>
     </main>
   </body>

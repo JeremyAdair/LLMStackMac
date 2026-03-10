@@ -40,7 +40,6 @@ Fix:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/core/reverse-proxy/docker-compose.yml \
   restart reverse-proxy
 ```
@@ -78,7 +77,6 @@ Fix:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   -f compose/data/qdrant/docker-compose.yml \
   exec -it qdrant curl -f http://localhost:6333/collections
 ```
@@ -102,17 +100,17 @@ Fix:
 df -h
 ```
 
-## Permission issues with workspace volumes
+## Permission issues with PDF ingest folders
 
 Symptoms:
-- Containers cannot read or write under `workspace/`.
+- Containers cannot read or write under `data/pdfs/`.
 
 Fix:
-- Ensure the workspace directories exist and are writable.
+- Ensure the PDF directories exist and are writable.
 
 ```bash
-mkdir -p workspace/ingest workspace/processed workspace/indexed
-chmod -R u+rwX workspace
+mkdir -p data/pdfs data/pdfs/processed data/pdfs/failed
+chmod -R u+rwX data/pdfs
 ```
 
 ## macOS gotchas
@@ -121,7 +119,7 @@ Symptoms:
 - Works intermittently or fails on Mac.
 
 Fix:
-- Confirm hosts entries are present: `./bin/hosts-entries`
+- Confirm hosts entries are present: `./bin/CreateHostEntries/llm-hosts-update --print`
 - Confirm DNS flushed on macOS:
   - `sudo dscacheutil -flushcache`
   - `sudo killall -HUP mDNSResponder`

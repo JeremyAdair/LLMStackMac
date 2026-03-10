@@ -1,5 +1,5 @@
 html, body {
-  background: #ffffff url('/_static/authelia-bg.png') center center / cover no-repeat fixed !important;
+  background: #ffffff url('/assets/Landing/landing-bg-v2.png') center center / cover no-repeat fixed !important;
 }
 
 :root {

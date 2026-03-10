@@ -37,7 +37,7 @@ def main():
     if source_dirs_value:
         source_dirs = [Path(path.strip()) for path in source_dirs_value.split(",") if path.strip()]
     else:
-        source_dirs = [Path(os.getenv("RAG_SOURCE_DIR", "/workspace/processed"))]
+        source_dirs = [Path(os.getenv("RAG_SOURCE_DIR", "/data/pdfs/processed"))]
     collection = os.getenv("RAG_COLLECTION", "documents")
     embed_model = os.getenv("RAG_EMBED_MODEL", "nomic-embed-text")
     vector_size = int(os.getenv("RAG_VECTOR_SIZE", "768"))

@@ -25,27 +25,22 @@ fi
 
 repo_root=$(git rev-parse --show-toplevel)
 input_name="$1"
-input_path="${repo_root}/workspace/ocr/in/${input_name}"
-output_base="${repo_root}/workspace/ocr/out/${input_name%.*}"
+input_path="${repo_root}/data/ocr/in/${input_name}"
+output_base="${repo_root}/data/ocr/out/${input_name%.*}"
 
 if [[ ! -f "$input_path" ]]; then
   echo "Input file not found: $input_path" >&2
   exit 1
 fi
 
-mkdir -p "${repo_root}/workspace/ocr/out"
+mkdir -p "${repo_root}/data/ocr/out"
 
-compose_files=(
-  "${repo_root}/compose/docker-compose.yml"
-  "${repo_root}/compose/lab/ocr/docker-compose.yml"
-)
+env_file="${repo_root}/.env.mac"
+if [[ ! -f "${env_file}" && -f "${repo_root}/.env" ]]; then
+  env_file="${repo_root}/.env"
+fi
 
-args=()
-for file in "${compose_files[@]}"; do
-  args+=("-f" "$file")
-done
-
-docker compose "${args[@]}" run --rm ocr \
-  tesseract "/workspace/ocr/in/${input_name}" "/workspace/ocr/out/${input_name%.*}"
+docker compose --env-file "${env_file}" -p llm-lab -f "${repo_root}/compose/lab.yml" run --rm ocr \
+  tesseract "/data/ocr/in/${input_name}" "/data/ocr/out/${input_name%.*}"
 
 echo "OCR output written to ${output_base}.txt"

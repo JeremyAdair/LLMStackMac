@@ -8,19 +8,13 @@ FastAPI surface for job triggers from Node-RED or Flowise.
 From the repo root:
 
 ```bash
-docker compose -f compose/docker-compose.yml build python-toolbox
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml build python-toolbox
 ```
 
 Start the toolbox container:
 
 ```bash
-docker compose -f compose/docker-compose.yml up -d python-toolbox
-```
-
-Start the API container:
-
-```bash
-docker compose -f compose/docker-compose.yml up -d python-api
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml up -d python-toolbox
 ```
 
 ## API quick start
@@ -88,7 +82,7 @@ app.include_router(jobs_router)
 
 To remove an API script, remove the endpoint and its router import/registration.
 Because the container bind-mounts `python-toolbox/app`, changes take effect on
-restart of the `python-api` container.
+restart of the `python-toolbox` container.
 
 ## Scripts web UI
 
@@ -106,7 +100,7 @@ Notes:
 ## Exec into the toolbox and run scripts
 
 ```bash
-docker compose -f compose/docker-compose.yml exec python-toolbox bash
+docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml exec python-toolbox bash
 ```
 
 Example script runs:
@@ -149,15 +143,10 @@ python-toolbox:
   build:
     context: ../python-toolbox
     dockerfile: Dockerfile
-  command: ["sleep", "infinity"]
+  command: ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
   volumes:
     - ../python-toolbox/app:/app
     - ../bin:/host-bin
-
-python-api:
-  image: llmstack/python-toolbox:local
-  command: ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
-  ports:
     - "8000:8000"
   volumes:
     - ../python-toolbox/app:/app

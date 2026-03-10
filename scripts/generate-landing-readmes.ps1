@@ -9,10 +9,7 @@ New-Item -ItemType Directory -Force -Path $landingReadmesDir | Out-Null
 $readmeMap = @(
   @{ Input = "README.md"; Output = "root-readme.html"; Title = "Project README" },
   @{ Input = "python-toolbox/README.md"; Output = "python-toolbox-readme.html"; Title = "Python Toolbox README" },
-  @{ Input = "workspace/README.md"; Output = "workspaces-readme.html"; Title = "Workspace README" },
-  @{ Input = "roadmap/landing-page/README.md"; Output = "roadmap-landing.html"; Title = "Roadmap - Landing Page" },
-  @{ Input = "roadmap/backups/README.md"; Output = "roadmap-backups.html"; Title = "Roadmap - Backups" },
-  @{ Input = "roadmap/ci-tests/README.md"; Output = "roadmap-ci-tests.html"; Title = "Roadmap - CI Tests" }
+  @{ Input = "data/pdfs/README.md"; Output = "workspaces-readme.html"; Title = "PDF Ingestion README" }
 )
 
 foreach ($entry in $readmeMap) {

@@ -28,27 +28,27 @@ ollama list
 Purpose: Convert audio files into text transcripts.
 
 Inputs:
-- `workspace/audio/in/` (place `.wav` files here)
+- `data/audio/in/` (place `.wav` files here)
 
 Outputs:
-- `workspace/audio/out/` (transcripts are written here)
+- `data/audio/out/` (transcripts are written here)
 
 Example:
 
 ```bash
-mkdir -p workspace/audio/in workspace/audio/out
-cp /path/to/sample.wav workspace/audio/in/
+mkdir -p data/audio/in data/audio/out
+cp /path/to/sample.wav data/audio/in/
 ./bin/stt-transcribe sample.wav
 ```
 
 Expected output:
 
-- `workspace/audio/out/sample.txt`
+- `data/audio/out/sample.txt`
 
 Smoke test:
 
 ```bash
-test -f workspace/audio/out/sample.txt
+test -f data/audio/out/sample.txt
 ```
 
 ## TTS (Piper)
@@ -56,22 +56,22 @@ test -f workspace/audio/out/sample.txt
 Purpose: Convert text into speech audio.
 
 Inputs:
-- `workspace/audio/tts_in.txt` (text input)
+- `data/audio/tts_in.txt` (text input)
 
 Outputs:
-- `workspace/audio/out/tts_output.wav`
+- `data/audio/out/tts_output.wav`
 
 Example:
 
 ```bash
-mkdir -p workspace/audio/out
+mkdir -p data/audio/out
 ./bin/tts-speak "hello world"
 ```
 
 Smoke test:
 
 ```bash
-test -f workspace/audio/out/tts_output.wav
+test -f data/audio/out/tts_output.wav
 ```
 
 ## OCR (Tesseract)
@@ -79,27 +79,27 @@ test -f workspace/audio/out/tts_output.wav
 Purpose: Extract text from images or scanned documents.
 
 Inputs:
-- `workspace/ocr/in/` (place `.png`, `.jpg`, or `.pdf` images here)
+- `data/ocr/in/` (place `.png`, `.jpg`, or `.pdf` images here)
 
 Outputs:
-- `workspace/ocr/out/` (OCR text output)
+- `data/ocr/out/` (OCR text output)
 
 Example:
 
 ```bash
-mkdir -p workspace/ocr/in workspace/ocr/out
-cp /path/to/sample.png workspace/ocr/in/
+mkdir -p data/ocr/in data/ocr/out
+cp /path/to/sample.png data/ocr/in/
 ./bin/ocr-run sample.png
 ```
 
 Expected output:
 
-- `workspace/ocr/out/sample.txt`
+- `data/ocr/out/sample.txt`
 
 Smoke test:
 
 ```bash
-test -f workspace/ocr/out/sample.txt
+test -f data/ocr/out/sample.txt
 ```
 
 ## Python toolbox jobs
@@ -110,11 +110,9 @@ Example commands:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 
 docker compose \
-  -f compose/docker-compose.yml \
   run --rm python-toolbox python /app/scripts/rag_ingest/ingest_folder.py
 ```
 
@@ -122,6 +120,5 @@ Smoke test:
 
 ```bash
 docker compose \
-  -f compose/docker-compose.yml \
   run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
 ```

@@ -51,12 +51,12 @@ services:
       dockerfile: compose/lab/pdf-ingest/Dockerfile
     environment:
       # Input PDFs or markdown go here.
-      INGEST_INPUT_DIR: /workspace/ingest
+      INGEST_INPUT_DIR: /data/pdfs/ingest
       # Converted markdown is written here.
-      INGEST_OUTPUT_DIR: /workspace/processed
+      INGEST_OUTPUT_DIR: /data/pdfs/processed
     volumes:
-      # Mount the local workspace directory into the container.
-      - ../workspace:/workspace
+      # Mount the PDF drop directory into the container.
+      - ../data:/data
     networks:
       - llm-stack
     profiles:

@@ -105,6 +105,7 @@ services:
       - ../config/reverse-proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../config/tls:/etc/nginx/certs:ro
       - ../config/reverse-proxy/static:/usr/share/nginx/html/llmstack-static:ro
+      - ../assets:/usr/share/nginx/html/llmstack-assets:ro
     depends_on:
       - open-webui
       - flowise

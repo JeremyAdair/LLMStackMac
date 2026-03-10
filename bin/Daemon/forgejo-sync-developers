@@ -21,7 +21,31 @@ set -euo pipefail
 repo_root=$(git rev-parse --show-toplevel)
 cd "${repo_root}"
 
-forgejo_container="llm-stack-forgejo-1"
+resolve_forgejo_container() {
+  local found=""
+
+  # Layered project/container naming.
+  found="$(docker ps --filter 'label=com.docker.compose.project=llm-admin' --filter 'label=com.docker.compose.service=forgejo' --format '{{.Names}}' | head -n1)"
+  if [[ -n "${found}" ]]; then
+    printf '%s' "${found}"
+    return 0
+  fi
+
+  # Legacy name fallback.
+  if docker ps --format '{{.Names}}' | grep -qx 'llm-stack-forgejo-1'; then
+    printf '%s' 'llm-stack-forgejo-1'
+    return 0
+  fi
+
+  return 1
+}
+
+forgejo_container="$(resolve_forgejo_container || true)"
+if [[ -z "${forgejo_container}" ]]; then
+  echo "forgejo-sync-developers: forgejo container not running; skipping sync"
+  exit 0
+fi
+
 org_name="${FORGEJO_ORG_NAME:-llmstack}"
 team_name="${FORGEJO_TEAM_NAME:-developers}"
 admin_user="${FORGEJO_ADMIN_USER:-home}"
