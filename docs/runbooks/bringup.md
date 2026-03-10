@@ -83,9 +83,9 @@ Set strong values for the authentication secrets:
 These folders are where you drop PDFs and where media outputs are written. They are gitignored.
 
 ```bash
-mkdir -p data/pdfs/ingest data/pdfs/processed data/pdfs/indexed data/pdfs/failed
+mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed data/pdfs/failed
 mkdir -p data/audio/in data/audio/out
-mkdir -p data/ocr/in data/ocr/out
+mkdir -p data/ocr/ingest-dropzone data/ocr/processed/text data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
 ```
 
 ## Step 7: Create the first auth user
@@ -202,7 +202,7 @@ test -f data/audio/out/tts_output.wav
 
 ## Step 15: Run OCR (optional)
 
-Place an image in `data/ocr/in`, then run:
+Place an image in `data/ocr/ingest-dropzone`, then run:
 
 ```bash
 ./bin/ocr-run sample.png
@@ -211,7 +211,7 @@ Place an image in `data/ocr/in`, then run:
 Smoke test:
 
 ```bash
-test -f data/ocr/out/sample.txt
+test -f data/ocr/processed/text/sample.txt
 ```
 
 ## Step 16: Start Node-RED (optional)

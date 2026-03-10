@@ -51,7 +51,7 @@ services:
       dockerfile: compose/lab/pdf-ingest/Dockerfile
     environment:
       # Input PDFs or markdown go here.
-      INGEST_INPUT_DIR: /data/pdfs/ingest
+      INGEST_INPUT_DIR: /data/pdfs/ingest-dropzone
       # Converted markdown is written here.
       INGEST_OUTPUT_DIR: /data/pdfs/processed
     volumes:

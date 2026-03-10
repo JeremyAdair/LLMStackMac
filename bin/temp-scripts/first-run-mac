@@ -21,18 +21,24 @@ set -euo pipefail
 repo_root=$(git rev-parse --show-toplevel)
 
 mkdir -p "${repo_root}/data/pdfs"
-mkdir -p "${repo_root}/data/pdfs/ingest" "${repo_root}/data/pdfs/processed" "${repo_root}/data/pdfs/indexed"
+mkdir -p "${repo_root}/data/pdfs/ingest-dropzone" "${repo_root}/data/pdfs/processed" "${repo_root}/data/pdfs/failed"
 mkdir -p "${repo_root}/data/audio/in" "${repo_root}/data/audio/out"
-mkdir -p "${repo_root}/data/ocr/in" "${repo_root}/data/ocr/out"
+mkdir -p "${repo_root}/data/ocr/ingest-dropzone" \
+  "${repo_root}/data/ocr/processed/text" \
+  "${repo_root}/data/ocr/processed/json" \
+  "${repo_root}/data/ocr/processed/chunk" \
+  "${repo_root}/data/ocr/failed"
 mkdir -p "${repo_root}/repos"
 mkdir -p "${repo_root}/config/grafana/provisioning"
 
 cat <<EOF
 Created macOS local folders:
   - ${repo_root}/data/pdfs
-  - ${repo_root}/data/pdfs/{ingest,processed,indexed}
+  - ${repo_root}/data/pdfs/{ingest-dropzone,processed,failed}
   - ${repo_root}/data/audio/{in,out}
-  - ${repo_root}/data/ocr/{in,out}
+  - ${repo_root}/data/ocr/ingest-dropzone
+  - ${repo_root}/data/ocr/processed/{text,json,chunk}
+  - ${repo_root}/data/ocr/failed
   - ${repo_root}/repos
   - ${repo_root}/config/grafana/provisioning
 

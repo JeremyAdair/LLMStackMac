@@ -5,7 +5,7 @@ import fitz
 
 
 def main():
-    input_dir = Path(os.getenv("INGEST_INPUT_DIR", "/data/pdfs/ingest"))
+    input_dir = Path(os.getenv("INGEST_INPUT_DIR", "/data/pdfs/ingest-dropzone"))
     output_dir = Path(os.getenv("INGEST_OUTPUT_DIR", "/data/pdfs/processed"))
     output_dir.mkdir(parents=True, exist_ok=True)
 

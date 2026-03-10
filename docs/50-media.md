@@ -79,27 +79,31 @@ test -f data/audio/out/tts_output.wav
 Purpose: Extract text from images or scanned documents.
 
 Inputs:
-- `data/ocr/in/` (place `.png`, `.jpg`, or `.pdf` images here)
+- `data/ocr/ingest-dropzone/` (place `.png`, `.jpg`, or `.pdf` images here)
 
 Outputs:
-- `data/ocr/out/` (OCR text output)
+- `data/ocr/processed/text/` (OCR text output)
+- `data/ocr/processed/json/` (OCR metadata per file)
+- `data/ocr/processed/chunk/` (line-chunked OCR text files)
+- `data/ocr/failed/` (inputs copied here if OCR fails)
 
 Example:
 
 ```bash
-mkdir -p data/ocr/in data/ocr/out
-cp /path/to/sample.png data/ocr/in/
+mkdir -p data/ocr/ingest-dropzone data/ocr/processed/text data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
+cp /path/to/sample.png data/ocr/ingest-dropzone/
 ./bin/ocr-run sample.png
 ```
 
 Expected output:
 
-- `data/ocr/out/sample.txt`
+- `data/ocr/processed/text/sample.txt`
+- `data/ocr/processed/json/sample.json`
 
 Smoke test:
 
 ```bash
-test -f data/ocr/out/sample.txt
+test -f data/ocr/processed/text/sample.txt
 ```
 
 ## Python toolbox jobs

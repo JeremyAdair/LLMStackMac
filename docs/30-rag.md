@@ -7,6 +7,7 @@ This stack ships with a simple ingestion pipeline that turns markdown into embed
 Use a single PDF pipeline path in the repository root (gitignored):
 
 - `data/pdfs/` for incoming PDFs
+- `data/pdfs/ingest-dropzone/` for manual PDF-to-markdown conversion input
 - `data/pdfs/processed/` for converted markdown and successful ingest outputs
 - `data/pdfs/failed/` for failed ingest files
 
@@ -15,8 +16,8 @@ Use a single PDF pipeline path in the repository root (gitignored):
 Convert PDFs into markdown text:
 
 ```bash
-mkdir -p data/pdfs data/pdfs/processed data/pdfs/failed
-cp ~/Documents/example.pdf data/pdfs/
+mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed data/pdfs/failed
+cp ~/Documents/example.pdf data/pdfs/ingest-dropzone/
 ./bin/llm-up
 
 docker compose \

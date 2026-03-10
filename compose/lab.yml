@@ -137,7 +137,7 @@ services:
       context: ..
       dockerfile: compose/lab/pdf-ingest/Dockerfile
     environment:
-      INGEST_INPUT_DIR: /data/pdfs/ingest
+      INGEST_INPUT_DIR: /data/pdfs/ingest-dropzone
       INGEST_OUTPUT_DIR: /data/pdfs/processed
     volumes:
       - ../data:/data
