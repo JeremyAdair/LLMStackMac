@@ -46,7 +46,7 @@ cp .env.example .env
 2) Start the full stack.
 
 ```bash
-./bin/llm-up
+./tools/bin/llm up full
 ```
 
 3) Open the UI via the reverse proxy.
@@ -61,6 +61,10 @@ Add these entries to your hosts file first:
 127.0.0.1  grafana.llmstack.lan
 127.0.0.1  nodered.llmstack.lan
 127.0.0.1  forgejo.llmstack.lan
+127.0.0.1  prometheus.llmstack.lan
+127.0.0.1  pgadmin.llmstack.lan
+127.0.0.1  redisinsight.llmstack.lan
+127.0.0.1  qdrant.llmstack.lan
 ```
 
 Then open:
@@ -73,6 +77,10 @@ Then open:
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
 - Forgejo: https://forgejo.llmstack.lan/
+- Prometheus: https://prometheus.llmstack.lan/
+- pgAdmin: https://pgadmin.llmstack.lan/
+- RedisInsight: https://redisinsight.llmstack.lan/
+- Qdrant dashboard: https://qdrant.llmstack.lan/dashboard
 
 You will be prompted to log in via Authelia. The first visit to each subdomain will
 also show a browser TLS warning because a self-signed cert is used for local HTTPS.
@@ -128,7 +136,7 @@ python /app/scripts/rag_ingest/ingest_folder.py
 python /app/scripts/db_tools/healthcheck.py
 ```
 
-See `python-toolbox/README.md` for environment variables and usage notes.
+See `services/python-toolbox/README.md` for environment variables and usage notes.
 
 ### Ports you may need to change
 
@@ -173,7 +181,7 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 If these ports are in use, update the port mappings in
 `compose/admin/forgejo/docker-compose.yml`.
 
-`./bin/llm-up` starts Forgejo with the rest of the stack. To start only Forgejo:
+`./tools/bin/llm up full` starts Forgejo with the rest of the stack. To start only Forgejo:
 
 ```bash
 docker compose \
@@ -281,13 +289,13 @@ sent to Flowise vector upsert, and logged to stdout by `pdf-auto-ingest`.
 Install the standard Ollama model set:
 
 ```bash
-./bin/llm-models-pull
+./tools/bin/llm models pull
 ```
 
 Run a speech-to-text example:
 
 ```bash
-./bin/stt-transcribe sample.wav
+./tools/bin/stt-transcribe sample.wav
 ```
 
 Place `sample.wav` in `workspace/audio/in/` before running the command.
@@ -305,12 +313,6 @@ See the docs for details:
 - `docs/git-local.md`
 - `docs/workspace-container.md`
 - `docs/runbooks/bringup.md`
-
-Regenerate landing-page README mirrors:
-
-```bash
-powershell -ExecutionPolicy Bypass -File scripts/generate-landing-readmes.ps1
-```
 
 ## Future hopes
 

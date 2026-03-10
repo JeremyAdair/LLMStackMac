@@ -14,19 +14,19 @@ The stack now runs as multiple compose projects so Docker Desktop shows clean gr
 
 Primary scripts:
 
-- `./scripts/llm-up-core.sh`
-- `./scripts/llm-up-observability.sh`
-- `./scripts/llm-up-admin.sh`
-- `./scripts/llm-up-lab.sh`
-- `./scripts/llm-up-full.sh`
-- `./scripts/llm-down-all.sh`
-- `./scripts/llm-ps-stack.sh`
+- `./tools/scripts/up/core.sh`
+- `./tools/scripts/up/observability.sh`
+- `./tools/scripts/up/admin.sh`
+- `./tools/scripts/up/lab.sh`
+- `./tools/scripts/up/full.sh`
+- `./tools/scripts/down/all.sh`
+- `./tools/scripts/status/show.sh`
 
 Compatibility wrappers remain:
 
-- `./bin/llm-up` (defaults to full)
-- `./bin/llm-down`
-- `./bin/llm-status`
+- `./tools/bin/llm up full` (defaults to full)
+- `./tools/bin/llm down all`
+- `./tools/bin/llm status`
 
 See:
 
@@ -128,28 +128,28 @@ cp config/auth/users_database.example.yml config/auth/users_database.yml
 2) Start the core stack (default).
 
 ```bash
-./bin/llm-up
+./tools/bin/llm up full
 ```
 
 Enable optional groups only when needed:
 
 ```bash
-./bin/llm-up observability
-./bin/llm-up admin
-./bin/llm-up lab
+./tools/bin/llm up observability
+./tools/bin/llm up admin
+./tools/bin/llm up lab
 ```
 
 See `docs/25-service-profiles.md` for architecture, overlap audit, and mode commands.
 
-On macOS, `./bin/llm-up` also starts host (bare-metal) Ollama when installed locally,
-and `./bin/llm-down` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable this behavior.
+On macOS, `./tools/bin/llm up full` also starts host (bare-metal) Ollama when installed locally,
+and `./tools/bin/llm down all` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable this behavior.
 
 macOS first-run shortcut:
 
 ```bash
-./bin/temp-scripts/first-run-mac
-./bin/llm-up
-./bin/llm-check-core
+./tools/scripts/temp-scripts/first-run-mac
+./tools/bin/llm up full
+./tools/bin/llm check-core
 ```
 
 Cutover day runbook:
@@ -169,12 +169,16 @@ Add these entries to your hosts file first:
 127.0.0.1  grafana.llmstack.lan
 127.0.0.1  nodered.llmstack.lan
 127.0.0.1  forgejo.llmstack.lan
+127.0.0.1  prometheus.llmstack.lan
+127.0.0.1  pgadmin.llmstack.lan
+127.0.0.1  redisinsight.llmstack.lan
+127.0.0.1  qdrant.llmstack.lan
 ```
 
 Generate this block automatically:
 
 ```bash
-./bin/CreateHostEntries/llm-hosts-update --print
+./tools/bin/CreateHostEntries/llm-hosts-update --print
 ```
 
 macOS hosts file path: `/etc/hosts`
@@ -201,6 +205,10 @@ Then open:
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
 - Forgejo: https://forgejo.llmstack.lan/
+- Prometheus: https://prometheus.llmstack.lan/
+- pgAdmin: https://pgadmin.llmstack.lan/
+- RedisInsight: https://redisinsight.llmstack.lan/
+- Qdrant dashboard: https://qdrant.llmstack.lan/dashboard
 
 You will be prompted to log in via Authelia. The first visit to each subdomain will
 also show a browser TLS warning because a self-signed cert is used for local HTTPS.
@@ -256,7 +264,7 @@ python /app/scripts/rag_ingest/ingest_folder.py
 python /app/scripts/db_tools/healthcheck.py
 ```
 
-See `python-toolbox/README.md` for environment variables and usage notes.
+See `services/python-toolbox/README.md` for environment variables and usage notes.
 
 ### Ports you may need to change
 
@@ -282,7 +290,7 @@ by deleting their contents.
   `grafana_data`, and `forgejo_data`.
 - `docker compose down` keeps named volumes.
 - `docker compose down -v` removes named volumes, which wipes stored data.
-- The OpenHands repo bind mount is `./repos` and is safe to clean when you want a fresh workspace.
+- The OpenHands repo bind mount is `./data/openhands-workspace` and is safe to clean when you want a fresh workspace.
 - Flowise PDF drop folder uses a local bind mount: `./data/pdfs` -> `/data/pdfs`.
 
 If you run Ollama on bare metal, keep port `11434` available on the host and point
@@ -301,10 +309,10 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 If these ports are in use, update the port mappings in
 `compose/admin/forgejo/docker-compose.yml`.
 
-`./bin/llm-up` starts Forgejo with the rest of the stack. To start only admin services (including Forgejo):
+`./tools/bin/llm up full` starts Forgejo with the rest of the stack. To start only admin services (including Forgejo):
 
 ```bash
-./bin/llm-up admin
+./tools/bin/llm up admin
 ```
 
 See `docs/git-local.md` for setup and backup details.
@@ -312,10 +320,10 @@ See `docs/git-local.md` for setup and backup details.
 ## OpenHands Workspace
 
 The workspace container provides a safe play area for OpenHands and CLI tools. It
-mounts `./repos` to `/workspace` and runs as a non-root user.
+mounts `./data/openhands-workspace` to `/workspace` and runs as a non-root user.
 
 ```bash
-./bin/llm-up lab
+./tools/bin/llm up lab
 ```
 
 See `docs/workspace-container.md` for guardrails and reset guidance.
@@ -344,13 +352,13 @@ mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,ch
 Live logs for real debugging:
 
 ```bash
-SINCE=2h ./bin/llm-logs reverse-proxy auth open-webui flowise
+SINCE=2h ./tools/bin/llm logs reverse-proxy auth open-webui flowise
 ```
 
 Incident bundle (snapshot everything useful):
 
 ```bash
-./bin/llm-debug-bundle
+./tools/bin/llm debug-bundle
 ```
 
 Run PDF ingestion:
@@ -362,8 +370,8 @@ docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm pdf-in
 Run the RAG pipeline (Ollama + Qdrant + ingestion job):
 
 ```bash
-./bin/llm-up core
-./bin/llm-up data
+./tools/bin/llm up core
+./tools/bin/llm up full data
 docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm rag-pipeline
 ```
 
@@ -376,7 +384,7 @@ docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm python
 Start only Flowise:
 
 ```bash
-./bin/llm-up core
+./tools/bin/llm up core
 ```
 
 Configure Flowise auto-ingest watcher in `.env.mac`:
@@ -396,13 +404,13 @@ Flowise in an incognito window once to clear stale frontend state.
 Install the standard Ollama model set:
 
 ```bash
-./bin/llm-models-pull
+./tools/bin/llm models pull
 ```
 
 Run a speech-to-text example:
 
 ```bash
-./bin/stt-transcribe sample.wav
+./tools/bin/stt-transcribe sample.wav
 ```
 
 Place `sample.wav` in `data/audio/in/` before running the command.
@@ -412,6 +420,7 @@ Place `sample.wav` in `data/audio/in/` before running the command.
 See the docs for details:
 
 - `docs/10-install.md`
+- `docs/cli.md`
 - `docs/30-rag.md`
 - `docs/pdf-ingestion-flow.md`
 - `docs/40-agents.md`
@@ -421,12 +430,6 @@ See the docs for details:
 - `docs/git-local.md`
 - `docs/workspace-container.md`
 - `docs/runbooks/bringup.md`
-
-Regenerate landing-page README mirrors:
-
-```bash
-powershell -ExecutionPolicy Bypass -File scripts/generate-landing-readmes.ps1
-```
 
 ### Normal chat (no RAG)
 
