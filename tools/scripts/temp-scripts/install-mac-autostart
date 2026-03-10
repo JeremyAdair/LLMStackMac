@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Implements an automation/helper script used by the LLMStack tooling layer.
+# This script performs a focused operational task in a repeatable way.
+#
+# Why it exists:
+# Automating this workflow reduces manual commands, avoids common mistakes,
+# and keeps stack operations consistent for beginner users.
+#
+# What happens next:
+# The script below parses context/inputs, runs the operational steps,
+# and reports success or failure to the caller.
+############################################
+
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+agent_id="com.llmstack.autostart"
+agent_dir="${HOME}/Library/LaunchAgents"
+agent_plist="${agent_dir}/${agent_id}.plist"
+log_dir="${HOME}/Library/Logs"
+log_file="${log_dir}/llmstack-autostart.log"
+
+mkdir -p "${agent_dir}" "${log_dir}"
+
+cat > "${agent_plist}" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${agent_id}</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+  <key>WorkingDirectory</key>
+  <string>${repo_root}</string>
+  <key>StandardOutPath</key>
+  <string>${log_file}</string>
+  <key>StandardErrorPath</key>
+  <string>${log_file}</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"; if ! docker info >/dev/null 2>&1; then open -ga Docker; fi; for i in {1..90}; do if docker info >/dev/null 2>&1; then break; fi; sleep 2; done; cd "${repo_root}" &amp;&amp; ./tools/bin/llm up full</string>
+  </array>
+</dict>
+</plist>
+PLIST
+
+uid="$(id -u)"
+if launchctl print "gui/${uid}/${agent_id}" >/dev/null 2>&1; then
+  launchctl bootout "gui/${uid}" "${agent_plist}" >/dev/null 2>&1 || true
+fi
+
+bootstrap_ok="yes"
+if ! launchctl bootstrap "gui/${uid}" "${agent_plist}" >/dev/null 2>&1; then
+  bootstrap_ok="no"
+fi
+
+cat <<EOF
+Installed autostart LaunchAgent:
+  ${agent_plist}
+
+It will run at login and start Docker (if needed) before running:
+  ./tools/bin/llm up full
+
+Logs:
+  ${log_file}
+EOF
+
+if [[ "${bootstrap_ok}" == "no" ]]; then
+  cat <<EOF
+
+Automatic registration could not be completed from this shell session.
+To finish registration from your normal logged-in macOS Terminal, run:
+  launchctl bootstrap gui/${uid} "${agent_plist}"
+EOF
+fi

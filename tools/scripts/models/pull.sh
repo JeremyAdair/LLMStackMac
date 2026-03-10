@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+prompt_file="${repo_root}/prompts/system/install-ollama-and-models.md"
+
+usage() {
+  cat <<EOF2
+Usage: llm models pull
+
+Pulls all Ollama models listed in:
+  prompts/system/install-ollama-and-models.md
+EOF2
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if ! command -v ollama >/dev/null 2>&1; then
+  echo "Error: 'ollama' is not installed or not on PATH." >&2
+  exit 1
+fi
+
+if [[ ! -f "${prompt_file}" ]]; then
+  echo "Error: model prompt file not found: ${prompt_file}" >&2
+  exit 1
+fi
+
+models=()
+in_models_block="0"
+
+while IFS= read -r line; do
+  if [[ "${line}" =~ ^models=\($ ]]; then
+    in_models_block="1"
+    continue
+  fi
+
+  if [[ "${in_models_block}" == "1" && "${line}" == ")" ]]; then
+    break
+  fi
+
+  if [[ "${in_models_block}" == "1" && "${line}" =~ \"([^\"]+)\" ]]; then
+    models+=("${BASH_REMATCH[1]}")
+  fi
+done < "${prompt_file}"
+
+if [[ "${#models[@]}" -eq 0 ]]; then
+  echo "Error: no models found in ${prompt_file}." >&2
+  echo "Expected a models=(...) block with quoted tags." >&2
+  exit 1
+fi
+
+echo "Found ${#models[@]} models to pull from ${prompt_file}"
+
+failures=()
+for model in "${models[@]}"; do
+  echo "Ensuring model: ${model}"
+  if ! ollama pull "${model}"; then
+    failures+=("${model}")
+  fi
+done
+
+echo
+echo "Model pull run complete."
+echo "Attempted: ${#models[@]}"
+echo "Failed: ${#failures[@]}"
+
+if [[ "${#failures[@]}" -gt 0 ]]; then
+  echo "Failed models:" >&2
+  printf '  - %s\n' "${failures[@]}" >&2
+  exit 1
+fi
+
+echo "All models pulled successfully."

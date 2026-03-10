@@ -64,7 +64,7 @@ This stack now uses layered Docker Compose projects to keep default startup focu
 
 - Added layered startup modes:
   - `core`, `observability`, `admin`, `lab`, `full`.
-- `./bin/llm-up` defaults to `full` for complete bring-up.
+- `./tools/bin/llm up full` defaults to `full` for complete bring-up.
 - Reduced `reverse-proxy` `depends_on` to core web dependencies:
   - `open-webui`, `auth`, `landing`.
 - Preserved all existing data volume mounts and env variable names.
@@ -74,32 +74,32 @@ This stack now uses layered Docker Compose projects to keep default startup focu
 Daily use (core only):
 
 ```bash
-./bin/llm-up
+./tools/bin/llm up full
 ```
 
 Core + observability dashboards:
 
 ```bash
-./bin/llm-up observability
+./tools/bin/llm up observability
 ```
 
 Admin/debug session:
 
 ```bash
-./bin/llm-up admin
-./bin/llm-up observability
+./tools/bin/llm up admin
+./tools/bin/llm up observability
 ```
 
 Full lab session (everything):
 
 ```bash
-./bin/llm-up full
+./tools/bin/llm up full
 ```
 
 Stop everything currently running:
 
 ```bash
-./bin/llm-down
+./tools/bin/llm down all
 ```
 
 ## Migration notes
@@ -108,4 +108,4 @@ Stop everything currently running:
 - Existing named volumes remain valid.
 - Existing `.env` / `.env.mac` keys remain valid.
 - Optional layers stay down unless explicitly started.
-- For one-command everything, use `./bin/llm-up full`.
+- For one-command everything, use `./tools/bin/llm up full`.

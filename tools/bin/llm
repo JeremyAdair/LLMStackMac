@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source_path="${BASH_SOURCE[0]}"
+while [[ -L "${source_path}" ]]; do
+  link_target="$(readlink "${source_path}")"
+  if [[ "${link_target}" == /* ]]; then
+    source_path="${link_target}"
+  else
+    source_path="$(cd "$(dirname "${source_path}")" && cd "$(dirname "${link_target}")" && pwd)/$(basename "${link_target}")"
+  fi
+done
+
+script_dir="$(cd "$(dirname "${source_path}")" && pwd)"
+repo_root="$(cd "${script_dir}/../.." && pwd)"
+scripts_dir="${repo_root}/tools/scripts"
+jobs_dir="${repo_root}/tools/jobs"
+
+print_banner() {
+  cat <<'BANNER'
++------------------------------+
+|           AI CORE            |
+|         INITIALIZING         |
++------------------------------+
+
+ _      _      __  __   ____  _             _
+| |    | |    |  \/  | / ___|| |_ __ _  ___| | __
+| |    | |    | |\/| | \___ \| __/ _` |/ __| |/ /
+| |___ | |___ | |  | |  ___) | || (_| | (__|   <
+|_____||_____||_|  |_| |____/ \__\__,_|\___|_|\_\
+
+ Local LLM Platform Controller
+BANNER
+}
+
+should_manage_host_ollama() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 1
+  [[ "${LLMSTACK_MANAGE_HOST_OLLAMA:-1}" != "0" ]] || return 1
+  command -v ollama >/dev/null 2>&1 || return 1
+  return 0
+}
+
+start_host_ollama() {
+  local brew_formula=""
+  if command -v brew >/dev/null 2>&1; then
+    brew_formula="$(brew list --formula 2>/dev/null | grep -E '^ollama(@[0-9.]+)?$' | head -n1 || true)"
+  fi
+
+  if [[ -n "${brew_formula}" ]]; then
+    echo "Starting host Ollama with brew services (${brew_formula})..."
+    brew services start "${brew_formula}" >/dev/null
+    return 0
+  fi
+
+  if pgrep -f '[o]llama serve' >/dev/null 2>&1; then
+    echo "Host Ollama already running."
+    return 0
+  fi
+
+  echo "Starting host Ollama via 'ollama serve' fallback..."
+  nohup ollama serve >/tmp/llmstack-ollama-serve.log 2>&1 &
+}
+
+stop_host_ollama() {
+  local brew_formula=""
+  if command -v brew >/dev/null 2>&1; then
+    brew_formula="$(brew list --formula 2>/dev/null | grep -E '^ollama(@[0-9.]+)?$' | head -n1 || true)"
+  fi
+
+  if [[ -n "${brew_formula}" ]]; then
+    echo "Stopping host Ollama brew service (${brew_formula})..."
+    brew services stop "${brew_formula}" >/dev/null || true
+    return 0
+  fi
+
+  if pgrep -f '[o]llama serve' >/dev/null 2>&1; then
+    echo "Stopping host Ollama process..."
+    pkill -f '[o]llama serve' || true
+  fi
+}
+
+# Emit discovered commands in a stable order.
+discover_commands() {
+  local dir cmd file base
+  {
+    for dir in "${scripts_dir}"/*; do
+      [[ -d "${dir}" ]] || continue
+      cmd="$(basename "${dir}")"
+      [[ "${cmd}" == .* ]] && continue
+
+      if [[ "${cmd}" == "system" ]]; then
+        for file in "${dir}"/*.sh; do
+          [[ -f "${file}" ]] || continue
+          base="$(basename "${file}" .sh)"
+          case "${base}" in
+            stack-lib|pgadmin-sync-sso-users|validate-compose)
+              continue
+              ;;
+          esac
+          echo "llm ${base}"
+        done
+        continue
+      fi
+
+      if [[ -f "${dir}/show.sh" ]]; then
+        echo "llm ${cmd}"
+      fi
+
+      for file in "${dir}"/*.sh; do
+        [[ -f "${file}" ]] || continue
+        base="$(basename "${file}" .sh)"
+        [[ "${base}" == "show" ]] && continue
+        echo "llm ${cmd} ${base}"
+      done
+    done
+
+    # Keep jobs reachable via CLI namespace.
+    if [[ -x "${jobs_dir}/backup" ]]; then
+      echo "llm backup"
+    fi
+    if [[ -x "${jobs_dir}/restore-check" ]]; then
+      echo "llm restore-check <backup-dir>"
+    fi
+  } | sort -u
+}
+
+usage() {
+  print_banner
+  echo
+  echo "CLI Commands:"
+  discover_commands | sed 's/^/  /'
+  cat <<'USAGE'
+
+Help:
+  llm
+  llm help
+  llm -help
+  llm --help
+USAGE
+}
+
+run_script() {
+  local target="$1"
+  shift
+  if [[ ! -x "${target}" ]]; then
+    echo "Error: command target is missing or not executable: ${target}" >&2
+    exit 1
+  fi
+  "${target}" "$@"
+}
+
+resolve_target() {
+  local cmd="$1"
+  local sub="${2:-}"
+
+  # Preferred: llm <command> <subcommand>
+  if [[ -n "${sub}" && -x "${scripts_dir}/${cmd}/${sub}.sh" ]]; then
+    echo "${scripts_dir}/${cmd}/${sub}.sh|2"
+    return 0
+  fi
+
+  # Single-level commands: llm <command> -> <command>/show.sh
+  if [[ -x "${scripts_dir}/${cmd}/show.sh" ]]; then
+    echo "${scripts_dir}/${cmd}/show.sh|1"
+    return 0
+  fi
+
+  # Top-level system commands: llm doctor -> system/doctor.sh
+  if [[ -x "${scripts_dir}/system/${cmd}.sh" ]]; then
+    echo "${scripts_dir}/system/${cmd}.sh|1"
+    return 0
+  fi
+
+  # Top-level job helpers.
+  if [[ -x "${jobs_dir}/${cmd}" ]]; then
+    echo "${jobs_dir}/${cmd}|1"
+    return 0
+  fi
+
+  return 1
+}
+
+cmd="${1:-}"
+case "${cmd}" in
+  ""|help|--help|-help|-h)
+    usage
+    exit 0
+    ;;
+  selftest)
+    # Backward compatibility alias.
+    set -- self-test "${@:2}"
+    cmd="self-test"
+    ;;
+esac
+
+shift || true
+
+# Preserve legacy behavior for convenience defaults.
+if [[ "${cmd}" == "up" && "$#" -eq 0 ]]; then
+  set -- full
+fi
+if [[ "${cmd}" == "down" ]]; then
+  if [[ "$#" -eq 0 ]]; then
+    set -- all
+  elif [[ "${1:-}" == "--remove" ]]; then
+    shift
+    set -- all "$@"
+  fi
+fi
+
+sub="${1:-}"
+resolved="$(resolve_target "${cmd}" "${sub}" || true)"
+if [[ -z "${resolved}" ]]; then
+  echo "Unknown command: llm ${cmd}${sub:+ ${sub}}" >&2
+  echo >&2
+  echo "Available commands:" >&2
+  discover_commands | sed 's/^/  /' >&2
+  exit 1
+fi
+
+target="${resolved%%|*}"
+consumed="${resolved##*|}"
+if [[ "${consumed}" == "2" ]]; then
+  shift || true
+fi
+
+if [[ "${cmd}" == "up" ]]; then
+  should_manage_host_ollama && start_host_ollama
+fi
+
+run_script "${target}" "$@"
+
+if [[ "${cmd}" == "up" && -x "${scripts_dir}/system/pgadmin-sync-sso-users.sh" ]]; then
+  "${scripts_dir}/system/pgadmin-sync-sso-users.sh" || true
+fi
+
+if [[ "${cmd}" == "down" ]]; then
+  should_manage_host_ollama && stop_host_ollama
+fi

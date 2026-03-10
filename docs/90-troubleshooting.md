@@ -7,13 +7,13 @@ Common issues and fixes for the LLMStack.
 When things are broken, run these first:
 
 ```bash
-./bin/llm-status
-./bin/llm-doctor
-SINCE=2h ./bin/llm-logs reverse-proxy auth open-webui flowise
-./bin/llm-debug-bundle
+./tools/bin/llm status
+./tools/bin/llm doctor
+SINCE=2h ./tools/bin/llm logs reverse-proxy auth open-webui flowise
+./tools/bin/llm debug-bundle
 ```
 
-`llm-debug-bundle` writes a timestamped folder under `debug-bundles/` that you can share for deep troubleshooting.
+`llm debug-bundle` writes a timestamped folder under `debug-bundles/` that you can share for deep troubleshooting.
 
 ## Ports already in use
 
@@ -63,7 +63,7 @@ Fix:
 - Inspect logs for the container.
 
 ```bash
-SINCE=2h ./bin/llm-logs ollama
+SINCE=2h ./tools/bin/llm logs ollama
 ```
 
 ## Qdrant not reachable from Flowise
@@ -84,7 +84,7 @@ docker compose \
 Also check Flowise + reverse-proxy logs together:
 
 ```bash
-SINCE=2h ./bin/llm-logs flowise reverse-proxy
+SINCE=2h ./tools/bin/llm logs flowise reverse-proxy
 ```
 
 ## Ollama model download or disk full
@@ -119,7 +119,7 @@ Symptoms:
 - Works intermittently or fails on Mac.
 
 Fix:
-- Confirm hosts entries are present: `./bin/CreateHostEntries/llm-hosts-update --print`
+- Confirm hosts entries are present: `./tools/bin/CreateHostEntries/llm-hosts-update --print`
 - Confirm DNS flushed on macOS:
   - `sudo dscacheutil -flushcache`
   - `sudo killall -HUP mDNSResponder`
@@ -127,8 +127,8 @@ Fix:
 - Run:
 
 ```bash
-./bin/llm-doctor
-./bin/llm-debug-bundle
+./tools/bin/llm doctor
+./tools/bin/llm debug-bundle
 ```
 
 ## README not rendering

@@ -71,7 +71,7 @@ services:
     profiles:
       - lab
     build:
-      context: ../python-toolbox
+      context: ../services/python-toolbox
       dockerfile: Dockerfile
     image: llmstack/python-toolbox:local
     command: ["sleep", "infinity"]
@@ -86,8 +86,8 @@ services:
       PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
     volumes:
       # Bind mount for scripts and libraries you edit locally.
-      - ../python-toolbox/app:/app
-      - ../bin:/host-bin
+      - ../services/python-toolbox/app:/app
+      - ../tools/bin:/host-bin
       - ../data:/data
     networks:
       - llm-stack
@@ -133,8 +133,8 @@ services:
       PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
     volumes:
       # Share the same code and scripts as the toolbox container.
-      - ../python-toolbox/app:/app
-      - ../bin:/host-bin
+      - ../services/python-toolbox/app:/app
+      - ../tools/bin:/host-bin
       - ../data:/data
     networks:
       - llm-stack

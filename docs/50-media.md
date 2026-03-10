@@ -6,15 +6,15 @@ This document explains how to use the local STT (speech-to-text), TTS (text-to-s
 
 Models and voices are large binary files. They are stored under `data/` and gitignored to keep the repository small and avoid committing artifacts.
 
-For Ollama, pull the project model set with `bin/llm-models-pull`. The model list is sourced from `prompts/system/install-ollama-and-models.md`.
+For Ollama, pull the project model set with `tools/bin/llm models pull`. The model list is sourced from `prompts/system/install-ollama-and-models.md`.
 
 ## Pull Ollama models
 
 ```bash
-./bin/llm-models-pull
+./tools/bin/llm models pull
 ```
 
-Note: STT/TTS model assets are optional and are not bootstrapped by `llm-models-pull`.
+Note: STT/TTS model assets are optional and are not bootstrapped by `llm models pull`.
 If you enable STT/TTS later, initialize those assets as part of STT/TTS setup.
 
 Ollama smoke test:
@@ -38,7 +38,7 @@ Example:
 ```bash
 mkdir -p data/audio/in data/audio/out
 cp /path/to/sample.wav data/audio/in/
-./bin/stt-transcribe sample.wav
+./tools/bin/stt-transcribe sample.wav
 ```
 
 Expected output:
@@ -65,7 +65,7 @@ Example:
 
 ```bash
 mkdir -p data/audio/out
-./bin/tts-speak "hello world"
+./tools/bin/tts-speak "hello world"
 ```
 
 Smoke test:
@@ -92,7 +92,7 @@ Example:
 ```bash
 mkdir -p data/ocr/ingest-dropzone data/ocr/processed/rawtext data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
 cp /path/to/sample.png data/ocr/ingest-dropzone/
-./bin/ocr-run sample.png
+./tools/bin/ocr-run sample.png
 ```
 
 Expected output:

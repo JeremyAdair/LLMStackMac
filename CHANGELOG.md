@@ -3,7 +3,7 @@
 ## Unreleased
 - Refactor stack into layered multi-project Compose entrypoints (`llm-core`, `llm-data`, `llm-observability`, `llm-admin`, `llm-lab`) for cleaner Docker Desktop grouping.
 - Reorganize `compose/` service modules by layer (`core/`, `data/`, `observability/`, `admin/`, `lab/`) and update script/doc references.
-- Add new `scripts/llm-*` operator workflow (`llm-up-*`, `llm-down-*`, `llm-ps-*`, `llm-validate-*`) and wire `bin/llm-up`, `bin/llm-down`, `bin/llm-status`.
+- Add grouped CLI script workflow under `tools/scripts/` (`up/`, `down/`, `status/`, `logs/`, `models/`, `system/`) behind the `llm` router.
 - Preserve existing persistent volume identities across projects via explicit external volume names.
 - Merge duplicate lab `python-api` + `python-toolbox` runtime into one toolbox service with `python-api` network alias compatibility.
 - Fix reverse-proxy DNS startup behavior across layered projects and restore landing static asset routing (buttons/theme/background).

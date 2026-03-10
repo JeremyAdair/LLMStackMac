@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
+desktop_dir="${HOME}/Desktop"
+tooling_dir="${repo_root}/tools/bin/CreateDesktopIcons"
+assets_icons_dir="${repo_root}/assets/icons"
+
+mkdir -p "${tooling_dir}"
+
+# Clean old alias/symlink artifacts from previous setup approach.
+rm -f \
+  "${tooling_dir}/desktop-backup" \
+  "${tooling_dir}/desktop-llm-doctor" \
+  "${tooling_dir}/desktop-llm-down" \
+  "${tooling_dir}/desktop-llm-status" \
+  "${tooling_dir}/desktop-llm-up"
+
+set_custom_icon() {
+  local icon_stem="$1"
+  local src_png="${assets_icons_dir}/${icon_stem}.png"
+  local app_path="$2"
+  local rsrc_tmp
+  rsrc_tmp="$(mktemp /tmp/llm-icon-rsrc.XXXXXX)"
+
+  if [[ ! -f "${src_png}" ]]; then
+    echo "[warn] missing icon source: ${src_png}"
+    rm -f "${rsrc_tmp}"
+    return 0
+  fi
+
+  sips -i "${src_png}" >/dev/null 2>&1 || true
+  DeRez -only icns "${src_png}" > "${rsrc_tmp}" 2>/dev/null || true
+  Rez -append "${rsrc_tmp}" -o "${app_path}/Icon"$'\r' >/dev/null 2>&1 || true
+  SetFile -a C "${app_path}" >/dev/null 2>&1 || true
+  rm -f "${rsrc_tmp}"
+}
+
+build_app() {
+  local app_name="$1"
+  local bin_script="$2"
+  local icon_stem="$3"
+
+  local app_path="${desktop_dir}/${app_name}.app"
+  local script_tmp
+  script_tmp="$(mktemp /tmp/llm-launcher.XXXXXX)"
+
+  cat > "${script_tmp}" <<APPLESCRIPT
+on run
+    tell application "Terminal"
+        activate
+        «event coredosc» "cd ${repo_root} && ./tools/bin/${bin_script}"
+    end tell
+end run
+APPLESCRIPT
+
+  rm -rf "${app_path}"
+  osacompile -o "${app_path}" "${script_tmp}" >/dev/null
+  rm -f "${script_tmp}"
+
+  set_custom_icon "${icon_stem}" "${app_path}"
+}
+
+build_app "LLM-Up" "llm up full" "LLMSTACKMAC-UP"
+build_app "LLM-Down" "llm down all" "LLMSTACKMAC-DOWN"
+build_app "LLM-Status" "llm status" "LLMSTACKMAC-STATUS"
+build_app "LLM-Doctor" "llm doctor" "LLMSTACKMAC-DOCTOR"
+build_app "LLM-Backup" "../jobs/backup" "LLMSTACKMAC-BACKUP"
+
+chmod +x \
+  "${tooling_dir}/llm-desktop-launchers-setup"
+
+# Remove stale old launchers.
+rm -f "${desktop_dir}/LLMUP.command" "${desktop_dir}/LLMDOWN.command"
+
+echo "Desktop apps refreshed (run scripts directly from bin):"
+echo "- ${desktop_dir}/LLM-Up.app -> ./tools/bin/llm up full"
+echo "- ${desktop_dir}/LLM-Down.app -> ./tools/bin/llm down all"
+echo "- ${desktop_dir}/LLM-Status.app -> ./tools/bin/llm status"
+echo "- ${desktop_dir}/LLM-Doctor.app -> ./tools/bin/llm doctor"
+echo "- ${desktop_dir}/LLM-Backup.app -> ./tools/jobs/backup"

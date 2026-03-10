@@ -50,8 +50,8 @@ services:
       - observability
     image: prom/prometheus@sha256:4a61322ac1103a0e3aea2a61ef1718422a48fa046441f299d71e660a3bc71ae9
     restart: unless-stopped
-    ports:
-      - "9090:9090"
+    expose:
+      - "9090"
     volumes:
       # Host-managed Prometheus config.
       - ${PROMETHEUS_CONFIG_MOUNT:-./monitoring/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
@@ -83,8 +83,8 @@ services:
     image: grafana/grafana@sha256:b0ae311af06228bcfd4a620504b653db80f5b91e94dc3dc2a5b7dab202bcde20
     restart: unless-stopped
     # Expose Grafana on host port 3001 to avoid collisions with other UIs.
-    ports:
-      - "3001:3000"
+    expose:
+      - "3000"
     environment:
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost/grafana/}
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
@@ -129,8 +129,8 @@ services:
       - observability
     image: prom/node-exporter:v1.9.1
     restart: unless-stopped
-    ports:
-      - "9100:9100"
+    expose:
+      - "9100"
     command:
       - --path.rootfs=/host
       - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)

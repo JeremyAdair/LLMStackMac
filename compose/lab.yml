@@ -1,7 +1,7 @@
 services:
   python-toolbox:
     build:
-      context: ../python-toolbox
+      context: ../services/python-toolbox
       dockerfile: Dockerfile
     image: llmstack/python-toolbox:local
     command:
@@ -23,8 +23,8 @@ services:
       PDF_INGEST_WATCHER_ENABLED: ${PDF_INGEST_WATCHER_ENABLED:-true}
       PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
     volumes:
-      - ../python-toolbox/app:/app
-      - ../bin:/host-bin
+      - ../services/python-toolbox/app:/app
+      - ../tools/bin:/host-bin
       - ../data:/data
     networks:
       llm-stack:
@@ -84,7 +84,7 @@ services:
     environment:
       OPENHANDS_BASE_PATH: ${OPENHANDS_BASE_PATH:-/openhands}
       SANDBOX_RUNTIME_CONTAINER_IMAGE: ${OPENHANDS_RUNTIME_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik}
-      SANDBOX_VOLUMES: ${OPENHANDS_SANDBOX_VOLUMES:-${OPENHANDS_REPOS_MOUNT:-../repos}:/workspace:rw}
+      SANDBOX_VOLUMES: ${OPENHANDS_SANDBOX_VOLUMES:-${OPENHANDS_REPOS_MOUNT:-../data/openhands-workspace}:/workspace:rw}
       SANDBOX_ADDITIONAL_NETWORKS: ${OPENHANDS_SANDBOX_NETWORKS:-["llm-shared"]}
       OH_PERSISTENCE_DIR: /.openhands
       LLM_MODEL: ${OPENHANDS_LLM_MODEL:-}
@@ -98,7 +98,7 @@ services:
       GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
     volumes:
       - ${OPENHANDS_STATE_MOUNT:-openhands_data}:/.openhands
-      - ${OPENHANDS_REPOS_MOUNT:-../repos}:/workspace
+      - ${OPENHANDS_REPOS_MOUNT:-../data/openhands-workspace}:/workspace
     networks:
       llm-stack:
         aliases:

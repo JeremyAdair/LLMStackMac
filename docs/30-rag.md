@@ -21,7 +21,7 @@ Convert PDFs into markdown text:
 ```bash
 mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,chunk} data/pdfs/failed
 cp ~/Documents/example.pdf data/pdfs/ingest-dropzone/
-./bin/llm-up
+./tools/bin/llm up full
 
 docker compose \
   -f compose/lab/pdf-ingest/docker-compose.yml \
@@ -67,7 +67,7 @@ Duplicate filenames are handled with suffixing (timestamp + short UUID) so exist
 
 ## Flowise PDF auto-ingest
 
-This is optional/legacy for Flowise-native vector upserts and is no longer part of the default `llm-up lab` start list.
+This is optional/legacy for Flowise-native vector upserts and is no longer part of the default `llm up lab` start list.
 
 Flowise can ingest PDFs by watching a host folder directly (no `docker cp`):
 

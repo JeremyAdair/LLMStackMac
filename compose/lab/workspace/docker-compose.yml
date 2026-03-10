@@ -55,7 +55,7 @@ services:
     user: "${WORKSPACE_UID:-1000}:${WORKSPACE_GID:-1000}"
     working_dir: /workspace
     volumes:
-      - ../repos:/workspace
+      - ../data/openhands-workspace:/workspace
     command: ["sleep", "infinity"]
     read_only: true
     networks:

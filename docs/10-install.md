@@ -120,7 +120,7 @@ If you want a friendly hostname, add a DNS entry or edit your LAN device hosts f
 For local macOS Docker Desktop usage with the default `llmstack.lan` domains:
 
 ```bash
-./bin/CreateHostEntries/llm-hosts-update --print
+./tools/bin/CreateHostEntries/llm-hosts-update --print
 sudo nano /etc/hosts
 ```
 
@@ -143,7 +143,7 @@ The recommended startup sequence is core services first, then optional tooling.
 ### Step 1: Start core services
 
 ```bash
-./bin/llm-up
+./tools/bin/llm up full
 ```
 
 Check container status:

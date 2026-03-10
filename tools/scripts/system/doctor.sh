@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+if repo_root="$(git -C "${script_dir}/../../.." rev-parse --show-toplevel 2>/dev/null)"; then
+  :
+else
+  repo_root="$(cd "${script_dir}/../../.." && pwd)"
+fi
+
+layers=(core data observability admin lab)
+projects=(llm-core llm-data llm-observability llm-admin llm-lab)
+
+resolve_env_file() {
+  if [[ -n "${LLMSTACK_ENV_FILE:-}" && -f "${LLMSTACK_ENV_FILE}" ]]; then
+    printf '%s' "${LLMSTACK_ENV_FILE}"
+  elif [[ -f "${repo_root}/.env.mac" ]]; then
+    printf '%s' "${repo_root}/.env.mac"
+  elif [[ -f "${repo_root}/.env" ]]; then
+    printf '%s' "${repo_root}/.env"
+  else
+    printf '%s' "${repo_root}/.env.example"
+  fi
+}
+
+env_file="$(resolve_env_file)"
+failures=0
+
+say_ok()   { echo "OK   $*"; }
+say_warn() { echo "WARN $*"; }
+say_err()  { echo "ERR  $*"; failures=$((failures + 1)); }
+
+check_url() {
+  local label="$1"
+  local url="$2"
+  local insecure="${3:-0}"
+  local code=""
+  if [[ "${insecure}" == "1" ]]; then
+    code="$(curl -k -s -o /dev/null -w "%{http_code}" "${url}" || true)"
+  else
+    code="$(curl -s -o /dev/null -w "%{http_code}" "${url}" || true)"
+  fi
+  if [[ "${code}" =~ ^2|3|401|302$ ]]; then
+    printf "OK   %-14s %-40s %s\n" "${label}" "${url}" "${code:-ERR}"
+  else
+    printf "WARN %-14s %-40s %s\n" "${label}" "${url}" "${code:-ERR}"
+  fi
+}
+
+container_publishes_port() {
+  local container="$1"
+  local port="$2"
+  docker ps --format '{{.Names}} {{.Ports}}' | awk -v c="${container}" -v p="${port}" '
+    $1==c { if ($0 ~ ("0.0.0.0:" p "->") || $0 ~ ("\\[::\\]:" p "->")) found=1 }
+    END { exit(found ? 0 : 1) }
+  '
+}
+
+nginx_has_server_name() {
+  local host="$1"
+  local conf="${repo_root}/config/reverse-proxy/nginx.conf"
+  [[ -f "${conf}" ]] && rg -q "server_name[^;]*\\b${host}\\b" "${conf}"
+}
+
+project_running() {
+  local project="$1"
+  local count
+  count="$(docker ps --filter "label=com.docker.compose.project=${project}" -q | wc -l | tr -d ' ')"
+  [[ "${count}" != "0" ]]
+}
+
+echo "== LLMStack Doctor =="
+echo "repo: ${repo_root}"
+echo "env:  ${env_file}"
+echo
+
+echo "[1/7] Tooling"
+command -v docker >/dev/null 2>&1 || { say_err "docker not found in PATH"; exit 1; }
+command -v curl >/dev/null 2>&1 || { say_err "curl not found in PATH"; exit 1; }
+if docker version >/dev/null 2>&1; then
+  say_ok "docker reachable"
+else
+  say_err "docker engine is not reachable"
+fi
+echo
+
+echo "[2/7] Compose files present"
+for layer in "${layers[@]}"; do
+  file="${repo_root}/compose/${layer}.yml"
+  if [[ -f "${file}" ]]; then
+    say_ok "found compose/${layer}.yml"
+  else
+    say_err "missing compose/${layer}.yml"
+  fi
+done
+echo
+
+echo "[3/7] Compose render validation"
+for layer in "${layers[@]}"; do
+  file="${repo_root}/compose/${layer}.yml"
+  if [[ ! -f "${file}" ]]; then
+    continue
+  fi
+  if docker compose --env-file "${env_file}" -p "llm-${layer}" -f "${file}" config >/dev/null 2>&1; then
+    say_ok "compose/${layer}.yml renders"
+  else
+    say_err "compose/${layer}.yml failed to render"
+  fi
+done
+echo
+
+echo "[4/7] Project container status"
+for project in "${projects[@]}"; do
+  if project_running "${project}"; then
+    say_ok "${project} running"
+    docker ps --filter "label=com.docker.compose.project=${project}" \
+      --format '  - {{.Names}} ({{.Status}})'
+  else
+    say_warn "${project} not running"
+  fi
+done
+echo
+
+echo "[5/7] Host Ollama (bare metal)"
+if command -v ollama >/dev/null 2>&1; then
+  if pgrep -f '[o]llama serve' >/dev/null 2>&1; then
+    say_ok "ollama serve process detected"
+  else
+    say_warn "ollama serve process not detected"
+  fi
+  check_url "ollama-api" "http://127.0.0.1:11434/api/tags" 0
+else
+  say_warn "ollama CLI not found on host"
+fi
+echo
+
+echo "[6/7] Endpoint checks"
+check_url "landing"      "https://llmstack.lan/" 1
+check_url "open-webui"   "https://openwebui.llmstack.lan/" 1
+check_url "flowise"      "https://flowise.llmstack.lan/" 1
+check_url "auth"         "https://llmstack.lan/authelia/" 1
+
+if container_publishes_port "llm-data-qdrant-1" "6333"; then
+  check_url "qdrant" "http://127.0.0.1:6333/collections" 0
+else
+  say_ok "qdrant internal-only (not host-published by design)"
+fi
+
+check_url "prometheus"   "http://127.0.0.1:9090/-/ready" 0
+check_url "grafana"      "http://127.0.0.1:3001/api/health" 0
+check_url "pgadmin"      "https://pgadmin.llmstack.lan/" 1
+if nginx_has_server_name "redisinsight.llmstack.lan"; then
+  check_url "redisinsight" "https://redisinsight.llmstack.lan/" 1
+else
+  say_ok "redisinsight route not exposed (on-demand/internal by design)"
+fi
+echo
+
+echo "[7/7] Summary"
+if [[ "${failures}" -eq 0 ]]; then
+  say_ok "doctor completed with no hard failures"
+else
+  say_err "doctor completed with ${failures} hard failure(s)"
+fi
+echo
+echo "Next steps:"
+echo "- Start core/data: ./tools/bin/llm up core"
+echo "- Start everything: ./tools/bin/llm up full"
+echo "- Status view: ./tools/bin/llm status"
+
+if [[ "${failures}" -gt 0 ]]; then
+  exit 1
+fi

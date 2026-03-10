@@ -3,7 +3,7 @@
 ## Daily use (recommended)
 
 ```bash
-./scripts/llm-up-core.sh
+./tools/scripts/up/core.sh
 ```
 
 Starts:
@@ -14,33 +14,33 @@ Starts:
 ## Core + observability
 
 ```bash
-./scripts/llm-up-core.sh
-./scripts/llm-up-observability.sh
+./tools/scripts/up/core.sh
+./tools/scripts/up/observability.sh
 ```
 
 ## Admin session
 
 ```bash
-./scripts/llm-up-admin.sh
+./tools/scripts/up/admin.sh
 ```
 
 ## Lab session
 
 ```bash
-./scripts/llm-up-lab.sh
+./tools/scripts/up/lab.sh
 ```
 
 ## Full stack
 
 ```bash
-./scripts/llm-up-full.sh
+./tools/scripts/up/full.sh
 ```
 
 ## Stop
 
 ```bash
-./scripts/llm-down-core.sh
-./scripts/llm-down-all.sh
+./tools/scripts/down/core.sh
+./tools/scripts/down/all.sh
 ```
 
 ## Compatibility commands
@@ -48,10 +48,10 @@ Starts:
 `bin` wrappers are kept for muscle memory:
 
 ```bash
-./bin/llm-up          # full
-./bin/llm-up core
-./bin/llm-up admin
-./bin/llm-up lab
-./bin/llm-down        # all
-./bin/llm-status
+./tools/bin/llm up full          # full
+./tools/bin/llm up core
+./tools/bin/llm up admin
+./tools/bin/llm up lab
+./tools/bin/llm down all        # all
+./tools/bin/llm status
 ```

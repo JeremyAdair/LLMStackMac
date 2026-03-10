@@ -64,7 +64,7 @@ curl -X POST http://localhost:8000/plc/poll_once
 
 All scripts live under:
 
-- `python-toolbox/app/scripts/`
+- `services/python-toolbox/app/scripts/`
   - `db_tools/` health checks and DB utilities
   - `rag_ingest/` ingestion helpers
   - `plc_poll/` PLC polling helpers
@@ -72,7 +72,7 @@ All scripts live under:
 
 The API code lives under:
 
-- `python-toolbox/app/api/`
+- `services/python-toolbox/app/api/`
   - `app.py` (FastAPI app + router registration)
   - `routes_*.py` (endpoint definitions)
 
@@ -83,14 +83,14 @@ web UI can show both the toolbox scripts and the repo scripts.
 
 To add a new script to the API:
 
-1) Put your script or helper in `python-toolbox/app/scripts/&lt;your_area&gt;/`.
-2) Add an endpoint in `python-toolbox/app/api/routes_&lt;your_area&gt;.py`.
-3) Register the router in `python-toolbox/app/api/app.py`.
+1) Put your script or helper in `services/python-toolbox/app/scripts/&lt;your_area&gt;/`.
+2) Add an endpoint in `services/python-toolbox/app/api/routes_&lt;your_area&gt;.py`.
+3) Register the router in `services/python-toolbox/app/api/app.py`.
 
 Example pattern:
 
 ```python
-# python-toolbox/app/api/routes_jobs.py
+# services/python-toolbox/app/api/routes_jobs.py
 from fastapi import APIRouter
 from scripts.my_jobs.run_job import run_job
 
@@ -102,7 +102,7 @@ def run() -&gt; dict:
 ```
 
 ```python
-# python-toolbox/app/api/app.py
+# services/python-toolbox/app/api/app.py
 from api.routes_jobs import router as jobs_router
 app.include_router(jobs_router)
 ```
@@ -120,7 +120,7 @@ running Python scripts:
 
 Notes:
 
-- Execution is only enabled for scripts under `python-toolbox/app/scripts/`.
+- Execution is only enabled for scripts under `services/python-toolbox/app/scripts/`.
 - The `/host-bin` mount is for viewing and editing only.
 - Use JSON array syntax in the UI to pass args (example: `[&quot;--flag&quot;, &quot;value&quot;]`).
 
@@ -168,12 +168,12 @@ The repo-level compose file already includes the services. The key pieces are:
 ```yaml
 python-toolbox:
   build:
-    context: ../python-toolbox
+    context: ../services/python-toolbox
     dockerfile: Dockerfile
   command: [&quot;sleep&quot;, &quot;infinity&quot;]
   volumes:
-    - ../python-toolbox/app:/app
-    - ../bin:/host-bin
+    - ../services/python-toolbox/app:/app
+    - ../tools/bin:/host-bin
 
 python-api:
   image: llmstack/python-toolbox:local
@@ -181,8 +181,8 @@ python-api:
   ports:
     - &quot;8000:8000&quot;
   volumes:
-    - ../python-toolbox/app:/app
-    - ../bin:/host-bin
+    - ../services/python-toolbox/app:/app
+    - ../tools/bin:/host-bin
 ```
 
 ## PLC polling best practices

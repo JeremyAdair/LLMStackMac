@@ -6,7 +6,7 @@ surprises.
 
 ## Goals and guardrails
 
-- Only `./repos` is writable. The container filesystem is read-only.
+- Only `./data/openhands-workspace` is writable. The container filesystem is read-only.
 - The container runs as a non-root user, using `WORKSPACE_UID` and `WORKSPACE_GID`.
 - OpenHands should only operate on paths under `/workspace`.
 - Review changes with `git status` and `git diff` before committing.
@@ -22,7 +22,7 @@ docker compose \
 
 ## Use it safely
 
-1) Clone a repo into `./repos` on the host.
+1) Clone a repo into `./data/openhands-workspace` on the host.
 2) Connect OpenHands to `/workspace/<repo>`.
 3) Run git commands inside the container:
 
@@ -47,5 +47,5 @@ docker compose \
   and the Forgejo volume.
 - `docker compose down` keeps named volumes, so Forgejo data remains.
 - `docker compose down -v` removes named volumes, including `forgejo_data`.
-- The workspace directory is a bind mount. Delete repos under `./repos` to
+- The workspace directory is a bind mount. Delete workspace folders under `./data/openhands-workspace` to
   reset it without affecting the git server.

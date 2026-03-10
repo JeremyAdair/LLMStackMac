@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+resolve_pgadmin_container() {
+  local found=""
+
+  found="$(docker ps --filter 'label=com.docker.compose.project=llm-admin' --filter 'label=com.docker.compose.service=pgadmin' --format '{{.Names}}' | head -n1)"
+  if [[ -n "${found}" ]]; then
+    printf '%s' "${found}"
+    return 0
+  fi
+
+  if docker ps --format '{{.Names}}' | grep -qx 'llm-stack-pgadmin-1'; then
+    printf '%s' 'llm-stack-pgadmin-1'
+    return 0
+  fi
+
+  return 1
+}
+
+container="${PGADMIN_CONTAINER:-$(resolve_pgadmin_container || true)}"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker not found; skipping pgAdmin SSO sync" >&2
+  exit 0
+fi
+
+if [[ -z "${container}" ]] || ! docker ps --format '{{.Names}}' | grep -qx "${container}"; then
+  echo "pgAdmin container ${container} not running; skipping SSO sync" >&2
+  exit 0
+fi
+
+docker exec "${container}" sh -lc '
+  umask 077
+  printf "%s:%s:%s:%s:%s\n" \
+    "*" \
+    "${PGADMIN_TARGET_PGPORT:-5432}" \
+    "*" \
+    "${PGADMIN_TARGET_PGUSER:-llmstack}" \
+    "${PGADMIN_TARGET_PGPASSWORD:?set POSTGRES_PASSWORD in your env file}" \
+    > /var/lib/pgadmin/.pgpass
+  chmod 600 /var/lib/pgadmin/.pgpass
+'
+
+docker exec "${container}" python3 -c "
+import sqlite3
+import json
+import os
+
+db = '/var/lib/pgadmin/pgadmin4.db'
+con = sqlite3.connect(db)
+cur = con.cursor()
+
+pg_host = os.environ.get('PGADMIN_TARGET_PGHOST', 'postgres')
+pg_port = int(os.environ.get('PGADMIN_TARGET_PGPORT', '5432'))
+pg_user = os.environ.get('PGADMIN_TARGET_PGUSER', 'llmstack')
+pg_db = os.environ.get('PGADMIN_TARGET_PGDB', 'llmstack')
+conn_params = json.dumps({})
+server_name = 'LLMStack Postgres (postgres-1)'
+
+cur.execute(\"update server set connection_params=? where connection_params is null\", (conn_params,))
+fixed_params = cur.rowcount
+
+cur.execute(
+  \"\"\"insert into roles_users(user_id, role_id)
+     select u.id, 2
+       from user u
+      where u.auth_source='webserver'
+        and not exists (
+          select 1 from roles_users ru where ru.user_id=u.id and ru.role_id=2
+        )\"\"\"
+)
+added_roles = cur.rowcount
+
+cur.execute(
+  \"\"\"insert into servergroup(user_id, name)
+     select u.id, 'Servers'
+       from user u
+      where u.auth_source='webserver'
+        and not exists (
+          select 1 from servergroup sg where sg.user_id=u.id and sg.name='Servers'
+        )\"\"\"
+)
+added_groups = cur.rowcount
+
+cur.execute(
+  \"\"\"insert into server(
+       user_id, servergroup_id, name, host, port, maintenance_db, username,
+        comment, save_password, connection_params, db_res_type
+     )
+     select u.id, sg.id, ?, ?, ?, ?, ?, 'Managed by llmstack sync.', 1, ?, 'databases'
+       from user u
+       join servergroup sg on sg.user_id=u.id and sg.name='Servers'
+      where u.auth_source='webserver'
+        and not exists (
+          select 1 from server s
+           where s.user_id=u.id and s.name=? and s.host=? and s.port=? and s.username=? and s.maintenance_db=?
+        )\"\"\",
+  (server_name, pg_host, pg_port, pg_db, pg_user, conn_params, server_name, pg_host, pg_port, pg_user, pg_db)
+)
+added_servers = cur.rowcount
+
+cur.execute(
+  \"\"\"update server
+        set connection_params=?, save_password=1, password=NULL
+      where user_id in (select id from user where auth_source='webserver')
+        and host=? and port=? and username=? and maintenance_db=?\"\"\",
+  (conn_params, pg_host, pg_port, pg_user, pg_db)
+)
+updated_servers = cur.rowcount
+
+cur.execute(\"drop trigger if exists trg_webserver_user_bootstrap\")
+cur.execute(\"\"\"
+create trigger trg_webserver_user_bootstrap
+after insert on user
+when NEW.auth_source = 'webserver'
+begin
+  insert into roles_users(user_id, role_id)
+  select NEW.id, 2
+  where not exists (
+    select 1 from roles_users where user_id = NEW.id and role_id = 2
+  );
+  insert into servergroup(user_id, name)
+  select NEW.id, 'Servers'
+  where not exists (
+    select 1 from servergroup where user_id = NEW.id and name = 'Servers'
+  );
+  insert into server(
+    user_id, servergroup_id, name, host, port, maintenance_db, username,
+    comment, save_password, connection_params, db_res_type
+  )
+  select NEW.id,
+         (select id from servergroup where user_id = NEW.id and name = 'Servers' limit 1),
+         'LLMStack Postgres (postgres-1)',
+         'postgres',
+         5432,
+         'llmstack',
+         'llmstack',
+         'Managed by llmstack trigger.',
+         1,
+         '{}',
+         'databases'
+  where not exists (
+    select 1 from server where user_id = NEW.id and name = 'LLMStack Postgres (postgres-1)'
+  );
+  update server
+     set save_password = 1,
+         password = NULL,
+         connection_params = '{}'
+   where user_id = NEW.id
+     and host = 'postgres'
+     and port = 5432
+     and username = 'llmstack'
+     and maintenance_db = 'llmstack';
+end;
+\"\"\")
+
+con.commit()
+print(
+  f'pgadmin sync: added_roles={added_roles} added_groups={added_groups} '
+  f'added_servers={added_servers} updated_servers={updated_servers} '
+  f'fixed_connection_params={fixed_params}'
+)
+"

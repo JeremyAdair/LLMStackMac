@@ -5,11 +5,11 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install only the minimal dependencies needed for ingestion.
-COPY scripts/rag_pipeline/requirements.txt /app/requirements.txt
+COPY tools/scripts/rag_pipeline/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy the ingestion script into the image.
-COPY scripts/rag_pipeline/ingest.py /app/ingest.py
+COPY tools/scripts/rag_pipeline/ingest.py /app/ingest.py
 
 # Run the ingestion job when the container starts.
 ENTRYPOINT ["python", "/app/ingest.py"]

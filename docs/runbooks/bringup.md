@@ -103,7 +103,7 @@ Replace the password hash for the `admin` user in `config/auth/users_database.ym
 This brings up all services, including the reverse proxy, UIs, databases, and optional tooling.
 
 ```bash
-./bin/llm-up
+./tools/bin/llm up full
 ```
 
 Optional: start only the core services (Ollama, Open WebUI, Qdrant, reverse proxy):
@@ -140,7 +140,7 @@ Smoke test:
 This pulls the standard Ollama model set defined in `prompts/system/install-ollama-and-models.md`.
 
 ```bash
-./bin/llm-models-pull
+./tools/bin/llm models pull
 ```
 
 Smoke test:
@@ -179,7 +179,7 @@ docker compose \
 Place an audio file in `data/audio/in`, then run:
 
 ```bash
-./bin/stt-transcribe sample.wav
+./tools/bin/stt-transcribe sample.wav
 ```
 
 Smoke test:
@@ -191,7 +191,7 @@ test -f data/audio/out/sample.txt
 ## Step 14: Run text-to-speech (optional)
 
 ```bash
-./bin/tts-speak "hello world"
+./tools/bin/tts-speak "hello world"
 ```
 
 Smoke test:
@@ -205,7 +205,7 @@ test -f data/audio/out/tts_output.wav
 Place an image in `data/ocr/ingest-dropzone`, then run:
 
 ```bash
-./bin/ocr-run sample.png
+./tools/bin/ocr-run sample.png
 ```
 
 Smoke test:
@@ -248,7 +248,7 @@ docker compose \
 Use this when you want to shut everything down.
 
 ```bash
-./bin/llm-down
+./tools/bin/llm down all
 ```
 
 ## Ports

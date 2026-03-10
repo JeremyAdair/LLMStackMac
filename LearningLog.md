@@ -179,14 +179,14 @@ Git acts like save points for experiments.
 
 ### 13. The value of automation scripts
 
-Your `bin/` folder effectively became a stack CLI with commands like:
+Your CLI layer effectively became a stack control surface with commands like:
 
-- `llm-up`
-- `llm-down`
-- `llm-status`
-- `llm-logs`
-- `llm-doctor`
-- `llm-backup`
+- `llm up core`
+- `llm down all`
+- `llm status`
+- `llm logs reverse-proxy auth`
+- `llm doctor`
+- `llm backup`
 
 This is exactly how serious platforms ship tooling.
 

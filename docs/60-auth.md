@@ -58,7 +58,7 @@ Replace the password hash in `config/auth/users_database.yml` for the `admin` us
 3) Start the stack.
 
 ```bash
-./bin/llm-up
+./tools/bin/llm up full
 ```
 
 ## Add or remove users

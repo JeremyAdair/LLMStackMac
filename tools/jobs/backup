@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "${script_dir}/.." && pwd)"
+backup_root_default="${repo_root}/data/backups"
+keep_days=0
+backup_root="${backup_root_default}"
+
+usage() {
+  cat <<USAGE
+Usage: ./tools/jobs/backup [--output-dir DIR] [--keep-days N]
+
+Creates a timestamped backup set containing:
+- metadata + checksums
+- compose/config/docs snapshot tarball
+- repo data snapshot tarball (excluding data/backups)
+- postgres dump (if llm-data-postgres-1 is running)
+- docker volume archives for volumes named llm-stack_*
+
+Options:
+  --output-dir DIR   Backup root directory (default: data/backups)
+  --keep-days N      Remove backup-* directories older than N days (0 disables prune)
+  -h, --help         Show this help
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --output-dir)
+      backup_root="$2"
+      shift 2
+      ;;
+    --keep-days)
+      keep_days="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if ! [[ "${keep_days}" =~ ^[0-9]+$ ]]; then
+  echo "--keep-days must be a non-negative integer" >&2
+  exit 1
+fi
+
+command -v docker >/dev/null 2>&1 || { echo "docker not found in PATH" >&2; exit 1; }
+command -v tar >/dev/null 2>&1 || { echo "tar not found in PATH" >&2; exit 1; }
+command -v gzip >/dev/null 2>&1 || { echo "gzip not found in PATH" >&2; exit 1; }
+command -v shasum >/dev/null 2>&1 || { echo "shasum not found in PATH" >&2; exit 1; }
+
+if ! docker version >/dev/null 2>&1; then
+  echo "docker engine not reachable" >&2
+  exit 1
+fi
+
+ts="$(date +%Y%m%d-%H%M%S)"
+hostname_short="$(hostname -s 2>/dev/null || hostname)"
+backup_dir="${backup_root}/backup-${ts}"
+meta_dir="${backup_dir}/meta"
+files_dir="${backup_dir}/files"
+db_dir="${backup_dir}/db"
+vols_dir="${backup_dir}/volumes"
+
+mkdir -p "${meta_dir}" "${files_dir}" "${db_dir}" "${vols_dir}"
+
+echo "[1/8] Writing metadata"
+{
+  echo "timestamp=${ts}"
+  echo "host=${hostname_short}"
+  echo "repo_root=${repo_root}"
+  echo "backup_dir=${backup_dir}"
+  echo "docker_context=$(docker context show 2>/dev/null || echo unknown)"
+  echo "git_commit=$(git -C "${repo_root}" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+  echo "git_branch=$(git -C "${repo_root}" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+} > "${meta_dir}/manifest.env"
+
+docker ps --format '{{.Names}}|{{.Status}}|{{.Image}}' > "${meta_dir}/containers-running.txt" || true
+docker volume ls --format '{{.Name}}' > "${meta_dir}/docker-volumes.txt" || true
+
+echo "[2/8] Archiving compose/config/docs snapshot"
+tar -C "${repo_root}" -czf "${files_dir}/repo-config.tar.gz" \
+  compose config docs README.md CHANGELOG.md 2>/dev/null || true
+
+if [[ -f "${repo_root}/.env.mac" ]]; then
+  cp "${repo_root}/.env.mac" "${files_dir}/.env.mac"
+  chmod 600 "${files_dir}/.env.mac" || true
+fi
+if [[ -f "${repo_root}/.env" ]]; then
+  cp "${repo_root}/.env" "${files_dir}/.env"
+  chmod 600 "${files_dir}/.env" || true
+fi
+
+if [[ -d "${repo_root}/data" ]]; then
+  echo "[3/8] Archiving repo data snapshot (excluding data/backups)"
+  tar -C "${repo_root}" --exclude='data/backups' -czf "${files_dir}/repo-data.tar.gz" data
+else
+  echo "[3/8] No repo data directory found, skipping data snapshot"
+fi
+
+echo "[4/8] Postgres logical backup"
+pg_container="$(docker ps --format '{{.Names}}' | awk '$0=="llm-data-postgres-1"{print;exit}')"
+if [[ -n "${pg_container}" ]]; then
+  pg_user="$(docker exec "${pg_container}" printenv POSTGRES_USER 2>/dev/null || echo postgres)"
+  if docker exec "${pg_container}" pg_dumpall -U "${pg_user}" | gzip > "${db_dir}/postgres-dumpall.sql.gz"; then
+    echo "postgres dump saved: ${db_dir}/postgres-dumpall.sql.gz"
+  else
+    echo "WARN: postgres dump failed" | tee -a "${meta_dir}/warnings.log"
+    rm -f "${db_dir}/postgres-dumpall.sql.gz"
+  fi
+else
+  echo "WARN: llm-data-postgres-1 not running, skipped postgres dump" | tee -a "${meta_dir}/warnings.log"
+fi
+
+echo "[5/8] Backing up Docker volumes (llm-stack_*)"
+volume_count=0
+while IFS= read -r vol; do
+  [[ -z "${vol}" ]] && continue
+  volume_count=$((volume_count + 1))
+  echo "- ${vol}"
+  if ! docker run --rm \
+      -v "${vol}:/from:ro" \
+      -v "${vols_dir}:/to" \
+      alpine:3.20 \
+      sh -lc 'cd /from && tar -czf "/to/'"${vol}"'.tar.gz" .'; then
+    echo "WARN: volume backup failed for ${vol}" | tee -a "${meta_dir}/warnings.log"
+  fi
+done < <(docker volume ls --format '{{.Name}}' | awk '/^llm-stack_/{print}')
+
+if [[ "${volume_count}" -eq 0 ]]; then
+  echo "WARN: no llm-stack_* volumes found" | tee -a "${meta_dir}/warnings.log"
+fi
+
+echo "[6/8] Recording Ollama model inventory (metadata only)"
+if command -v ollama >/dev/null 2>&1; then
+  ollama list > "${meta_dir}/ollama-models.txt" 2>/dev/null || true
+fi
+
+echo "[7/8] Generating checksums"
+(
+  cd "${backup_dir}"
+  find . -type f ! -name 'checksums.sha256' -print0 | sort -z | xargs -0 shasum -a 256 > checksums.sha256
+)
+
+echo "[8/8] Finalizing"
+if [[ "${keep_days}" -gt 0 ]]; then
+  find "${backup_root}" -mindepth 1 -maxdepth 1 -type d -name 'backup-*' -mtime +"${keep_days}" -exec rm -rf {} +
+fi
+
+cat <<DONE
+
+Backup complete.
+Location: ${backup_dir}
+
+Restore validation:
+  ./tools/jobs/restore-check "${backup_dir}"
+
+DONE
