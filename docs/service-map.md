@@ -19,11 +19,11 @@
 | pgadmin | admin | Optional | postgres reachable | `pgadmin_data` | Postgres admin UI |
 | redisinsight | admin | Optional | redis reachable | `redisinsight_data` | Redis admin UI |
 | forgejo | admin | Optional | none | `forgejo_data` | Local Git service |
-| python-toolbox | lab | Optional | none | bind mounts | Unified toolbox + FastAPI service (also reachable as `python-api` alias) |
+| python-toolbox | lab | Optional | qdrant, Ollama endpoint | bind mounts (`python-toolbox`, `data`) | Unified toolbox + FastAPI service + PDF upload API + autoscan ingest worker |
 | node-red | lab | Optional | none | `nodered_data` | Automation tooling |
 | openclaw | lab | Optional | none | `openclaw_data` | Experimental agent gateway |
 | openhands | lab | Optional | none | `openhands_data`, repos bind | Agent coding workspace |
-| pdf-auto-ingest | lab | Optional | flowise reachable | `data/pdfs` bind | PDF watcher/upsert job |
+| pdf-auto-ingest | lab | Optional | flowise reachable | `data/pdfs` bind | Optional legacy Flowise watcher (not started by default in `llm-up lab`) |
 | rag-pipeline | lab | Optional | qdrant, Ollama endpoint | `data/pdfs` bind | Batch indexer |
 | pdf-ingest | lab | Optional | none | `data/pdfs` bind | PDF conversion job |
 | ocr | lab | Optional | none | `data/ocr` bind | OCR utility |

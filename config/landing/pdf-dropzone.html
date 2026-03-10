@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDF Dropzone</title>
+    <link rel="stylesheet" href="styles.css?v=20260310-1" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>PDF Dropzone</h1>
+        <p>Upload PDFs to <code>data/pdfs/ingest-dropzone/</code></p>
+      </header>
+
+      <section class="layer">
+        <h2>Upload</h2>
+        <div id="dropzone" class="dropzone" tabindex="0">
+          Drag and drop PDF files here
+        </div>
+        <div class="actions">
+          <input id="fileInput" type="file" accept=".pdf,application/pdf" multiple />
+          <button id="uploadBtn" class="button" type="button">Upload</button>
+          <a class="button" href="/">Back</a>
+        </div>
+      </section>
+
+      <section class="layer">
+        <h2>Status</h2>
+        <pre id="statusBox" class="status-box">Loading status...</pre>
+      </section>
+
+      <section class="layer">
+        <h2>Last Upload</h2>
+        <pre id="resultBox" class="status-box">No uploads yet.</pre>
+      </section>
+    </main>
+
+    <script>
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const resultBox = document.getElementById("resultBox");
+      const statusBox = document.getElementById("statusBox");
+      let queuedFiles = [];
+
+      function renderQueue() {
+        if (!queuedFiles.length) {
+          dropzone.textContent = "Drag and drop PDF files here";
+          return;
+        }
+        dropzone.textContent = `Queued: ${queuedFiles.map(f => f.name).join(", ")}`;
+      }
+
+      function addFiles(fileList) {
+        const pdfs = Array.from(fileList).filter((f) => f.name.toLowerCase().endsWith(".pdf"));
+        queuedFiles = [...queuedFiles, ...pdfs];
+        renderQueue();
+      }
+
+      async function refreshStatus() {
+        try {
+          const res = await fetch("/pdf-api/pdf/status", { credentials: "include" });
+          const json = await res.json();
+          statusBox.textContent = JSON.stringify(json, null, 2);
+        } catch (err) {
+          statusBox.textContent = `Status error: ${err}`;
+        }
+      }
+
+      async function uploadQueued() {
+        if (!queuedFiles.length) {
+          resultBox.textContent = "No PDF files selected.";
+          return;
+        }
+        const form = new FormData();
+        queuedFiles.forEach((file) => form.append("files", file, file.name));
+
+        try {
+          uploadBtn.disabled = true;
+          const res = await fetch("/pdf-api/pdf/upload", {
+            method: "POST",
+            body: form,
+            credentials: "include"
+          });
+          const json = await res.json();
+          resultBox.textContent = JSON.stringify(json, null, 2);
+          queuedFiles = [];
+          fileInput.value = "";
+          renderQueue();
+          await refreshStatus();
+        } catch (err) {
+          resultBox.textContent = `Upload error: ${err}`;
+        } finally {
+          uploadBtn.disabled = false;
+        }
+      }
+
+      dropzone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropzone.classList.add("dragover");
+      });
+      dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+      dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("dragover");
+        addFiles(event.dataTransfer.files);
+      });
+
+      fileInput.addEventListener("change", (event) => addFiles(event.target.files));
+      uploadBtn.addEventListener("click", uploadQueued);
+      refreshStatus();
+      setInterval(refreshStatus, 5000);
+    </script>
+  </body>
+</html>

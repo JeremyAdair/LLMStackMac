@@ -109,7 +109,7 @@ Fix:
 - Ensure the PDF directories exist and are writable.
 
 ```bash
-mkdir -p data/pdfs data/pdfs/processed data/pdfs/failed
+mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,chunk} data/pdfs/failed
 chmod -R u+rwX data/pdfs
 ```
 

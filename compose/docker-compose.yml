@@ -75,12 +75,23 @@ services:
       dockerfile: Dockerfile
     image: llmstack/python-toolbox:local
     command: ["sleep", "infinity"]
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      RAG_COLLECTION: ${RAG_COLLECTION:-documents}
+      RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-400}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
+      PDF_INGEST_WATCHER_ENABLED: ${PDF_INGEST_WATCHER_ENABLED:-true}
+      PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
     volumes:
       # Bind mount for scripts and libraries you edit locally.
       - ../python-toolbox/app:/app
       - ../bin:/host-bin
+      - ../data:/data
     networks:
       - llm-stack
+    restart: unless-stopped
 
 
   ############################################
@@ -111,12 +122,23 @@ services:
     expose:
       # Internal API endpoint for stack services (Node-RED/Flowise).
       - "8000"
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      RAG_COLLECTION: ${RAG_COLLECTION:-documents}
+      RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-400}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
+      PDF_INGEST_WATCHER_ENABLED: ${PDF_INGEST_WATCHER_ENABLED:-true}
+      PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
     volumes:
       # Share the same code and scripts as the toolbox container.
       - ../python-toolbox/app:/app
       - ../bin:/host-bin
+      - ../data:/data
     networks:
       - llm-stack
+    restart: unless-stopped
 
 
 ############################################

@@ -82,7 +82,7 @@ Inputs:
 - `data/ocr/ingest-dropzone/` (place `.png`, `.jpg`, or `.pdf` images here)
 
 Outputs:
-- `data/ocr/processed/text/` (OCR text output)
+- `data/ocr/processed/rawtext/` (OCR text output)
 - `data/ocr/processed/json/` (OCR metadata per file)
 - `data/ocr/processed/chunk/` (line-chunked OCR text files)
 - `data/ocr/failed/` (inputs copied here if OCR fails)
@@ -90,20 +90,20 @@ Outputs:
 Example:
 
 ```bash
-mkdir -p data/ocr/ingest-dropzone data/ocr/processed/text data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
+mkdir -p data/ocr/ingest-dropzone data/ocr/processed/rawtext data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
 cp /path/to/sample.png data/ocr/ingest-dropzone/
 ./bin/ocr-run sample.png
 ```
 
 Expected output:
 
-- `data/ocr/processed/text/sample.txt`
+- `data/ocr/processed/rawtext/sample.txt`
 - `data/ocr/processed/json/sample.json`
 
 Smoke test:
 
 ```bash
-test -f data/ocr/processed/text/sample.txt
+test -f data/ocr/processed/rawtext/sample.txt
 ```
 
 ## Python toolbox jobs

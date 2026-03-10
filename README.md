@@ -325,7 +325,10 @@ See `docs/workspace-container.md` for guardrails and reset guidance.
 PDF ingestion uses a single canonical host path:
 
 - `data/pdfs/` for incoming PDFs
-- `data/pdfs/processed/` for converted markdown and successfully ingested files
+- `data/pdfs/processed/original/` for source files moved after successful processing
+- `data/pdfs/processed/rawtext/` for extracted markdown used by RAG
+- `data/pdfs/processed/json/` for per-file metadata
+- `data/pdfs/processed/chunk/` for chunk artifacts
 - `data/pdfs/failed/` for failed Flowise upserts
 
 This keeps PDF ingest and indexing state consolidated under `data/`.
@@ -333,7 +336,7 @@ This keeps PDF ingest and indexing state consolidated under `data/`.
 Create the PDF folders when needed:
 
 ```bash
-mkdir -p data/pdfs data/pdfs/processed data/pdfs/failed
+mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,chunk} data/pdfs/failed
 ```
 
 ## Common tasks
@@ -410,6 +413,7 @@ See the docs for details:
 
 - `docs/10-install.md`
 - `docs/30-rag.md`
+- `docs/pdf-ingestion-flow.md`
 - `docs/40-agents.md`
 - `docs/50-media.md`
 - `docs/60-auth.md`
@@ -509,7 +513,7 @@ into data/pdfs/
       |
       | write markdown
       v
-data/pdfs/processed/
+data/pdfs/processed/rawtext/
       |
       | chunk + embed
       v

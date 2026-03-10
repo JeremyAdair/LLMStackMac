@@ -16,7 +16,6 @@ if [[ "$#" -eq 0 ]]; then
     node-red \
     openclaw \
     openhands \
-    pdf-auto-ingest \
     rag-pipeline \
     pdf-ingest \
     ocr

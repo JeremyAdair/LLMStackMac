@@ -145,6 +145,36 @@ body.troll {
 
 .actions {
   margin-top: 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dropzone {
+  min-height: 140px;
+  border: 2px dashed var(--neon-green);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.88);
+  color: var(--neon-green);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.dropzone.dragover {
+  box-shadow: 0 0 14px rgba(57, 255, 20, 0.65);
+}
+
+.status-box {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(57, 255, 20, 0.55);
+  border-radius: 10px;
+  padding: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 @keyframes troll-shake {

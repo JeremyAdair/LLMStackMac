@@ -83,9 +83,9 @@ Set strong values for the authentication secrets:
 These folders are where you drop PDFs and where media outputs are written. They are gitignored.
 
 ```bash
-mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed data/pdfs/failed
+mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,chunk} data/pdfs/failed
 mkdir -p data/audio/in data/audio/out
-mkdir -p data/ocr/ingest-dropzone data/ocr/processed/text data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
+mkdir -p data/ocr/ingest-dropzone data/ocr/processed/rawtext data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
 ```
 
 ## Step 7: Create the first auth user
@@ -161,7 +161,7 @@ docker compose \
 
 ## Step 12: Run the RAG pipeline (optional)
 
-This reads markdown from `data/pdfs/processed`, embeds it through Ollama, and writes vectors to Qdrant.
+This reads markdown from `data/pdfs/processed/rawtext`, embeds it through Ollama, and writes vectors to Qdrant.
 
 ```bash
 docker compose \
@@ -211,7 +211,7 @@ Place an image in `data/ocr/ingest-dropzone`, then run:
 Smoke test:
 
 ```bash
-test -f data/ocr/processed/text/sample.txt
+test -f data/ocr/processed/rawtext/sample.txt
 ```
 
 ## Step 16: Start Node-RED (optional)

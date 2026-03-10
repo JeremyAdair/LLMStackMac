@@ -13,14 +13,25 @@ services:
       - "8000"
     expose:
       - "8000"
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      RAG_COLLECTION: ${RAG_COLLECTION:-documents}
+      RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-400}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
+      PDF_INGEST_WATCHER_ENABLED: ${PDF_INGEST_WATCHER_ENABLED:-true}
+      PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
     volumes:
       - ../python-toolbox/app:/app
       - ../bin:/host-bin
+      - ../data:/data
     networks:
       llm-stack:
         aliases:
           - python-toolbox
           - python-api
+    restart: unless-stopped
 
   node-red:
     image: nodered/node-red@sha256:cf2d5657f12faebffaf1cea10203f277a2445434dec6a997212080ec0080f6c5
@@ -103,7 +114,9 @@ services:
       FLOWISE_INGEST_CHATFLOW_ID: ${FLOWISE_INGEST_CHATFLOW_ID:-f2f4fce2-9c7d-4ca6-8fd7-6c4b0c97f111}
       FLOWISE_INGEST_STOP_NODE_ID: ${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}
       FLOWISE_API_KEY: ${FLOWISE_API_KEY:-}
-      PDF_WATCH_DIR: /data/pdfs
+      PDF_WATCH_DIR: /data/pdfs/ingest-dropzone
+      PDF_PROCESSED_DIR: /data/pdfs/processed/original
+      PDF_FAILED_DIR: /data/pdfs/failed
     volumes:
       - ${PDF_DROP_MOUNT:-../data/pdfs}:/data/pdfs
       - ./core/flowise/scripts:/scripts:ro
@@ -124,7 +137,7 @@ services:
       RAG_COLLECTION: ${RAG_COLLECTION:-documents}
       RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
       RAG_VECTOR_SIZE: ${RAG_VECTOR_SIZE:-768}
-      RAG_SOURCE_DIRS: ${RAG_SOURCE_DIRS:-/data/pdfs/processed}
+      RAG_SOURCE_DIRS: ${RAG_SOURCE_DIRS:-/data/pdfs/processed/rawtext}
       RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-400}
       RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
     volumes:

@@ -27,7 +27,7 @@ repo_root=$(git rev-parse --show-toplevel)
 input_name="$1"
 input_path="${repo_root}/data/ocr/ingest-dropzone/${input_name}"
 base_name="${input_name%.*}"
-text_dir="${repo_root}/data/ocr/processed/text"
+text_dir="${repo_root}/data/ocr/processed/rawtext"
 json_dir="${repo_root}/data/ocr/processed/json"
 chunk_dir="${repo_root}/data/ocr/processed/chunk"
 output_base="${text_dir}/${base_name}"
@@ -48,7 +48,7 @@ if [[ ! -f "${env_file}" && -f "${repo_root}/.env" ]]; then
 fi
 
 if docker compose --env-file "${env_file}" -p llm-lab -f "${repo_root}/compose/lab.yml" run --rm ocr \
-  tesseract "/data/ocr/ingest-dropzone/${input_name}" "/data/ocr/processed/text/${base_name}"; then
+  tesseract "/data/ocr/ingest-dropzone/${input_name}" "/data/ocr/processed/rawtext/${base_name}"; then
   :
 else
   cp -f "${input_path}" "${failed_dir}/${input_name}"
@@ -58,7 +58,7 @@ fi
 
 printf '{\n  "input_file": "%s",\n  "text_output": "%s",\n  "chunk_glob": "%s/%s-*.txt",\n  "status": "processed"\n}\n' \
   "${input_name}" \
-  "data/ocr/processed/text/${base_name}.txt" \
+  "data/ocr/processed/rawtext/${base_name}.txt" \
   "data/ocr/processed/chunk" \
   "${base_name}" > "${output_json}"
 

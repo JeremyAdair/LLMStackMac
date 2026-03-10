@@ -5,7 +5,9 @@ FLOWISE_URL="${FLOWISE_URL:-http://flowise:3000}"
 FLOWISE_INGEST_CHATFLOW_ID="${FLOWISE_INGEST_CHATFLOW_ID:-}"
 FLOWISE_INGEST_STOP_NODE_ID="${FLOWISE_INGEST_STOP_NODE_ID:-qdrant_0}"
 FLOWISE_API_KEY="${FLOWISE_API_KEY:-}"
-PDF_WATCH_DIR="${PDF_WATCH_DIR:-/data/pdfs}"
+PDF_WATCH_DIR="${PDF_WATCH_DIR:-/data/pdfs/ingest-dropzone}"
+PDF_PROCESSED_DIR="${PDF_PROCESSED_DIR:-/data/pdfs/processed/original}"
+PDF_FAILED_DIR="${PDF_FAILED_DIR:-/data/pdfs/failed}"
 FLOWISE_WAIT_MAX_SECONDS="${FLOWISE_WAIT_MAX_SECONDS:-120}"
 
 if [ -z "$FLOWISE_INGEST_CHATFLOW_ID" ]; then
@@ -14,7 +16,7 @@ if [ -z "$FLOWISE_INGEST_CHATFLOW_ID" ]; then
 fi
 
 apk add --no-cache inotify-tools curl >/dev/null
-mkdir -p "$PDF_WATCH_DIR/processed" "$PDF_WATCH_DIR/failed"
+mkdir -p "$PDF_WATCH_DIR" "$PDF_PROCESSED_DIR" "$PDF_FAILED_DIR"
 
 INGEST_URL="$FLOWISE_URL/api/v1/vector/internal-upsert/$FLOWISE_INGEST_CHATFLOW_ID"
 
@@ -71,10 +73,10 @@ ingest_file() {
 
   if [ "$uploaded" = "1" ]; then
     echo "pdf-auto-ingest: success $base"
-    mv "$file" "$PDF_WATCH_DIR/processed/$base"
+    mv "$file" "$PDF_PROCESSED_DIR/$base"
   else
     echo "pdf-auto-ingest: failed $base"
-    mv "$file" "$PDF_WATCH_DIR/failed/$base"
+    mv "$file" "$PDF_FAILED_DIR/$base"
   fi
 }
 
