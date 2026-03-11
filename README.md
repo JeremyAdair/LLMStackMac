@@ -24,9 +24,9 @@ Primary scripts:
 
 Compatibility wrappers remain:
 
-- `./tools/bin/llm up full` (defaults to full)
-- `./tools/bin/llm down all`
-- `./tools/bin/llm status`
+- `./tools/bin/cli-handler/llm up full` (defaults to full)
+- `./tools/bin/cli-handler/llm down all`
+- `./tools/bin/cli-handler/llm status`
 
 See:
 
@@ -128,29 +128,21 @@ cp config/auth/users_database.example.yml config/auth/users_database.yml
 2) Start the core stack (default).
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 Enable optional groups only when needed:
 
 ```bash
-./tools/bin/llm up observability
-./tools/bin/llm up admin
-./tools/bin/llm up lab
+./tools/bin/cli-handler/llm up observability
+./tools/bin/cli-handler/llm up admin
+./tools/bin/cli-handler/llm up lab
 ```
 
 See `docs/25-service-profiles.md` for architecture, overlap audit, and mode commands.
 
-On macOS, `./tools/bin/llm up full` also starts host (bare-metal) Ollama when installed locally,
-and `./tools/bin/llm down all` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable this behavior.
-
-macOS first-run shortcut:
-
-```bash
-./tools/scripts/temp-scripts/first-run-mac
-./tools/bin/llm up full
-./tools/bin/llm check-core
-```
+On macOS, `./tools/bin/cli-handler/llm up full` also starts host (bare-metal) Ollama when installed locally,
+and `./tools/bin/cli-handler/llm down all` stops it. Set `LLMSTACK_MANAGE_HOST_OLLAMA=0` to disable this behavior.
 
 Cutover day runbook:
 
@@ -178,7 +170,7 @@ Add these entries to your hosts file first:
 Generate this block automatically:
 
 ```bash
-./tools/bin/CreateHostEntries/llm-hosts-update --print
+./tools/bin/create-host-entries/llm-hosts-update --print
 ```
 
 macOS hosts file path: `/etc/hosts`
@@ -271,13 +263,12 @@ See `services/python-toolbox/README.md` for environment variables and usage note
 These services publish host ports for local access. Change the host side of the
 mapping if the port is already in use.
 
-- Reverse proxy: `80` for all web UIs via the gateway.
+- Reverse proxy: `80` and `443` for all web UIs via the gateway.
 - Forgejo web UI: `https://forgejo.llmstack.lan/` through reverse proxy (container still listens on `3000`).
 - Forgejo SSH: `2222` for git over SSH.
-- Python API: `8000` for FastAPI triggers.
-- Qdrant: `6333` for local debugging.
-- Postgres: `5432` for local admin tools.
-- Redis: `6379` for local debugging.
+
+By default the published ports bind to `127.0.0.1`. Set `HOST_BIND_IP=0.0.0.0`
+only if you intentionally want LAN exposure.
 
 ### Persistent data and reset behavior
 
@@ -298,6 +289,13 @@ If you run Ollama on bare metal, keep port `11434` available on the host and poi
 publish a host port by default. If you need to expose the container port, add a ports
 mapping in `compose/lab/ollama/docker-compose.yml`.
 
+Binding Ollama to `127.0.0.1` is not enough to isolate it from Docker Desktop on macOS.
+Containers that know a host-reachable address such as `host.docker.internal` can still
+attempt to talk to it. The in-repo hardening here is loopback-only binds for published
+services; hardening bare-metal Ollama against containers also requires a host-side rule
+that denies Docker Desktop traffic to `11434`, or moving Ollama behind a dedicated,
+allowlisted proxy path instead of exposing the host listener directly to containers.
+
 ## Local Git
 
 This stack includes a Forgejo service for local git hosting. Forgejo is a
@@ -309,10 +307,10 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 If these ports are in use, update the port mappings in
 `compose/admin/forgejo/docker-compose.yml`.
 
-`./tools/bin/llm up full` starts Forgejo with the rest of the stack. To start only admin services (including Forgejo):
+`./tools/bin/cli-handler/llm up full` starts Forgejo with the rest of the stack. To start only admin services (including Forgejo):
 
 ```bash
-./tools/bin/llm up admin
+./tools/bin/cli-handler/llm up admin
 ```
 
 See `docs/git-local.md` for setup and backup details.
@@ -323,7 +321,7 @@ The workspace container provides a safe play area for OpenHands and CLI tools. I
 mounts `./data/openhands-workspace` to `/workspace` and runs as a non-root user.
 
 ```bash
-./tools/bin/llm up lab
+./tools/bin/cli-handler/llm up lab
 ```
 
 See `docs/workspace-container.md` for guardrails and reset guidance.
@@ -352,13 +350,13 @@ mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,ch
 Live logs for real debugging:
 
 ```bash
-SINCE=2h ./tools/bin/llm logs reverse-proxy auth open-webui flowise
+SINCE=2h ./tools/bin/cli-handler/llm logs reverse-proxy auth open-webui flowise
 ```
 
 Incident bundle (snapshot everything useful):
 
 ```bash
-./tools/bin/llm debug-bundle
+./tools/bin/cli-handler/llm debug-bundle
 ```
 
 Run PDF ingestion:
@@ -370,8 +368,8 @@ docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm pdf-in
 Run the RAG pipeline (Ollama + Qdrant + ingestion job):
 
 ```bash
-./tools/bin/llm up core
-./tools/bin/llm up full data
+./tools/bin/cli-handler/llm up core
+./tools/bin/cli-handler/llm up full data
 docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm rag-pipeline
 ```
 
@@ -384,7 +382,7 @@ docker compose --env-file .env.mac -p llm-lab -f compose/lab.yml run --rm python
 Start only Flowise:
 
 ```bash
-./tools/bin/llm up core
+./tools/bin/cli-handler/llm up core
 ```
 
 Configure Flowise auto-ingest watcher in `.env.mac`:
@@ -404,7 +402,7 @@ Flowise in an incognito window once to clear stale frontend state.
 Install the standard Ollama model set:
 
 ```bash
-./tools/bin/llm models pull
+./tools/bin/cli-handler/llm models pull
 ```
 
 Run a speech-to-text example:

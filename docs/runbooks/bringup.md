@@ -103,7 +103,7 @@ Replace the password hash for the `admin` user in `config/auth/users_database.ym
 This brings up all services, including the reverse proxy, UIs, databases, and optional tooling.
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 Optional: start only the core services (Ollama, Open WebUI, Qdrant, reverse proxy):
@@ -137,10 +137,10 @@ Smoke test:
 
 ## Step 10: Pull Ollama models
 
-This pulls the standard Ollama model set defined in `prompts/system/install-ollama-and-models.md`.
+This pulls the standard Ollama model set defined in `docs/prompts/system/install-ollama-and-models.md`.
 
 ```bash
-./tools/bin/llm models pull
+./tools/bin/cli-handler/llm models pull
 ```
 
 Smoke test:
@@ -248,15 +248,15 @@ docker compose \
 Use this when you want to shut everything down.
 
 ```bash
-./tools/bin/llm down all
+./tools/bin/cli-handler/llm down all
 ```
 
 ## Ports
 
 These are the default host ports exposed by the stack:
 
-- `80` reverse proxy (routes to Open WebUI, Flowise, OpenHands)
-- `11434` Ollama (optional direct access)
-- `6333` Qdrant (optional direct access)
-- `5432` Postgres (optional direct access)
-- `6379` Redis (optional direct access)
+- `80` reverse proxy HTTP entrypoint
+- `443` reverse proxy HTTPS entrypoint
+- `2222` Forgejo SSH for git over SSH
+
+By default these binds are loopback-only via `HOST_BIND_IP=127.0.0.1`.

@@ -99,8 +99,8 @@ services:
   reverse-proxy:
     image: nginx@sha256:1d13701a5f9f3fb01aaa88cef2344d65b6b5bf6b7d9fa4cf0dca557a8d7702ba
     ports:
-      - "80:80"
-      - "443:443"
+      - "${HOST_BIND_IP:-127.0.0.1}:80:80"
+      - "${HOST_BIND_IP:-127.0.0.1}:443:443"
     volumes:
       - ../config/reverse-proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../config/tls:/etc/nginx/certs:ro

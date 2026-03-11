@@ -72,7 +72,7 @@ services:
       # Web UI stays internal behind reverse proxy + Authelia.
       - "3000"
     ports:
-      # SSH for git operations. Change the host port if 2222 is in use.
-      - "2222:22"
+      # Default to loopback-only host binds unless you explicitly opt into LAN exposure.
+      - "${HOST_BIND_IP:-127.0.0.1}:2222:22"
     networks:
       - llm-stack
