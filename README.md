@@ -284,17 +284,16 @@ by deleting their contents.
 - The OpenHands repo bind mount is `./data/openhands-workspace` and is safe to clean when you want a fresh workspace.
 - Flowise PDF drop folder uses a local bind mount: `./data/pdfs` -> `/data/pdfs`.
 
-If you run Ollama on bare metal, keep port `11434` available on the host and point
-`OLLAMA_BASE_URL` to `http://localhost:11434` in `.env`. The Ollama container does not
-publish a host port by default. If you need to expose the container port, add a ports
-mapping in `compose/lab/ollama/docker-compose.yml`.
+If you run Ollama on bare metal, keep port `11434` available on the host and set
+`OLLAMA_UPSTREAM_URL=http://host.docker.internal:11434` in your env file. Containers
+should point `OLLAMA_BASE_URL` at the internal `ollama-gateway` service instead of
+talking to the host directly. The Ollama container does not publish a host port by
+default. If you need to expose the container port, add a ports mapping in
+`compose/lab/ollama/docker-compose.yml`.
 
-Binding Ollama to `127.0.0.1` is not enough to isolate it from Docker Desktop on macOS.
-Containers that know a host-reachable address such as `host.docker.internal` can still
-attempt to talk to it. The in-repo hardening here is loopback-only binds for published
-services; hardening bare-metal Ollama against containers also requires a host-side rule
-that denies Docker Desktop traffic to `11434`, or moving Ollama behind a dedicated,
-allowlisted proxy path instead of exposing the host listener directly to containers.
+The stack now routes Ollama traffic through a dedicated `llm-ollama-access` network.
+Only services that actually need model access join that network, and only the
+`ollama-gateway` service knows the host-reachable upstream URL.
 
 ## Local Git
 

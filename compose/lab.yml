@@ -14,7 +14,7 @@ services:
     expose:
       - "8000"
     environment:
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama-gateway:11434}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
       RAG_COLLECTION: ${RAG_COLLECTION:-documents}
       RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
@@ -31,6 +31,7 @@ services:
         aliases:
           - python-toolbox
           - python-api
+      ollama-access:
     restart: unless-stopped
 
   node-red:
@@ -132,7 +133,7 @@ services:
       context: ..
       dockerfile: compose/lab/rag-pipeline/Dockerfile
     environment:
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama-gateway:11434}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
       RAG_COLLECTION: ${RAG_COLLECTION:-documents}
       RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
@@ -144,6 +145,7 @@ services:
       - ../data:/data
     networks:
       - llm-stack
+      - ollama-access
 
   pdf-ingest:
     build:
@@ -189,6 +191,9 @@ services:
 networks:
   llm-stack:
     name: llm-shared
+    external: true
+  ollama-access:
+    name: llm-ollama-access
     external: true
 
 volumes:

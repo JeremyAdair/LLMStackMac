@@ -1,4 +1,18 @@
 services:
+  ollama-gateway:
+    image: nginx@sha256:1d13701a5f9f3fb01aaa88cef2344d65b6b5bf6b7d9fa4cf0dca557a8d7702ba
+    environment:
+      OLLAMA_UPSTREAM_URL: ${OLLAMA_UPSTREAM_URL:-http://host.docker.internal:11434}
+    volumes:
+      - ../config/ollama-gateway/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    networks:
+      ollama-access:
+        aliases:
+          - ollama-gateway
+    expose:
+      - "11434"
+    restart: unless-stopped
+
   auth:
     image: authelia/authelia@sha256:d23ee3c721d465b4749cc58541cda4aebe5aa6f19d7b5ce0afebb44ebee69591
     command: >
@@ -35,7 +49,7 @@ services:
     expose:
       - "8080"
     environment:
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama-gateway:11434}
       DATABASE_URL: ${OPENWEBUI_DATABASE_URL:?set OPENWEBUI_DATABASE_URL in your env file}
       ENABLE_SIGNUP: "false"
       ENABLE_LOGIN_FORM: ${OPENWEBUI_ENABLE_LOGIN_FORM:-false}
@@ -59,12 +73,13 @@ services:
       llm-stack:
         aliases:
           - open-webui
+      ollama-access:
     restart: unless-stopped
 
   flowise:
     image: flowiseai/flowise@sha256:c8aa4b4cb910a7b1aa56c4eb30cd41a67002400d84b1289f09c0a6b276b416c3
     environment:
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama-gateway:11434}
       FLOWISE_USERNAME: ${FLOWISE_USERNAME:-}
       FLOWISE_PASSWORD: ${FLOWISE_PASSWORD:-}
       FLOWISE_BASE_PATH: ${FLOWISE_BASE_PATH:-/}
@@ -75,6 +90,7 @@ services:
       llm-stack:
         aliases:
           - flowise
+      ollama-access:
     expose:
       - "3000"
     restart: unless-stopped
@@ -120,6 +136,9 @@ services:
 networks:
   llm-stack:
     name: llm-shared
+    external: true
+  ollama-access:
+    name: llm-ollama-access
     external: true
 
 volumes:

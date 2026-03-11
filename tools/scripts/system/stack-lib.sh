@@ -22,6 +22,11 @@ ensure_shared_network() {
     echo "[llmstack] Creating shared network llm-shared"
     docker network create llm-shared >/dev/null
   fi
+
+  if ! docker network inspect llm-ollama-access >/dev/null 2>&1; then
+    echo "[llmstack] Creating shared network llm-ollama-access"
+    docker network create llm-ollama-access >/dev/null
+  fi
 }
 
 compose_file() {

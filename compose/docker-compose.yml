@@ -35,6 +35,9 @@ networks:
   llm-stack:
     driver: bridge
     # Single shared network so containers can reach each other by service name.
+  ollama-access:
+    driver: bridge
+    # Dedicated network for services that need Ollama access.
 
 ############################################
 # SECTION: Service Catalog
@@ -52,6 +55,18 @@ networks:
 ############################################
 
 services:
+
+  ollama-gateway:
+    image: nginx@sha256:1d13701a5f9f3fb01aaa88cef2344d65b6b5bf6b7d9fa4cf0dca557a8d7702ba
+    environment:
+      OLLAMA_UPSTREAM_URL: ${OLLAMA_UPSTREAM_URL:-http://host.docker.internal:11434}
+    volumes:
+      - ../config/ollama-gateway/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    networks:
+      - ollama-access
+    expose:
+      - "11434"
+    restart: unless-stopped
 
   ############################################
   # SECTION: Service - python-toolbox
@@ -76,7 +91,7 @@ services:
     image: llmstack/python-toolbox:local
     command: ["sleep", "infinity"]
     environment:
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama-gateway:11434}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
       RAG_COLLECTION: ${RAG_COLLECTION:-documents}
       RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
@@ -91,6 +106,7 @@ services:
       - ../data:/data
     networks:
       - llm-stack
+      - ollama-access
     restart: unless-stopped
 
 
@@ -123,7 +139,7 @@ services:
       # Internal API endpoint for stack services (Node-RED/Flowise).
       - "8000"
     environment:
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama-gateway:11434}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
       RAG_COLLECTION: ${RAG_COLLECTION:-documents}
       RAG_EMBED_MODEL: ${RAG_EMBED_MODEL:-nomic-embed-text}
@@ -138,6 +154,7 @@ services:
       - ../data:/data
     networks:
       - llm-stack
+      - ollama-access
     restart: unless-stopped
 
 
