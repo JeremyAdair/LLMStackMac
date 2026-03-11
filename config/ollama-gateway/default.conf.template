@@ -11,65 +11,32 @@ server {
   proxy_read_timeout 600s;
   proxy_send_timeout 600s;
 
+  # Explicitly block model-management and mutating admin routes.
+  location ~ ^/api/(pull|push|create|delete|copy|blobs/) {
+    return 403;
+  }
+
   # Allow read-only metadata and inference APIs used by stack services.
-  location = /api/tags {
+  location ~ ^/api/(tags|version|ps)$ {
     proxy_pass ${OLLAMA_UPSTREAM_URL};
   }
 
-  location = /api/version {
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /api/ps {
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /api/show {
-    limit_except POST { deny all; }
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /api/generate {
-    limit_except POST { deny all; }
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /api/chat {
-    limit_except POST { deny all; }
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /api/embed {
-    limit_except POST { deny all; }
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /api/embeddings {
+  location ~ ^/api/(show|generate|chat|embed|embeddings)$ {
     limit_except POST { deny all; }
     proxy_pass ${OLLAMA_UPSTREAM_URL};
   }
 
   # Allow OpenAI-compatible inference routes for clients that use them.
-  location = /v1/models {
+  location ~ ^/v1/models$ {
     proxy_pass ${OLLAMA_UPSTREAM_URL};
   }
 
-  location = /v1/chat/completions {
+  location ~ ^/v1/(chat/completions|completions|embeddings)$ {
     limit_except POST { deny all; }
     proxy_pass ${OLLAMA_UPSTREAM_URL};
   }
 
-  location = /v1/completions {
-    limit_except POST { deny all; }
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  location = /v1/embeddings {
-    limit_except POST { deny all; }
-    proxy_pass ${OLLAMA_UPSTREAM_URL};
-  }
-
-  # Deny model pull/push/create/delete and any other unexpected API surface.
+  # Deny any other unexpected API surface.
   location / {
     return 403;
   }
