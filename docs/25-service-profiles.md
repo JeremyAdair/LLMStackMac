@@ -21,6 +21,11 @@ This stack now uses layered Docker Compose projects to keep default startup focu
 
 - `prometheus`: metrics storage and scraping.
 - `grafana`: dashboards and alert visualization.
+- `blackbox-exporter`: HTTP probe metrics.
+- `postgres-exporter`: PostgreSQL metrics.
+
+### Observability Host (optional, higher trust)
+
 - `node-exporter`: host metrics.
 - `cadvisor`: container metrics.
 
@@ -57,14 +62,14 @@ This stack now uses layered Docker Compose projects to keep default startup focu
   - Merge candidate exists (serve landing directly from reverse-proxy static mount), but deferred to avoid changing routing behavior during profile refactor.
 - `pgadmin` and `redisinsight`:
   - Moved to `admin` profile; no longer always-on.
-- `blackbox-exporter` and `postgres-exporter`:
-  - Split into `observability-plus`; optional even when baseline observability is enabled.
+- `node-exporter` and `cadvisor`:
+  - Split into `observability-host`; optional because they need host mounts and, for cAdvisor, Docker runtime access.
 
 ## What changed in compose
 
 - Added layered startup modes:
   - `core`, `observability`, `admin`, `lab`, `full`.
-- `./tools/bin/llm up full` defaults to `full` for complete bring-up.
+- `./tools/bin/cli-handler/llm up full` defaults to `full` for complete bring-up.
 - Reduced `reverse-proxy` `depends_on` to core web dependencies:
   - `open-webui`, `auth`, `landing`.
 - Preserved all existing data volume mounts and env variable names.
@@ -74,32 +79,38 @@ This stack now uses layered Docker Compose projects to keep default startup focu
 Daily use (core only):
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 Core + observability dashboards:
 
 ```bash
-./tools/bin/llm up observability
+./tools/bin/cli-handler/llm up observability
+```
+
+Host/container runtime metrics:
+
+```bash
+./tools/bin/cli-handler/llm up observability-host
 ```
 
 Admin/debug session:
 
 ```bash
-./tools/bin/llm up admin
-./tools/bin/llm up observability
+./tools/bin/cli-handler/llm up admin
+./tools/bin/cli-handler/llm up observability
 ```
 
 Full lab session (everything):
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 Stop everything currently running:
 
 ```bash
-./tools/bin/llm down all
+./tools/bin/cli-handler/llm down all
 ```
 
 ## Migration notes
@@ -108,4 +119,4 @@ Stop everything currently running:
 - Existing named volumes remain valid.
 - Existing `.env` / `.env.mac` keys remain valid.
 - Optional layers stay down unless explicitly started.
-- For one-command everything, use `./tools/bin/llm up full`.
+- For one-command everything, use `./tools/bin/cli-handler/llm up full`.

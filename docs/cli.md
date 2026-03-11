@@ -10,6 +10,7 @@ Primary entrypoints:
 - `llm up core`
 - `llm up admin`
 - `llm up observability`
+- `llm up observability-host`
 - `llm up lab [service...]`
 - `llm up full`
 - `llm down core`

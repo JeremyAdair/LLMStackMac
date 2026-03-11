@@ -3,8 +3,8 @@ set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/../system/stack-lib.sh"
 
-projects=(llm-lab llm-admin llm-observability llm-core llm-data)
-layers=(lab admin observability core data)
+projects=(llm-lab llm-admin llm-observability-host llm-observability llm-core llm-data)
+layers=(lab admin observability-host observability core data)
 
 for i in "${!projects[@]}"; do
   project="${projects[$i]}"

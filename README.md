@@ -135,6 +135,7 @@ Enable optional groups only when needed:
 
 ```bash
 ./tools/bin/cli-handler/llm up observability
+./tools/bin/cli-handler/llm up observability-host
 ./tools/bin/cli-handler/llm up admin
 ./tools/bin/cli-handler/llm up lab
 ```

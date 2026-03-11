@@ -72,8 +72,6 @@ services:
       GIT_USER_NAME: ${GIT_USER_NAME:-}
       GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
     volumes:
-      # Docker socket is required for OpenHands runtime containers.
-      - /var/run/docker.sock:/var/run/docker.sock
       # Persist OpenHands state and session metadata.
       - ${OPENHANDS_STATE_MOUNT:-openhands_data}:/.openhands
       # Host-visible workspace for repositories and edits.

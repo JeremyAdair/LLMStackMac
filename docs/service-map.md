@@ -12,8 +12,8 @@
 | qdrant | data | Yes | none | `qdrant_data` | Vector database |
 | prometheus | observability | Optional | exporters/targets reachable | `prometheus_data` | Metrics storage |
 | grafana | observability | Optional | prometheus | `grafana_data` | Dashboards and alert views |
-| node-exporter | observability | Optional | none | host mount | Host metrics |
-| cadvisor | observability | Optional | docker runtime | host/docker mounts | Container metrics |
+| node-exporter | observability-host | Optional | none | host mount | Host metrics |
+| cadvisor | observability-host | Optional | docker runtime | host/docker mounts | Container metrics |
 | blackbox-exporter | observability | Optional | none | config bind mount | HTTP probe metrics |
 | postgres-exporter | observability | Optional | postgres reachable | none | DB metrics |
 | pgadmin | admin | Optional | postgres reachable | `pgadmin_data` | Postgres admin UI |

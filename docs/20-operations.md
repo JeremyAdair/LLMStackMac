@@ -7,7 +7,7 @@ This guide covers daily operations: start, stop, status, logs, updates, and back
 ## Start the stack
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 This starts the default core services only.
@@ -15,25 +15,25 @@ This starts the default core services only.
 ## Start observability
 
 ```bash
-./tools/bin/llm up observability
+./tools/bin/cli-handler/llm up observability
 ```
 
-Add deep probe/database exporters when needed:
+Add host-mounted exporters when needed:
 
 ```bash
-./tools/bin/llm up observability
+./tools/bin/cli-handler/llm up observability-host
 ```
 
 ## Start admin tools
 
 ```bash
-./tools/bin/llm up admin
+./tools/bin/cli-handler/llm up admin
 ```
 
 ## Start lab services
 
 ```bash
-./tools/bin/llm up lab
+./tools/bin/cli-handler/llm up lab
 ```
 
 On macOS, this also starts host (bare-metal) Ollama if `ollama` is installed locally.
@@ -42,13 +42,13 @@ Disable with `LLMSTACK_MANAGE_HOST_OLLAMA=0`.
 ## Start full lab stack
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 ## Stop the stack
 
 ```bash
-./tools/bin/llm down all
+./tools/bin/cli-handler/llm down all
 ```
 
 On macOS, this also stops host (bare-metal) Ollama unless disabled via
@@ -57,7 +57,7 @@ On macOS, this also stops host (bare-metal) Ollama unless disabled via
 ## Status
 
 ```bash
-./tools/bin/llm status
+./tools/bin/cli-handler/llm status
 ```
 
 ## Logs
@@ -65,26 +65,26 @@ On macOS, this also stops host (bare-metal) Ollama unless disabled via
 All logs (tail):
 
 ```bash
-./tools/bin/llm logs reverse-proxy auth
+./tools/bin/cli-handler/llm logs reverse-proxy auth
 ```
 
 Service-specific logs:
 
 ```bash
-SINCE=2h ./tools/bin/llm logs flowise
+SINCE=2h ./tools/bin/cli-handler/llm logs flowise
 ```
 
 ## Restart a service
 
 ```bash
-./tools/bin/llm up core
+./tools/bin/cli-handler/llm up core
 ```
 
 ## Update images safely
 
 ```bash
-./tools/bin/llm down core
-./tools/bin/llm up core
+./tools/bin/cli-handler/llm down core
+./tools/bin/cli-handler/llm up core
 ```
 
 ## Backups
@@ -103,7 +103,7 @@ SINCE=2h ./tools/bin/llm logs flowise
 Stop the stack, then archive data directories:
 
 ```bash
-./tools/bin/llm down all
+./tools/bin/cli-handler/llm down all
 
 tar -czf backups/llmstack-data-$(date +%F).tar.gz data config .env
 ```
@@ -114,7 +114,7 @@ Extract the archive back to the repo root, then start the stack:
 
 ```bash
 tar -xzf backups/llmstack-data-YYYY-MM-DD.tar.gz
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 ## Add a new service module
@@ -122,6 +122,6 @@ tar -xzf backups/llmstack-data-YYYY-MM-DD.tar.gz
 1) Create `compose/<service>/docker-compose.yml`.
 2) Add any config under `config/<service>/`.
 3) Add persistent data under `data/<service>/` (gitignored).
-4) Add the compose file to `tools/bin/llm up full`, `tools/bin/llm down all`, and `tools/bin/llm status`.
+4) Add the compose file to `tools/bin/cli-handler/llm up full`, `tools/bin/cli-handler/llm down all`, and `tools/bin/cli-handler/llm status`.
 5) Assign service profile (`core` unprofiled, or `observability`, `observability-plus`, `admin`, `lab`).
 6) Document the service in `docs/`.

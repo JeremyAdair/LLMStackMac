@@ -126,7 +126,7 @@ services:
   ############################################
   node-exporter:
     profiles:
-      - observability
+      - observability-host
     image: prom/node-exporter:v1.9.1
     restart: unless-stopped
     expose:
@@ -154,7 +154,7 @@ services:
   ############################################
   cadvisor:
     profiles:
-      - observability
+      - observability-host
     image: gcr.io/cadvisor/cadvisor:v0.52.1
     restart: unless-stopped
     expose:
