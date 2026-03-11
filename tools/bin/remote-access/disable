@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "${script_dir}/../../.." && pwd)"
+anchor_file="/etc/pf.anchors/llmstack_tailscale_only"
+pf_conf="/etc/pf.conf"
+env_file="${LLMSTACK_ENV_FILE:-${repo_root}/.env.mac}"
+
+ensure_docker_path() {
+  if ! command -v docker >/dev/null 2>&1; then
+    export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+  fi
+}
+
+sudo sh <<EOF
+set -eu
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path("${pf_conf}")
+text = path.read_text()
+bad = 'load anchor "llmstack/tailscale-only" from "/etc/pf.anchors/\n  llmstack_tailscale_only"\n'
+good = 'load anchor "llmstack/tailscale-only" from "/etc/pf.anchors/llmstack_tailscale_only"\n'
+if bad in text:
+    text = text.replace(bad, good)
+path.write_text(text)
+PY
+: > "${anchor_file}"
+pfctl -nf "${pf_conf}"
+pfctl -f "${pf_conf}"
+EOF
+
+if [[ -f "${env_file}" ]]; then
+  perl -0pi -e 's/^HOST_BIND_IP=.*/HOST_BIND_IP=127.0.0.1/m or $_ .= "\nHOST_BIND_IP=127.0.0.1\n"; s/^DNS_BIND_IP=.*/DNS_BIND_IP=127.0.0.1/m or $_ .= "DNS_BIND_IP=127.0.0.1\n"' "${env_file}"
+fi
+
+ensure_docker_path
+docker compose --env-file "${env_file}" -p llm-core -f "${repo_root}/compose/core.yml" up -d reverse-proxy
+docker compose --env-file "${env_file}" -p llm-admin -f "${repo_root}/compose/admin.yml" up -d dns-server forgejo
+
+echo "Tailscale-only exposure disabled. Host binds returned to 127.0.0.1."

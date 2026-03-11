@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+anchor_name="llmstack/tailscale-only"
+repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
+env_file="${LLMSTACK_ENV_FILE:-${repo_root}/.env.mac}"
+
+echo "HOST_BIND_IP:"
+grep -n '^HOST_BIND_IP=' "${env_file}" 2>/dev/null || echo "not set"
+grep -n '^DNS_BIND_IP=' "${env_file}" 2>/dev/null || echo "DNS_BIND_IP not set"
+
+echo
+echo "Listeners:"
+lsof -nP -iTCP:53 -sTCP:LISTEN || true
+lsof -nP -iUDP:53 || true
+lsof -nP -iTCP:80 -sTCP:LISTEN || true
+lsof -nP -iTCP:443 -sTCP:LISTEN || true
+lsof -nP -iTCP:2222 -sTCP:LISTEN || true
+
+echo
+echo "PF anchor rules:"
+sudo pfctl -a "${anchor_name}" -s rules 2>/dev/null || echo "anchor not loaded or pf disabled"

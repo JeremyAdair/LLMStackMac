@@ -1,4 +1,24 @@
 services:
+  dns-server:
+    image: technitium/dns-server:latest
+    environment:
+      DNS_SERVER_DOMAIN: ${TECHNITIUM_SERVER_DOMAIN:-dns.llmstack.lan}
+      DNS_SERVER_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD:?set TECHNITIUM_ADMIN_PASSWORD in your env file}
+      DNS_SERVER_PREFER_IPV6: "false"
+    expose:
+      - "5380"
+    ports:
+      - "${DNS_BIND_IP:-127.0.0.1}:53:53/tcp"
+      - "${DNS_BIND_IP:-127.0.0.1}:53:53/udp"
+    volumes:
+      - ${TECHNITIUM_DATA_MOUNT:-technitium_data}:/etc/dns
+    networks:
+      llm-stack:
+        aliases:
+          - dns-server
+          - technitium
+    restart: unless-stopped
+
   pgadmin:
     image: dpage/pgadmin4@sha256:d243a4bcc02d2ee6b447c601692813531d2d0fbca18b583d9f7f9658da835d81
     environment:
@@ -72,6 +92,9 @@ networks:
     external: true
 
 volumes:
+  technitium_data:
+    name: llm-stack_technitium_data
+    external: true
   pgadmin_data:
     name: llm-stack_pgadmin_data
     external: true
