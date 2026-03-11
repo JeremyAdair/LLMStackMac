@@ -20,6 +20,7 @@
 | redisinsight | admin | Optional | redis reachable | `redisinsight_data` | Redis admin UI |
 | forgejo | admin | Optional | none | `forgejo_data` | Local Git service |
 | python-toolbox | lab | Optional | qdrant, Ollama endpoint | bind mounts (`python-toolbox`, `data`) | Unified toolbox + FastAPI service + PDF upload API + autoscan ingest worker |
+| console | lab | Optional | auth, reverse-proxy | `data/openhands-workspace` bind | Authenticated ttyd console backed by a persistent tmux session |
 | node-red | lab | Optional | none | `nodered_data` | Automation tooling |
 | openclaw | lab | Optional | none | `openclaw_data` | Experimental agent gateway |
 | openhands | lab | Optional | none | `openhands_data`, data/openhands-workspace bind | Agent coding workspace |

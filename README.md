@@ -296,6 +296,20 @@ The stack now routes Ollama traffic through a dedicated `llm-ollama-access` netw
 Only services that actually need model access join that network, and only the
 `ollama-gateway` service knows the host-reachable upstream URL.
 
+Native Ollama remains a trusted internal backend for stack services. Authelia
+protects browser-facing routes, but it is not an auth gateway for the Ollama API
+used by Open WebUI, Flowise, the RAG pipeline, or other internal components.
+
+If you want to harden native Ollama further on macOS, the repo includes scoped
+`pf` helpers that block non-loopback TCP access to `11434` while keeping
+`127.0.0.1` working for local host processes:
+
+```bash
+./tools/bin/cli-handler/llm ollama-firewall-enable
+./tools/bin/cli-handler/llm ollama-firewall-status
+./tools/bin/cli-handler/llm ollama-firewall-disable
+```
+
 ## Local Git
 
 This stack includes a Forgejo service for local git hosting. Forgejo is a

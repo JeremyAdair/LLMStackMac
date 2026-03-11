@@ -11,6 +11,7 @@ if [[ "$#" -eq 0 ]]; then
   compose_project llm-lab lab up -d \
     python-toolbox \
     node-red \
+    console \
     openclaw \
     openhands \
     rag-pipeline \
