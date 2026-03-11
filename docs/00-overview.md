@@ -1,57 +1,40 @@
 # Overview
 
-LLMStack is a local, self-hosted, modular lab stack for experimenting with large language model workflows on your own hardware. It is designed for homelab builders and engineers who want to understand the system end-to-end and control each component.
+LLMStackMac is a layered Docker Compose homelab stack for local AI workflows on macOS. The current design assumes:
 
-## What this project is NOT
+- Docker Desktop runs the containerized services.
+- Ollama runs natively on the Mac for best Apple Silicon performance.
+- Containers reach native Ollama through an internal `ollama-gateway`.
+- Browser-facing apps are reached through the Nginx reverse proxy and protected by Authelia where appropriate.
 
-- It is not a hosted SaaS.
-- It is not cloud-first.
-- It is not a turnkey product with one-click setup.
+## Layers
 
-## Core components
+- `llm-data`: Postgres, Redis, Qdrant
+- `llm-core`: reverse proxy, landing page, Authelia, Open WebUI, Flowise, `ollama-gateway`
+- `llm-observability`: Prometheus, Grafana, exporters
+- `llm-observability-host`: optional host-mounted exporters with higher trust
+- `llm-admin`: Forgejo, pgAdmin, RedisInsight
+- `llm-lab`: console, Node-RED, OpenHands, OpenClaw, python-toolbox, RAG/media jobs
 
-- Ollama: runs local LLM inference.
-- Open WebUI: the main chat interface.
-- Flowise: a graph-based workflow builder for LLM chains.
-- Node-RED: automation and integration for triggers and orchestration.
-- Python jobs: on-demand scripts for ingestion and maintenance.
-- Qdrant / Postgres / Redis: storage for vectors, metadata, and caching.
-- Reverse proxy + auth: the single entry point and access control.
-- Monitoring: Prometheus and Grafana for visibility.
+## Current traffic model
 
-## Mental model
+- Host ports `80`, `443`, and `2222` bind to `127.0.0.1` by default through `HOST_BIND_IP`.
+- Internal container traffic uses `llm-shared`.
+- Only intended Ollama clients join `llm-ollama-access`.
+- Native Ollama remains a trusted internal backend. Authelia is not an auth gateway for the Ollama API.
 
-- The reverse proxy and auth gateway decide who can access the web UIs.
-- Node-RED decides when things happen (schedules, webhooks, file events).
-- Flowise and Ollama decide how things think (prompting and inference).
-- Qdrant and Postgres store memory (vectors and metadata).
-- Python jobs handle batch work (ingest, cleanup, evaluation).
+## Main URLs
 
-## Example workflows
+- `https://llmstack.lan/`
+- `https://openwebui.llmstack.lan/`
+- `https://flowise.llmstack.lan/`
+- `https://forgejo.llmstack.lan/`
+- `https://grafana.llmstack.lan/grafana/`
+- `https://llmstack.lan/console/`
 
-- Chat locally: open the chat UI and talk to a local model without any external calls.
-- Drop a document and search it later: ingest files into the vector store and query them when needed.
-- Transcribe audio and summarize it: run STT, optionally run a summary workflow, and save outputs.
-- Automate a task and get notified: trigger a flow, run a job, and send a notification through Node-RED.
+## Read next
 
-## Who this repo is for
-
-Good fits:
-- Homelab builders who want a local AI stack.
-- Engineers who want modular components they can rewire.
-- Learners who want to understand how the pieces fit together.
-
-Bad fits:
-- If you want a hosted AI app, this is not for you.
-- If you want a one-click installer, this is not for you.
-- If you do not want to operate Docker services, this is not for you.
-
-## How to get started
-
-- Installation: `docs/10-install.md`
-- Operations: `docs/20-operations.md`
-- Architecture and workflows: `docs/30-rag.md`, `docs/40-agents.md`, `docs/70-nodered.md`
-
-## Landing page
-
-The landing page is served by the stack and provides links to the protected web UIs. It is available at the hostname defined in `LANDING_HOSTNAME`, for example `http://llmstack.lan/`.
+- [Install](10-install.md)
+- [Operations](20-operations.md)
+- [Architecture](architecture.md)
+- [Service Map](service-map.md)

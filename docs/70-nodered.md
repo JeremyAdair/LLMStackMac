@@ -1,60 +1,27 @@
 # Node-RED
 
-Node-RED is the automation and integration engine for this stack. It orchestrates events and workflows but does not replace reasoning agents.
+Node-RED is optional lab automation. It is not part of the default core stack.
 
-## What it is used for
-
-- Orchestrate "when X happens, do Y" workflows.
-- Glue services together (OCR → RAG → notify).
-- Integrate external systems (Discord, webhooks, cron).
-- Trigger Python jobs, Flowise workflows, and OpenHands tasks.
-
-## What it is not
-
-- Not a reasoning agent.
-- Not a replacement for Flowise or OpenHands.
-
-## Access
-
-Node-RED is available through the reverse proxy at:
-
-- http://localhost/nodered/
-
-It is protected by the authentication gateway.
-
-## Data location
-
-Node-RED stores flows and context under:
-
-- `data/node-red/`
-
-This directory is gitignored to avoid committing flows or credentials.
-
-If you build file-watching automations, use `data/pdfs`, `data/audio`, and `data/ocr`.
-
-## Example flow ideas
-
-- File arrives → OCR → RAG → Discord notification.
-- Scheduled RAG refresh → status update.
-- Agent failure → alert.
-
-## How Node-RED talks to services
-
-Node-RED can call internal services by service name on the Docker network:
-
-- Ollama: `http://ollama:11434`
-- Python API: `http://python-api:8000`
-- Flowise: `http://flowise:3000`
-- OpenHands: `http://openhands:3000`
-
-## Trigger a Python job from Node-RED
-
-Use an HTTP Request node to call:
+## Start it
 
 ```bash
-POST http://python-api:8000/rag/ingest_once
+./tools/bin/cli-handler/llm up lab node-red
 ```
 
-## Secrets and credentials
+## URL
 
-Do not hardcode credentials into flows. Use environment variables or external secret stores and reference them in nodes.
+- `https://nodered.llmstack.lan/`
+
+It is fronted by the reverse proxy and protected by Authelia.
+
+## Persistent state
+
+- `nodered_data`
+
+## Useful internal endpoints
+
+- `http://python-toolbox:8000`
+- `http://flowise:3000`
+- `http://qdrant:6333`
+
+Node-RED should not talk directly to `host.docker.internal:11434`. If it needs models, use the internal `ollama-gateway` path and add it intentionally to the Ollama access network first.

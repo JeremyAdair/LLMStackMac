@@ -1,48 +1,52 @@
 # CLI Reference
 
-Primary entrypoints:
+Primary wrapper:
 
-- `llm`
-- `llmstack` (alias to `llm`)
+- `./tools/bin/cli-handler/llm`
 
-## Stack Control
+## Lifecycle
 
-- `llm up core`
-- `llm up admin`
-- `llm up observability`
-- `llm up observability-host`
-- `llm up lab [service...]`
-- `llm up full`
-- `llm down core`
-- `llm down all`
-- `llm status`
-- `llm logs <service...>`
+```bash
+./tools/bin/cli-handler/llm up core
+./tools/bin/cli-handler/llm up observability
+./tools/bin/cli-handler/llm up observability-host
+./tools/bin/cli-handler/llm up admin
+./tools/bin/cli-handler/llm up lab [service...]
+./tools/bin/cli-handler/llm up full
+./tools/bin/cli-handler/llm down core
+./tools/bin/cli-handler/llm down admin
+./tools/bin/cli-handler/llm down lab
+./tools/bin/cli-handler/llm down observability
+./tools/bin/cli-handler/llm down observability-host
+./tools/bin/cli-handler/llm down all
+```
 
-## Models
+## Health and debug
 
-- `llm models pull`
+```bash
+./tools/bin/cli-handler/llm status
+./tools/bin/cli-handler/llm doctor
+./tools/bin/cli-handler/llm check-core
+./tools/bin/cli-handler/llm debug-bundle
+./tools/bin/cli-handler/llm self-test
+./tools/bin/cli-handler/llm version
+```
 
-## Health / Debug
+## Host Ollama helpers
 
-- `llm doctor`
-- `llm check-core`
-- `llm debug-bundle`
-- `llm version`
-- `llm self-test`
+```bash
+./tools/bin/cli-handler/llm ollama-models-path /Volumes/LLM_DATA/ollama/models
+./tools/bin/cli-handler/llm ollama-firewall-status
+./tools/bin/cli-handler/llm ollama-firewall-enable
+./tools/bin/cli-handler/llm ollama-firewall-disable
+```
 
-## Backup
+## Pipelines and media
 
-- `llm backup [--output-dir DIR] [--keep-days N]`
-- `llm restore-check <backup-dir>`
-
-## Ingestion / Media Helpers
-
-- `llm ingest pdf [args...]`
-- `llm ocr run <filename>`
-- `llm stt transcribe <file.wav>`
-- `llm tts speak "text"`
-
-## Help
-
-- `llm --help`
-- `llm -help`
+```bash
+./tools/bin/cli-handler/llm ingest pdf [args...]
+./tools/bin/cli-handler/llm models pull
+./tools/bin/cli-handler/llm ocr run <filename>
+./tools/bin/cli-handler/llm stt transcribe <file.wav>
+./tools/bin/cli-handler/llm tts speak "text"
+```

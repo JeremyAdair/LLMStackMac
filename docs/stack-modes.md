@@ -1,9 +1,9 @@
 # Stack Modes
 
-## Daily use (recommended)
+## Recommended daily mode
 
 ```bash
-./tools/scripts/up/core.sh
+./tools/bin/cli-handler/llm up core
 ```
 
 Starts:
@@ -11,47 +11,49 @@ Starts:
 - `llm-data`
 - `llm-core`
 
-## Core + observability
+## Observability
 
 ```bash
-./tools/scripts/up/core.sh
-./tools/scripts/up/observability.sh
+./tools/bin/cli-handler/llm up observability
 ```
 
-## Admin session
+Add host-level exporters only when you intentionally want the extra trust:
 
 ```bash
-./tools/scripts/up/admin.sh
+./tools/bin/cli-handler/llm up observability-host
 ```
 
-## Lab session
+## Admin
 
 ```bash
-./tools/scripts/up/lab.sh
+./tools/bin/cli-handler/llm up admin
 ```
+
+## Lab
+
+```bash
+./tools/bin/cli-handler/llm up lab
+```
+
+Default `up lab` starts:
+
+- `python-toolbox`
+- `node-red`
+- `console`
+- `openclaw`
+- `openhands`
+- `rag-pipeline`
+- `pdf-ingest`
+- `ocr`
 
 ## Full stack
 
 ```bash
-./tools/scripts/up/full.sh
+./tools/bin/cli-handler/llm up full
 ```
 
 ## Stop
 
 ```bash
-./tools/scripts/down/core.sh
-./tools/scripts/down/all.sh
-```
-
-## Compatibility commands
-
-`bin` wrappers are kept for muscle memory:
-
-```bash
-./tools/bin/llm up full          # full
-./tools/bin/llm up core
-./tools/bin/llm up admin
-./tools/bin/llm up lab
-./tools/bin/llm down all        # all
-./tools/bin/llm status
+./tools/bin/cli-handler/llm down all
 ```

@@ -1,82 +1,34 @@
-# Local Git server (Forgejo)
+# Forgejo
 
-This stack includes an optional Forgejo service for a local, lightweight git server.
-Forgejo is a community-run, GPL-licensed fork of Gitea that works well in homelab and
-air-gapped environments because it is self-contained and has minimal external
-dependencies.
+Forgejo is the local Git service in the `llm-admin` layer.
 
-## Start the git server
+## Start it
 
 ```bash
-docker compose \
-  -f compose/admin/forgejo/docker-compose.yml \
-  up -d
+./tools/bin/cli-handler/llm up admin forgejo
 ```
 
-The web UI is exposed on `http://localhost:3000`. SSH access is exposed on port 2222.
+## Access
 
-Forgejo runs as a non-root user. If you need to match host ownership, set
-`FORGEJO_UID` and `FORGEJO_GID` in `.env` before starting the service.
+- web: `https://forgejo.llmstack.lan/`
+- ssh: `ssh://git@forgejo.llmstack.lan:2222/<owner>/<repo>.git`
 
-## Create an admin user
+SSH port `2222` binds to loopback by default through `HOST_BIND_IP`.
 
-1) Open `http://localhost:3000`.
-2) Complete the setup form, including creating the first admin user.
-3) Log in and confirm the instance is reachable.
+## Auth model
 
-## Add an SSH key
+- browser auth goes through Authelia
+- Forgejo local login pages are redirected away
+- reverse proxy auth headers are used for shared sign-in
 
-1) In Forgejo, open Settings and select SSH Keys.
-2) Add your public key.
+## Data
 
-## Create a repo
+- persistent volume: `forgejo_data`
 
-1) Click New Repository.
-2) Choose a name and visibility, then create the repository.
+## Push helper
 
-## Clone from another machine
+The repo includes a local push helper with basic secret scanning:
 
-Use the SSH endpoint on port 2222:
+- `tools/bin/git-push/git-push`
 
-```bash
-git clone ssh://git@<host-ip>:2222/<user>/<repo>.git
-```
-
-## Common commands
-
-```bash
-git status
-git add .
-git commit -m "Describe change"
-git push
-```
-
-## Backup and restore
-
-Forgejo stores all data in the named Docker volume `forgejo_data`. Back it up with a
-one-off container and a tarball on the host:
-
-```bash
-mkdir -p backups
-docker run --rm \
-  -v forgejo_data:/data:ro \
-  -v "$(pwd)/backups:/backups" \
-  alpine \
-  tar -czf /backups/forgejo-data-$(date +%F).tar.gz -C /data .
-```
-
-To restore, stop Forgejo and extract the tarball into the volume:
-
-```bash
-docker compose \
-  -f compose/admin/forgejo/docker-compose.yml \
-  down
-
-docker run --rm \
-  -v forgejo_data:/data \
-  -v "$(pwd)/backups:/backups" \
-  alpine \
-  sh -c "rm -rf /data/* && tar -xzf /backups/forgejo-data-YYYY-MM-DD.tar.gz -C /data"
-```
-
-Do not mount the `forgejo_data` volume into other containers.
+That helper is for committed history only; it does not replace review.

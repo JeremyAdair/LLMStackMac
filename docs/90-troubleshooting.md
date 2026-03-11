@@ -1,141 +1,77 @@
 # Troubleshooting
 
-Common issues and fixes for the LLMStack.
-
-## First response playbook
-
-When things are broken, run these first:
+## First commands
 
 ```bash
-./tools/bin/llm status
-./tools/bin/llm doctor
-SINCE=2h ./tools/bin/llm logs reverse-proxy auth open-webui flowise
-./tools/bin/llm debug-bundle
+./tools/bin/cli-handler/llm status
+./tools/bin/cli-handler/llm doctor
+SINCE=2h ./tools/bin/cli-handler/llm logs reverse-proxy auth open-webui flowise
+./tools/bin/cli-handler/llm debug-bundle
 ```
 
-`llm debug-bundle` writes a timestamped folder under `debug-bundles/` that you can share for deep troubleshooting.
+## Open WebUI has no models
 
-## Ports already in use
-
-Symptoms:
-- Containers fail to start due to port conflicts.
-
-Fix:
-- Check which process is using the port and stop it.
+Check these in order:
 
 ```bash
-sudo lsof -i :80
-sudo lsof -i :11434
+ollama list
+launchctl getenv OLLAMA_MODELS
+docker exec llm-core-open-webui-1 sh -lc 'curl -sS http://ollama-gateway:11434/api/tags'
 ```
 
-## Reverse proxy routing issues
-
-Symptoms:
-- 404 errors or blank pages when accessing UI routes.
-
-Fix:
-- Ensure the reverse proxy is running.
-- Confirm the route exists in `config/reverse-proxy/nginx.conf`.
-- Restart the reverse proxy.
+If host Ollama is using the wrong models directory, reset it:
 
 ```bash
-docker compose \
-  -f compose/core/reverse-proxy/docker-compose.yml \
-  restart reverse-proxy
+./tools/bin/cli-handler/llm ollama-models-path /Volumes/LLM_DATA/ollama/models
 ```
 
-## Auth gateway login problems
+## Reverse proxy unreachable from another machine
 
-Symptoms:
-- Redirect loops or unable to log in.
+By default, `80`, `443`, and `2222` bind to `127.0.0.1`.
 
-Fix:
-- Verify `AUTHELIA_DOMAIN` matches the hostname you use in the browser.
-- Check the secrets in `.env` are not empty.
-- Confirm the user hash in `config/auth/users_database.yml` is correct.
-
-## Container stuck in restarting
-
-Symptoms:
-- `docker ps` shows `Restarting`.
-
-Fix:
-- Inspect logs for the container.
+Check:
 
 ```bash
-SINCE=2h ./tools/bin/llm logs ollama
+grep -n 'HOST_BIND_IP' .env.mac .env.mac.example 2>/dev/null
 ```
 
-## Qdrant not reachable from Flowise
+If you want Tailscale or LAN access later, change the bind strategy intentionally and pair it with host firewall policy.
 
-Symptoms:
-- Flowise fails to retrieve vectors.
+## Ollama works on host but not in containers
 
-Fix:
-- Ensure Qdrant is running.
-- Check network connectivity using service name `qdrant:6333`.
+Check the gateway path:
 
 ```bash
-docker compose \
-  -f compose/data/qdrant/docker-compose.yml \
-  exec -it qdrant curl -f http://localhost:6333/collections
+docker exec llm-core-open-webui-1 sh -lc 'curl -i http://ollama-gateway:11434/api/version'
+docker exec llm-core-open-webui-1 sh -lc 'curl -i http://ollama-gateway:11434/api/tags'
 ```
 
-Also check Flowise + reverse-proxy logs together:
+Remember:
+
+- `/api/pull` is intentionally blocked by the gateway
+- only intended services should be on `llm-ollama-access`
+
+## Console issues
+
+If `/console/` loads but the terminal session looks wrong, check the lab console container:
 
 ```bash
-SINCE=2h ./tools/bin/llm logs flowise reverse-proxy
+./tools/bin/cli-handler/llm up lab console
+docker logs llm-lab-console-1
 ```
 
-## Ollama model download or disk full
+The console should start `tmux new-session -A -s llmstack`.
 
-Symptoms:
-- Model downloads fail or the container exits.
+## Auth problems
 
-Fix:
-- Check disk usage and free space.
-- Remove unused models.
+Check:
+
+- required secrets in `.env.mac`
+- `config/auth/users_database.yml`
+- `config/reverse-proxy/nginx.conf`
+
+Then recreate core:
 
 ```bash
-df -h
+./tools/bin/cli-handler/llm up core
 ```
-
-## Permission issues with PDF ingest folders
-
-Symptoms:
-- Containers cannot read or write under `data/pdfs/`.
-
-Fix:
-- Ensure the PDF directories exist and are writable.
-
-```bash
-mkdir -p data/pdfs/ingest-dropzone data/pdfs/processed/{original,rawtext,json,chunk} data/pdfs/failed
-chmod -R u+rwX data/pdfs
-```
-
-## macOS gotchas
-
-Symptoms:
-- Works intermittently or fails on Mac.
-
-Fix:
-- Confirm hosts entries are present: `./tools/bin/CreateHostEntries/llm-hosts-update --print`
-- Confirm DNS flushed on macOS:
-  - `sudo dscacheutil -flushcache`
-  - `sudo killall -HUP mDNSResponder`
-- Confirm env file in use (`.env.mac`) has required auth secrets.
-- Run:
-
-```bash
-./tools/bin/llm doctor
-./tools/bin/llm debug-bundle
-```
-
-## README not rendering
-
-Symptoms:
-- Markdown appears broken or code blocks are not closed.
-
-Fix:
-- Check for unclosed code fences in Markdown files.
-- Use a Markdown linter or review recent edits.

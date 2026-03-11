@@ -1,128 +1,53 @@
-# Speech and OCR Services
+# Media Utilities
 
-This document explains how to use the local STT (speech-to-text), TTS (text-to-speech), OCR, and the Python toolbox.
+The media helpers live in `llm-lab` and are mostly job-style utilities.
 
-## Model storage and why it is gitignored
+## OCR
 
-Models and voices are large binary files. They are stored under `data/` and gitignored to keep the repository small and avoid committing artifacts.
-
-For Ollama, pull the project model set with `tools/bin/llm models pull`. The model list is sourced from `prompts/system/install-ollama-and-models.md`.
-
-## Pull Ollama models
+Run OCR with the lab service:
 
 ```bash
-./tools/bin/llm models pull
+./tools/bin/cli-handler/llm up lab ocr
+./tools/bin/cli-handler/llm ocr run <filename>
 ```
 
-Note: STT/TTS model assets are optional and are not bootstrapped by `llm models pull`.
-If you enable STT/TTS later, initialize those assets as part of STT/TTS setup.
+Input and output paths:
 
-Ollama smoke test:
+- input: `data/ocr/ingest-dropzone/`
+- output text: `data/ocr/processed/rawtext/`
+- output metadata: `data/ocr/processed/json/`
+- failures: `data/ocr/failed/`
+
+## STT
+
+Speech-to-text uses `whisper.cpp`.
 
 ```bash
-ollama list
+./tools/bin/cli-handler/llm stt transcribe <file.wav>
 ```
 
-## STT (Whisper)
+Assets live under:
 
-Purpose: Convert audio files into text transcripts.
+- `data/stt/models/`
 
-Inputs:
-- `data/audio/in/` (place `.wav` files here)
+## TTS
 
-Outputs:
-- `data/audio/out/` (transcripts are written here)
-
-Example:
+Text-to-speech uses Piper.
 
 ```bash
-mkdir -p data/audio/in data/audio/out
-cp /path/to/sample.wav data/audio/in/
-./tools/bin/stt-transcribe sample.wav
+./tools/bin/cli-handler/llm tts speak "hello world"
 ```
 
-Expected output:
+Assets live under:
 
-- `data/audio/out/sample.txt`
+- `data/tts/voices/`
 
-Smoke test:
+## Ollama models
+
+Host Ollama models are not stored in the repo. On this Mac they can be pointed at external storage with:
 
 ```bash
-test -f data/audio/out/sample.txt
+./tools/bin/cli-handler/llm ollama-models-path /Volumes/LLM_DATA/ollama/models
 ```
 
-## TTS (Piper)
-
-Purpose: Convert text into speech audio.
-
-Inputs:
-- `data/audio/tts_in.txt` (text input)
-
-Outputs:
-- `data/audio/out/tts_output.wav`
-
-Example:
-
-```bash
-mkdir -p data/audio/out
-./tools/bin/tts-speak "hello world"
-```
-
-Smoke test:
-
-```bash
-test -f data/audio/out/tts_output.wav
-```
-
-## OCR (Tesseract)
-
-Purpose: Extract text from images or scanned documents.
-
-Inputs:
-- `data/ocr/ingest-dropzone/` (place `.png`, `.jpg`, or `.pdf` images here)
-
-Outputs:
-- `data/ocr/processed/rawtext/` (OCR text output)
-- `data/ocr/processed/json/` (OCR metadata per file)
-- `data/ocr/processed/chunk/` (line-chunked OCR text files)
-- `data/ocr/failed/` (inputs copied here if OCR fails)
-
-Example:
-
-```bash
-mkdir -p data/ocr/ingest-dropzone data/ocr/processed/rawtext data/ocr/processed/json data/ocr/processed/chunk data/ocr/failed
-cp /path/to/sample.png data/ocr/ingest-dropzone/
-./tools/bin/ocr-run sample.png
-```
-
-Expected output:
-
-- `data/ocr/processed/rawtext/sample.txt`
-- `data/ocr/processed/json/sample.json`
-
-Smoke test:
-
-```bash
-test -f data/ocr/processed/rawtext/sample.txt
-```
-
-## Python toolbox jobs
-
-Purpose: Run one-off scripts and pipelines inside a controlled container.
-
-Example commands:
-
-```bash
-docker compose \
-  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
-
-docker compose \
-  run --rm python-toolbox python /app/scripts/rag_ingest/ingest_folder.py
-```
-
-Smoke test:
-
-```bash
-docker compose \
-  run --rm python-toolbox python /app/scripts/db_tools/healthcheck.py
-```
+The repo may contain local-only symlinks for operator convenience, but those should stay ignored and uncommitted.

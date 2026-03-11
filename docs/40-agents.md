@@ -1,28 +1,40 @@
-# Agents
+# Agent Tooling
 
 ## Flowise
 
-Flowise provides a visual agent builder. It is configured to talk to Ollama on the internal Docker network.
+Flowise is the main graph-based agent/workflow tool in the stack.
 
-Access it through the reverse proxy at:
+- URL: `https://flowise.llmstack.lan/`
+- backend model URL inside Docker: `http://ollama-gateway:11434`
+- data volume: `flowise_data`
+- PDF bind mount: `data/pdfs -> /data/pdfs`
 
-- `http://localhost/flowise/`
-
-You can optionally set `FLOWISE_USERNAME` and `FLOWISE_PASSWORD` in `.env.mac` to enable basic auth.
-
-For PDF auto-ingest, configure:
-
-- Host folder: `./data/pdfs`
-- Container path: `/data/pdfs`
-- `.env.mac`:
-  - `FLOWISE_URL=http://flowise:3000`
-  - `FLOWISE_INGEST_CHATFLOW_ID=<your_ingestion_chatflow_id>`
-  - `FLOWISE_INGEST_STOP_NODE_ID=qdrant_0`
+Flowise is part of `llm-core`, not `llm-lab`.
 
 ## OpenHands
 
-OpenHands provides an agentic coding workspace. It is only reachable through the reverse proxy by default.
+OpenHands is optional lab tooling for agentic coding.
 
-Access it at:
+- URL: `https://openhands.llmstack.lan/`
+- layer: `llm-lab`
+- persistent state: `openhands_data`
+- workspace bind mount: `data/openhands-workspace`
 
-- `http://localhost/openhands/`
+The standalone OpenHands compose no longer mounts `docker.sock` by default. Use the override only if you intentionally want Docker access from OpenHands.
+
+## OpenClaw
+
+OpenClaw is optional experimental agent tooling.
+
+- URL: `https://openclaw.llmstack.lan/`
+- layer: `llm-lab`
+
+## Console
+
+The stack now includes an authenticated browser console:
+
+- URL: `https://llmstack.lan/console/`
+- backend: `ttyd`
+- session model: persistent `tmux` session named `llmstack`
+
+This console is behind Authelia and should be treated as high-trust access.

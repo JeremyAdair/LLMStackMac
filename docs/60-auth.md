@@ -1,103 +1,54 @@
-# Authentication Gateway
+# Authentication
 
-This stack uses Authelia as a self-hosted authentication gateway. It sits in front of protected web services and requires a username and password before access.
+Authelia is the browser-facing authentication layer for the stack.
 
-## What it does
+## What it protects
 
-- Protects web routes at the reverse proxy level.
-- Requires login before accessing Open WebUI, Flowise, OpenHands, and Grafana.
-- Stores session/state data in Postgres.
-- Uses a file-based user directory (`config/auth/users_database.yml`).
+- landing page at `https://llmstack.lan/`
+- Forgejo
+- pgAdmin
+- RedisInsight
+- Grafana
+- Node-RED
+- OpenHands
+- OpenClaw
+- `/console/`
+- PDF upload routes on the landing domain
 
-## What it does not do
+## What it does not protect
 
-- It does not secure internal APIs or databases that are not exposed publicly.
-- It does not replace application-level roles; it only gates access at the proxy.
+- Docker-internal service-to-service traffic
+- Postgres, Redis, or Qdrant internal ports
+- native Ollama API used by internal stack services
 
-## Login flow
+That last point is important: native Ollama is a trusted internal backend, not an Authelia-fronted API.
 
-1) Browser requests a protected URL.
-2) Nginx forwards the request to Authelia for verification.
-3) If not logged in, Authelia redirects to its login page.
-4) After login, the request is allowed and forwarded to the app.
+## Open WebUI auth shape
 
-## Protected routes
+Open WebUI is configured for OIDC/SSO with Authelia. It is not protected by `auth_request` in the same way as every other route because its API and websocket behavior is handled differently.
 
-- `/` (Open WebUI)
-- `/flowise/`
-- `/openhands/`
-- `/grafana/`
-- `/nodered/`
+## Forgejo auth shape
 
-Internal services (Qdrant, Redis, Postgres, STT, TTS, OCR, RAG pipeline) are not exposed publicly and are not protected by the gateway.
+Forgejo is configured for reverse-proxy authentication:
 
-## First-time setup
+- local sign-in routes are redirected away
+- Authelia is the intended login path
+- Nginx forwards the authenticated user header
 
-1) Copy the environment example and set auth secrets:
+## User management
 
-```bash
-cp .env.example .env
-```
+Local users live in:
 
-Set these values to strong random strings:
+- `config/auth/users_database.yml`
 
-- `AUTHELIA_JWT_SECRET`
-- `AUTHELIA_SESSION_SECRET`
-- `AUTHELIA_STORAGE_ENCRYPTION_KEY`
-
-2) Create a user hash and update the user database.
-
-Generate a password hash:
+Generate a password hash with:
 
 ```bash
-docker run --rm authelia/authelia:latest authelia hash-password --password "change-me"
+docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'change-me'
 ```
 
-Replace the password hash in `config/auth/users_database.yml` for the `admin` user.
-
-3) Start the stack.
+Then restart core services if needed:
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up core
 ```
-
-## Add or remove users
-
-Users are stored in `config/auth/users_database.yml`.
-
-- Add a new user entry with a unique name and hashed password.
-- Remove users by deleting their block.
-
-After editing, restart Authelia:
-
-```bash
-docker compose \
-  -f compose/core/auth/docker-compose.yml \
-  restart auth
-```
-
-## Rotate passwords
-
-1) Generate a new hash with the same command as above.
-2) Update the user entry.
-3) Restart Authelia.
-
-## Temporarily disable auth
-
-For debugging only, you can remove the auth checks in the reverse proxy:
-
-1) Edit `config/reverse-proxy/nginx.conf` and comment out the `auth_request` and `error_page` lines.
-2) Restart the reverse proxy:
-
-```bash
-docker compose \
-  -f compose/core/reverse-proxy/docker-compose.yml \
-  restart reverse-proxy
-```
-
-## Common failure modes
-
-- Redirect loops: `AUTHELIA_DOMAIN` does not match the host you are using in the browser.
-- Login page but no access: missing or incorrect user hash in `users_database.yml`.
-- 500 errors at login: missing or empty auth secrets in `.env`.
-- Grafana renders incorrectly: `GRAFANA_ROOT_URL` is not set to the `/grafana/` subpath.

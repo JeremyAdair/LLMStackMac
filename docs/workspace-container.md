@@ -1,51 +1,25 @@
-# Workspace container for OpenHands
+# Workspace and Console
 
-The workspace container is a safe play area for running OpenHands and CLI tools
-against git working copies. It is designed to avoid hidden state and permission
-surprises.
+The practical workspace path in the current stack is the OpenHands bind mount:
 
-## Goals and guardrails
+- `data/openhands-workspace`
 
-- Only `./data/openhands-workspace` is writable. The container filesystem is read-only.
-- The container runs as a non-root user, using `WORKSPACE_UID` and `WORKSPACE_GID`.
-- OpenHands should only operate on paths under `/workspace`.
-- Review changes with `git status` and `git diff` before committing.
-- Do not push automatically. Push only after review.
+That path is also mounted into the browser console service at `/workspace`.
 
-## Start the workspace container
+## Console behavior
 
-```bash
-docker compose \
-  -f compose/lab/workspace/docker-compose.yml \
-  up -d
-```
+- route: `https://llmstack.lan/console/`
+- backend: `ttyd`
+- shell command: `tmux new-session -A -s llmstack`
 
-## Use it safely
+That means browser console sessions reconnect to the same persistent `tmux` session.
 
-1) Clone a repo into `./data/openhands-workspace` on the host.
-2) Connect OpenHands to `/workspace/<repo>`.
-3) Run git commands inside the container:
+## OpenHands workspace behavior
 
-```bash
-docker compose \
-  -f compose/lab/workspace/docker-compose.yml \
-  exec workspace git status
-```
+OpenHands stores persistent app state in `openhands_data` and uses the workspace bind mount for repos and files. The default stack no longer grants `docker.sock` to OpenHands.
 
-If file ownership is incorrect, set `WORKSPACE_UID` and `WORKSPACE_GID` in `.env`
-to match your host user and rebuild the workspace image:
+If you intentionally need Docker-backed OpenHands sandboxes, use:
 
-```bash
-docker compose \
-  -f compose/lab/workspace/docker-compose.yml \
-  build --no-cache
-```
+- `compose/lab/openhands/docker-runtime.override.yml`
 
-## Reset and recovery
-
-- `docker compose stop` and `docker compose start` keep both the workspace content
-  and the Forgejo volume.
-- `docker compose down` keeps named volumes, so Forgejo data remains.
-- `docker compose down -v` removes named volumes, including `forgejo_data`.
-- The workspace directory is a bind mount. Delete workspace folders under `./data/openhands-workspace` to
-  reset it without affecting the git server.
+and treat it as a higher-trust mode.

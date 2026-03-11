@@ -1,32 +1,55 @@
-# Layered Docker Architecture
+# Architecture
 
-The stack is now split into multiple Docker Compose projects so Docker Desktop shows clean grouped stacks instead of one flat project.
+## Compose projects
 
-## Projects
+- `llm-data`
+- `llm-core`
+- `llm-observability`
+- `llm-observability-host`
+- `llm-admin`
+- `llm-lab`
 
-- `llm-data`: stateful datastores.
-- `llm-core`: daily-use user-facing services.
-- `llm-observability`: metrics and monitoring.
-- `llm-admin`: operator/admin UIs.
-- `llm-lab`: experimental and workflow tooling.
+Each project has its own top-level compose file under `compose/`.
 
-All projects connect to one external shared network:
+## Networks
 
-- `llm-shared`
+`llm-shared`
 
-This keeps cross-project DNS stable (`postgres`, `qdrant`, `flowise`, etc.) while preserving separate project grouping in Docker Desktop.
+- external shared network across all layers
+- standard cross-service DNS
 
-## Why this model
+`llm-ollama-access`
 
-- Cleaner Docker Desktop UX with collapsible service groups.
-- Clear operational boundaries between always-on and optional services.
-- Lower default resource footprint.
-- Safer maintenance and upgrades by layer.
-- No Kubernetes overhead for a macOS homelab.
+- external restricted network
+- intended only for services that need Ollama inference
+- created as `--internal` by the stack helper when newly created
 
-## Security constraints preserved
+## Ollama boundary
 
-- SSO/auth remains in front of protected UIs.
-- Persistent data paths/volumes are preserved.
-- Admin/lab services are no longer always-on.
-- OpenHands no longer mounts `docker.sock` by default.
+Current design:
+
+- Ollama runs natively on the Mac
+- containers never use `host.docker.internal:11434` directly
+- containers use `http://ollama-gateway:11434`
+- `ollama-gateway` is the only stack service that knows `OLLAMA_UPSTREAM_URL`
+
+This keeps the trust boundary cleaner without containerizing Ollama on Apple Silicon.
+
+## Web ingress
+
+Nginx is the single host ingress.
+
+- `80` and `443` are published
+- they bind to loopback by default
+- TLS is terminated at Nginx
+- Authelia handles the browser-facing auth flow
+
+## Higher-trust exceptions
+
+These are intentionally not in the default startup:
+
+- `cadvisor`
+- `node-exporter`
+- any OpenHands runtime override that mounts `docker.sock`
+
+That split exists to keep the default stack lower trust.
