@@ -123,6 +123,12 @@ echo
 
 echo "[5/7] Host Ollama (bare metal)"
 if command -v ollama >/dev/null 2>&1; then
+  models_path="$(launchctl getenv OLLAMA_MODELS 2>/dev/null || true)"
+  if [[ -n "${models_path}" ]]; then
+    say_ok "OLLAMA_MODELS=${models_path}"
+  else
+    say_warn "OLLAMA_MODELS not set in launchctl"
+  fi
   if pgrep -f '[o]llama serve' >/dev/null 2>&1; then
     say_ok "ollama serve process detected"
   else
@@ -164,9 +170,9 @@ else
 fi
 echo
 echo "Next steps:"
-echo "- Start core/data: ./tools/bin/llm up core"
-echo "- Start everything: ./tools/bin/llm up full"
-echo "- Status view: ./tools/bin/llm status"
+echo "- Start core/data: ./tools/bin/cli-handler/llm up core"
+echo "- Start everything: ./tools/bin/cli-handler/llm up full"
+echo "- Status view: ./tools/bin/cli-handler/llm status"
 
 if [[ "${failures}" -gt 0 ]]; then
   exit 1

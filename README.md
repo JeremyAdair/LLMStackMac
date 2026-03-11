@@ -321,6 +321,15 @@ If you want to harden native Ollama further on macOS, the repo includes scoped
 ./tools/bin/cli-handler/llm ollama-firewall-disable
 ```
 
+If host Ollama should use model storage on external media, set it explicitly with:
+
+```bash
+./tools/bin/cli-handler/llm ollama-models-path /Volumes/LLM_DATA/ollama/models
+```
+
+That updates the macOS `launchctl` environment for the Homebrew Ollama service,
+restarts the service, and keeps the stack pointed at the drive-backed model store.
+
 ## Local Git
 
 This stack includes a Forgejo service for local git hosting. Forgejo is a
