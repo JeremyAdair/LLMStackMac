@@ -296,6 +296,17 @@ The stack now routes Ollama traffic through a dedicated `llm-ollama-access` netw
 Only services that actually need model access join that network, and only the
 `ollama-gateway` service knows the host-reachable upstream URL.
 
+The intended Ollama clients are:
+
+- `open-webui`
+- `flowise`
+- `python-toolbox`
+- `rag-pipeline`
+
+The gateway only proxies inference and metadata endpoints used by stack services.
+It does not expose general model-management routes such as pull, push, create, or
+delete through the Docker network.
+
 Native Ollama remains a trusted internal backend for stack services. Authelia
 protects browser-facing routes, but it is not an auth gateway for the Ollama API
 used by Open WebUI, Flowise, the RAG pipeline, or other internal components.

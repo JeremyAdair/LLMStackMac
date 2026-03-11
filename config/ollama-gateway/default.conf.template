@@ -3,11 +3,74 @@ server {
 
   resolver 127.0.0.11 valid=30s ipv6=off;
 
-  location / {
+  client_max_body_size 64m;
+  proxy_http_version 1.1;
+  proxy_set_header Host $host;
+  proxy_set_header Connection "";
+  proxy_buffering off;
+  proxy_read_timeout 600s;
+  proxy_send_timeout 600s;
+
+  # Allow read-only metadata and inference APIs used by stack services.
+  location = /api/tags {
     proxy_pass ${OLLAMA_UPSTREAM_URL};
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header Connection "";
-    proxy_buffering off;
+  }
+
+  location = /api/version {
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /api/ps {
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /api/show {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /api/generate {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /api/chat {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /api/embed {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /api/embeddings {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  # Allow OpenAI-compatible inference routes for clients that use them.
+  location = /v1/models {
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /v1/chat/completions {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /v1/completions {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  location = /v1/embeddings {
+    limit_except POST { deny all; }
+    proxy_pass ${OLLAMA_UPSTREAM_URL};
+  }
+
+  # Deny model pull/push/create/delete and any other unexpected API surface.
+  location / {
+    return 403;
   }
 }
