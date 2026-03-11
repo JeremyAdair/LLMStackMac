@@ -63,6 +63,7 @@ services:
     volumes:
       - ../config/ollama-gateway/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     networks:
+      - llm-stack
       - ollama-access
     expose:
       - "11434"
@@ -106,6 +107,7 @@ services:
       - ../data:/data
     networks:
       - llm-stack
+      # Model UI needs Ollama inference but should not know any host upstream URL.
       - ollama-access
     restart: unless-stopped
 
@@ -154,6 +156,7 @@ services:
       - ../data:/data
     networks:
       - llm-stack
+      # Flowise is an intended Ollama client for local agent flows.
       - ollama-access
     restart: unless-stopped
 

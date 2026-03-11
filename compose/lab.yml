@@ -31,6 +31,7 @@ services:
         aliases:
           - python-toolbox
           - python-api
+      # Toolbox jobs intentionally use Ollama for embeddings/inference.
       ollama-access:
     restart: unless-stopped
 
@@ -176,6 +177,7 @@ services:
       - ../data:/data
     networks:
       - llm-stack
+      # Batch embedding/indexing job intentionally uses Ollama.
       - ollama-access
 
   pdf-ingest:

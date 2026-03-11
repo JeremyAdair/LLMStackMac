@@ -25,7 +25,7 @@ ensure_shared_network() {
 
   if ! docker network inspect llm-ollama-access >/dev/null 2>&1; then
     echo "[llmstack] Creating shared network llm-ollama-access"
-    docker network create llm-ollama-access >/dev/null
+    docker network create --internal llm-ollama-access >/dev/null
   fi
 }
 

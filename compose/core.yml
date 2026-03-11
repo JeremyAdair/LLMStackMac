@@ -6,6 +6,7 @@ services:
     volumes:
       - ../config/ollama-gateway/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     networks:
+      llm-stack:
       ollama-access:
         aliases:
           - ollama-gateway
@@ -73,6 +74,7 @@ services:
       llm-stack:
         aliases:
           - open-webui
+      # Model UI needs Ollama inference but should not know any host upstream URL.
       ollama-access:
     restart: unless-stopped
 
@@ -90,6 +92,7 @@ services:
       llm-stack:
         aliases:
           - flowise
+      # Flowise is an intended Ollama client for local agent flows.
       ollama-access:
     expose:
       - "3000"
