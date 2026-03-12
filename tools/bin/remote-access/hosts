@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "${script_dir}/../../.." && pwd)"
+
+find_tailscale_ip() {
+  if [[ -n "${LLMSTACK_TAILSCALE_IP:-}" ]]; then
+    printf '%s\n' "${LLMSTACK_TAILSCALE_IP}"
+    return 0
+  fi
+
+  if command -v tailscale >/dev/null 2>&1; then
+    local ip
+    ip="$(tailscale ip -4 2>/dev/null | head -n1 || true)"
+    if [[ -n "${ip}" ]]; then
+      printf '%s\n' "${ip}"
+      return 0
+    fi
+  fi
+
+  ifconfig | awk '/inet 100\./ {print $2; exit}'
+}
+
+tailscale_ip="$(find_tailscale_ip)"
+if [[ -z "${tailscale_ip}" ]]; then
+  echo "Could not determine this Mac's Tailscale IPv4 address." >&2
+  exit 1
+fi
+
+LLMSTACK_HOSTS_IP="${tailscale_ip}" "${repo_root}/tools/bin/create-host-entries/llm-hosts-update" --print

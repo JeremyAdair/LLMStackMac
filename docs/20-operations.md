@@ -47,6 +47,30 @@ Stop everything:
 ./tools/bin/cli-handler/llm debug-bundle
 ```
 
+## Tailscale remote access
+
+Enable Tailscale-only web and DNS exposure:
+
+```bash
+./tools/bin/remote-access/enable
+```
+
+Refresh the Technitium split-DNS zone after the Tailscale IP changes:
+
+```bash
+./tools/bin/remote-access/split-dns-sync
+```
+
+Check current Tailscale exposure state:
+
+```bash
+./tools/bin/remote-access/status
+```
+
+The stack-side work is local and reproducible. The one external control-plane
+step is setting Tailscale split DNS for `llmstack.lan` to this Mac's Tailscale
+IP in the Tailscale admin DNS settings.
+
 ## Logs
 
 ```bash

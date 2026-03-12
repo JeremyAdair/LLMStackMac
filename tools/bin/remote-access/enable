@@ -46,8 +46,8 @@ pass quick on lo0 inet proto tcp from any to 127.0.0.1 port {53, 80, 443, 2222}
 pass quick on lo0 inet proto udp from any to 127.0.0.1 port 53
 pass in quick inet proto tcp from 100.64.0.0/10 to any port {53, 80, 443, 2222}
 pass in quick inet proto udp from 100.64.0.0/10 to any port 53
-block drop quick inet proto tcp from any to any port {53, 80, 443, 2222}
-block drop quick inet proto udp from any to any port 53
+block drop in quick inet proto tcp from any to any port {53, 80, 443, 2222}
+block drop in quick inet proto udp from any to any port 53
 EOF
 
 sudo sh <<EOF
@@ -82,6 +82,7 @@ perl -0pi -e 's/^HOST_BIND_IP=.*/HOST_BIND_IP=0.0.0.0/m or $_ .= "\nHOST_BIND_IP
 ensure_docker_path
 docker compose --env-file "${env_file}" -p llm-core -f "${repo_root}/compose/core.yml" up -d reverse-proxy
 docker compose --env-file "${env_file}" -p llm-admin -f "${repo_root}/compose/admin.yml" up -d dns-server forgejo
+"${script_dir}/split-dns-sync"
 
 echo
 echo "Listeners:"

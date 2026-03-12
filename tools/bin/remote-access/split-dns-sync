@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "${script_dir}/../../.." && pwd)"
+env_file="${LLMSTACK_ENV_FILE:-${repo_root}/.env.mac}"
+domain="${LLMSTACK_DOMAIN:-llmstack.lan}"
+zone_name="${LLMSTACK_SPLIT_DNS_ZONE:-${domain}}"
+technitium_url="${LLMSTACK_TECHNITIUM_API_URL:-http://dns-server:5380}"
+technitium_user="${LLMSTACK_TECHNITIUM_USER:-admin}"
+
+hostnames=(
+  "${domain}"
+  "openwebui.${domain}"
+  "flowise.${domain}"
+  "openhands.${domain}"
+  "openclaw.${domain}"
+  "grafana.${domain}"
+  "prometheus.${domain}"
+  "pgadmin.${domain}"
+  "redisinsight.${domain}"
+  "dns.${domain}"
+  "qdrant.${domain}"
+  "nodered.${domain}"
+  "forgejo.${domain}"
+)
+
+ensure_docker_path() {
+  if ! command -v docker >/dev/null 2>&1; then
+    export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+  fi
+}
+
+find_tailscale_ip() {
+  if [[ -n "${LLMSTACK_TAILSCALE_IP:-}" ]]; then
+    printf '%s\n' "${LLMSTACK_TAILSCALE_IP}"
+    return 0
+  fi
+
+  if command -v tailscale >/dev/null 2>&1; then
+    local ip
+    ip="$(tailscale ip -4 2>/dev/null | head -n1 || true)"
+    if [[ -n "${ip}" ]]; then
+      printf '%s\n' "${ip}"
+      return 0
+    fi
+  fi
+
+  ifconfig | awk '/inet 100\./ {print $2; exit}'
+}
+
+read_env_value() {
+  local key="$1"
+  python3 - "$env_file" "$key" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+env_path = Path(sys.argv[1])
+key = sys.argv[2]
+text = env_path.read_text() if env_path.exists() else ""
+match = re.search(rf'^{re.escape(key)}=(.*)$', text, re.M)
+print(match.group(1).strip() if match else "")
+PY
+}
+
+urlencode() {
+  python3 - "$1" <<'PY'
+import sys
+from urllib.parse import quote
+print(quote(sys.argv[1], safe=""))
+PY
+}
+
+find_api_client_container() {
+  local names
+  names="$(docker ps --format '{{.Names}}')"
+
+  if printf '%s\n' "${names}" | rg -q '^llm-core-open-webui-'; then
+    printf '%s\n' "${names}" | rg '^llm-core-open-webui-' | head -n1
+    return 0
+  fi
+
+  if printf '%s\n' "${names}" | rg -q '^llm-core-flowise-'; then
+    printf '%s\n' "${names}" | rg '^llm-core-flowise-' | head -n1
+    return 0
+  fi
+
+  if printf '%s\n' "${names}" | rg -q '^llm-core-reverse-proxy-'; then
+    printf '%s\n' "${names}" | rg '^llm-core-reverse-proxy-' | head -n1
+  fi
+}
+
+extract_json_field() {
+  local field="$1"
+  python3 -c '
+import json
+import sys
+
+field = sys.argv[1]
+payload = json.loads(sys.stdin.read())
+value = payload.get(field)
+if value is None:
+    response = payload.get("response", {})
+    value = response.get(field)
+if value is None:
+    raise SystemExit(1)
+print(value)
+' "$field"
+}
+
+tailscale_ip="$(find_tailscale_ip)"
+if [[ -z "${tailscale_ip}" ]]; then
+  echo "Could not determine this Mac's Tailscale IPv4 address." >&2
+  exit 1
+fi
+
+if [[ ! -f "${env_file}" ]]; then
+  echo "Missing env file: ${env_file}" >&2
+  exit 1
+fi
+
+technitium_password="$(read_env_value TECHNITIUM_ADMIN_PASSWORD)"
+if [[ -z "${technitium_password}" ]]; then
+  echo "TECHNITIUM_ADMIN_PASSWORD is not set in ${env_file}" >&2
+  exit 1
+fi
+
+ensure_docker_path
+client_container="$(find_api_client_container)"
+if [[ -z "${client_container}" ]]; then
+  echo "Could not find a running core container with curl for Technitium API access." >&2
+  exit 1
+fi
+
+encoded_user="$(urlencode "${technitium_user}")"
+encoded_pass="$(urlencode "${technitium_password}")"
+encoded_zone="$(urlencode "${zone_name}")"
+
+login_response="$(docker exec "${client_container}" curl -sS "${technitium_url}/api/user/login?user=${encoded_user}&pass=${encoded_pass}&includeInfo=true")"
+token="$(printf '%s' "${login_response}" | extract_json_field token)"
+
+zones_response="$(docker exec "${client_container}" curl -sS "${technitium_url}/api/zones/list?token=${token}")"
+if ! printf '%s' "${zones_response}" | python3 -c '
+import json
+import sys
+
+zone = sys.argv[1]
+payload = json.loads(sys.stdin.read())
+zones = payload.get("response", {}).get("zones", [])
+raise SystemExit(0 if any(item.get("name") == zone for item in zones) else 1)
+' "${zone_name}"
+then
+  docker exec "${client_container}" curl -sS "${technitium_url}/api/zones/create?token=${token}&zone=${encoded_zone}&type=Primary" >/dev/null
+fi
+
+serial="$(date +%Y%m%d%H)"
+zone_tmp="$(mktemp)"
+trap 'rm -f "${zone_tmp}"' EXIT
+
+{
+  printf '$ORIGIN %s.\n' "${zone_name}"
+  printf '$TTL 300\n'
+  printf '@ IN SOA dns.%s. admin.%s. %s 3600 600 1209600 300\n' "${zone_name}" "${zone_name}" "${serial}"
+  printf '@ IN NS dns.%s.\n' "${zone_name}"
+  printf '@ IN A %s\n' "${tailscale_ip}"
+  for host in "${hostnames[@]}"; do
+    if [[ "${host}" == "${zone_name}" ]]; then
+      continue
+    fi
+    relative="${host%.${zone_name}}"
+    printf '%s IN A %s\n' "${relative}" "${tailscale_ip}"
+  done
+} > "${zone_tmp}"
+
+docker exec -i "${client_container}" curl -sS \
+  -X POST \
+  -H 'Content-Type: text/plain' \
+  --data-binary @- \
+  "${technitium_url}/api/zones/import?token=${token}&zone=${encoded_zone}&overwrite=true" < "${zone_tmp}" >/dev/null
+
+echo "Technitium zone synced:"
+echo "  zone: ${zone_name}"
+echo "  nameserver: ${tailscale_ip}"
+echo
+echo "Tailscale admin DNS settings:"
+echo "  Nameserver IP: ${tailscale_ip}"
+echo "  Split domain: ${zone_name}"

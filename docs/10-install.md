@@ -8,7 +8,7 @@ This repo is currently optimized for macOS with Docker Desktop and native Ollama
 - Homebrew
 - `ollama` installed on the host
 - repo cloned to a writable path
-- local hostnames mapped in `/etc/hosts`
+- local hostnames mapped in `/etc/hosts`, or Tailscale split DNS for `llmstack.lan`
 
 ## Initial setup
 
@@ -31,7 +31,7 @@ Set required secrets in `.env.mac`:
 - `PGADMIN_DEFAULT_EMAIL`
 - `PGADMIN_DEFAULT_PASSWORD`
 
-## Hosts entries
+## Local hostname resolution
 
 Print the recommended host entries:
 
@@ -45,6 +45,16 @@ Add them to `/etc/hosts`, then flush macOS DNS:
 sudo dscacheutil -flushcache
 sudo killall -HUP mDNSResponder
 ```
+
+If you use Tailscale between devices, the preferred setup is split DNS:
+
+```bash
+./tools/bin/remote-access/enable
+```
+
+That brings up the Tailscale-only listeners, syncs the Technitium `llmstack.lan`
+zone to this Mac's Tailscale IP, and prints the values to enter once in the
+Tailscale admin DNS settings.
 
 ## Host Ollama
 

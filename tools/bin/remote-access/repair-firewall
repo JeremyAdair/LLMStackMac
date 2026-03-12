@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+anchor_file="/etc/pf.anchors/llmstack_tailscale_only"
+pf_conf="/etc/pf.conf"
+tmp_rules="$(mktemp)"
+trap 'rm -f "${tmp_rules}"' EXIT
+
+cat > "${tmp_rules}" <<'EOF'
+pass quick on lo0 inet proto tcp from any to 127.0.0.1 port {53, 80, 443, 2222}
+pass quick on lo0 inet proto udp from any to 127.0.0.1 port 53
+pass in quick inet proto tcp from 100.64.0.0/10 to any port {53, 80, 443, 2222}
+pass in quick inet proto udp from 100.64.0.0/10 to any port 53
+block drop in quick inet proto tcp from any to any port {53, 80, 443, 2222}
+block drop in quick inet proto udp from any to any port 53
+EOF
+
+sudo install -m 600 "${tmp_rules}" "${anchor_file}"
+sudo pfctl -nf "${pf_conf}"
+sudo pfctl -f "${pf_conf}"
+
+echo
+echo "Loaded rules:"
+sudo pfctl -a 'llmstack/tailscale-only' -sr
+
+echo
+echo "Connectivity checks:"
+curl -I --max-time 8 https://discord.com || true
+curl -I --max-time 8 'https://gateway.discord.gg/?v=9&encoding=json' || true
