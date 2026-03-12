@@ -7,12 +7,47 @@
       "token": "llmstack-openclaw-gateway-token"
     },
     "trustedProxies": [
-      "172.18.0.0/16"
+      "172.18.0.0/16",
+      "172.19.0.0/16"
     ],
     "controlUi": {
       "allowedOrigins": [
         "https://openclaw.llmstack.lan"
       ]
+    }
+  },
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://ollama-gateway:11434/v1",
+        "apiKey": "ollama-local",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen2.5-coder:7b-instruct",
+            "name": "Qwen 2.5 Coder 7B Instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ollama/qwen2.5-coder:7b-instruct"
+      }
     }
   }
 }

@@ -63,9 +63,7 @@ services:
       - /bin/sh
       - -lc
       - |
-        if [ ! -f /data/openclaw.json ]; then
-          cp /config/openclaw.json /data/openclaw.json
-        fi
+        install -m 600 /config/openclaw.json /data/openclaw.json
         exec node dist/index.js gateway
     environment:
       OPENCLAW_CONFIG_PATH: /data/openclaw.json
@@ -77,6 +75,7 @@ services:
       llm-stack:
         aliases:
           - openclaw
+      ollama-access:
     expose:
       - "18789"
     restart: unless-stopped

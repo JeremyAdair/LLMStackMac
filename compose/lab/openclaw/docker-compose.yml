@@ -55,9 +55,7 @@ services:
       - /bin/sh
       - -lc
       - |
-        if [ ! -f /data/openclaw.json ]; then
-          cp /config/openclaw.json /data/openclaw.json
-        fi
+        install -m 600 /config/openclaw.json /data/openclaw.json
         exec node dist/index.js gateway
     environment:
       # Use volume-backed runtime config (tokens/secrets never written to git files).
@@ -69,6 +67,12 @@ services:
       - ${OPENCLAW_STATE_MOUNT:-openclaw_data}:/data
     networks:
       - llm-stack
+      - ollama-access
     expose:
       # Internal-only port; reverse proxy publishes it.
       - "18789"
+
+networks:
+  ollama-access:
+    external: true
+    name: llm-ollama-access

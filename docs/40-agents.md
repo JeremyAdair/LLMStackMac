@@ -28,6 +28,9 @@ OpenClaw is optional experimental agent tooling.
 
 - URL: `https://openclaw.llmstack.lan/`
 - layer: `llm-lab`
+- model backend: `http://ollama-gateway:11434` through the internal Ollama access network
+- default model: `ollama/qwen2.5-coder:7b-instruct`
+- gateway auth stays token-based behind Authelia; the reverse proxy bootstraps the dashboard token for the browser route
 
 ## Console
 
