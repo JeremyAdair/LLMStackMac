@@ -109,37 +109,6 @@ services:
       - "3000"
     restart: unless-stopped
 
-  console:
-    build:
-      context: ..
-      dockerfile: compose/lab/console/Dockerfile
-    image: llmstack/console:local
-    command:
-      - -p
-      - "7681"
-      - -b
-      - /console
-      - -H
-      - X-WEBAUTH-USER
-      - -t
-      - titleFixed=LLMStack Console
-      - /bin/bash
-      - -lc
-      - exec tmux new-session -A -s llmstack
-    working_dir: /workspace
-    environment:
-      TMUX_TMPDIR: /tmp
-    volumes:
-      - ${OPENHANDS_REPOS_MOUNT:-../data/openhands-workspace}:/workspace
-      - ../tools/bin:/workspace/tools-bin:ro
-    networks:
-      llm-stack:
-        aliases:
-          - console
-    expose:
-      - "7681"
-    restart: unless-stopped
-
   pdf-auto-ingest:
     image: alpine@sha256:a4f4213abb84c497377b8544c81b3564f313746700372ec4fe84653e4fb03805
     environment:

@@ -16,6 +16,7 @@ lsof -nP -iUDP:53 || true
 lsof -nP -iTCP:80 -sTCP:LISTEN || true
 lsof -nP -iTCP:443 -sTCP:LISTEN || true
 lsof -nP -iTCP:2222 -sTCP:LISTEN || true
+lsof -nP -iTCP:7682 -sTCP:LISTEN || true
 
 echo
 echo "PF anchor rules:"
