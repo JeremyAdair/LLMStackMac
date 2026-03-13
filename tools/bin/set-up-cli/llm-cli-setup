@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "${script_dir}/../../.." && pwd)"
+llm_cmd="${repo_root}/tools/bin/cli-handler/llm"
+local_bin="${HOME}/.local/bin"
+shell_name="$(basename "${SHELL:-zsh}")"
+
+usage() {
+  cat <<'USAGE'
+Usage: ./tools/bin/set-up-cli/llm-cli-setup [--with-desktop-icons]
+
+Sets up this repo's CLI for a new user by:
+  - ensuring llm scripts are executable
+  - creating ~/.local/bin/llm and ~/.local/bin/llmstack symlinks to repo tools/bin/cli-handler/llm
+  - installing global symlinks in Homebrew bin when writable
+  - adding ~/.local/bin to shell profile if needed
+  - validating llm and llmstack command help output
+
+Options:
+  --with-desktop-icons   Also rebuild Desktop launcher apps (macOS)
+  -h, --help             Show this help
+USAGE
+}
+
+with_desktop_icons=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --with-desktop-icons)
+      with_desktop_icons=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ ! -x "${llm_cmd}" ]]; then
+  chmod +x "${llm_cmd}"
+fi
+if [[ -f "${repo_root}/tools/bin/cli-handler/llmstack" ]]; then
+  chmod +x "${repo_root}/tools/bin/cli-handler/llmstack"
+fi
+
+find "${repo_root}/tools/scripts" -type f -name '*.sh' -exec chmod +x {} +
+
+mkdir -p "${local_bin}"
+ln -sf "${llm_cmd}" "${local_bin}/llm"
+ln -sf "${llm_cmd}" "${local_bin}/llmstack"
+
+global_bin=""
+if command -v brew >/dev/null 2>&1; then
+  global_bin="$(brew --prefix)/bin"
+elif [[ -d "/opt/homebrew/bin" ]]; then
+  global_bin="/opt/homebrew/bin"
+fi
+
+if [[ -n "${global_bin}" ]]; then
+  if [[ -w "${global_bin}" ]]; then
+    ln -sf "${llm_cmd}" "${global_bin}/llm"
+    ln -sf "${llm_cmd}" "${global_bin}/llmstack"
+  else
+    echo "WARN: ${global_bin} is not writable; skipped global symlinks."
+  fi
+fi
+
+add_path_line='export PATH="$HOME/.local/bin:$PATH"'
+ensure_path_in_file() {
+  local file="$1"
+  if [[ -f "${file}" ]]; then
+    if ! grep -Fq "${add_path_line}" "${file}"; then
+      printf '\n%s\n' "${add_path_line}" >> "${file}"
+      echo "Added ~/.local/bin PATH entry to ${file}"
+    fi
+  else
+    printf '%s\n' "${add_path_line}" > "${file}"
+    echo "Created ${file} with ~/.local/bin PATH entry"
+  fi
+}
+
+case "${shell_name}" in
+  zsh)
+    ensure_path_in_file "${HOME}/.zshenv"
+    ensure_path_in_file "${HOME}/.zprofile"
+    ensure_path_in_file "${HOME}/.zshrc"
+    ;;
+  bash)
+    ensure_path_in_file "${HOME}/.bash_profile"
+    ensure_path_in_file "${HOME}/.bashrc"
+    ;;
+  *)
+    ensure_path_in_file "${HOME}/.zshenv"
+    ensure_path_in_file "${HOME}/.zprofile"
+    ensure_path_in_file "${HOME}/.zshrc"
+    ;;
+esac
+
+if ! "${local_bin}/llm" --help >/dev/null 2>&1; then
+  echo "ERROR: llm command failed validation. Check ${llm_cmd}." >&2
+  exit 1
+fi
+if ! "${local_bin}/llmstack" --help >/dev/null 2>&1; then
+  echo "ERROR: llmstack command failed validation. Check ${llm_cmd}." >&2
+  exit 1
+fi
+
+if [[ "${with_desktop_icons}" == "1" ]]; then
+  if [[ -x "${repo_root}/tools/bin/create-desktop-icons/llm-desktop-launchers-setup" ]]; then
+    "${repo_root}/tools/bin/create-desktop-icons/llm-desktop-launchers-setup"
+  else
+    echo "WARN: desktop launcher setup script is missing or not executable."
+  fi
+fi
+
+echo
+echo "LLM CLI setup complete."
+echo "Repo: ${repo_root}"
+echo "Command symlinks:"
+echo "- ${local_bin}/llm -> ${llm_cmd}"
+echo "- ${local_bin}/llmstack -> ${llm_cmd}"
+if [[ -n "${global_bin}" && -L "${global_bin}/llm" && -L "${global_bin}/llmstack" ]]; then
+  echo "- ${global_bin}/llm -> ${llm_cmd}"
+  echo "- ${global_bin}/llmstack -> ${llm_cmd}"
+fi
+echo
+echo "Next:"
+echo "1) Open a new terminal"
+echo "   or run: source ~/.zshenv && source ~/.zprofile && source ~/.zshrc"
+echo "2) Run: llm --help"
+echo "3) Run: llmstack --help"
+echo "4) Start stack: llmstack up full"

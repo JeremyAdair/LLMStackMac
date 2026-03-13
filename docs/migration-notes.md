@@ -9,9 +9,8 @@ This migration reorganized the repo to a layered, operator-friendly structure wh
 - `bin/` -> `tools/bin/`
 - `scripts/` -> `tools/scripts/`
 - `python-toolbox/` -> `services/python-toolbox/`
-- `bin/Daemon/forgejo-sync-developers` -> `tools/daemon/forgejo-sync-developers`
+- `bin/Daemon/forgejo-sync-sso-users` -> `tools/daemon/forgejo-sync-sso-users/forgejo-sync-developers`
 - backup/recovery utilities moved from `bin/Backup/` to `tools/jobs/`
-- temp/setup helpers moved from `bin/temp-scripts/` to `tools/scripts/temp-scripts/`
 
 ## Path updates completed
 

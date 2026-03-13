@@ -13,6 +13,7 @@ base_name="${input_name%.*}"
 text_dir="${repo_root}/data/ocr/processed/rawtext"
 json_dir="${repo_root}/data/ocr/processed/json"
 chunk_dir="${repo_root}/data/ocr/processed/chunk"
+original_dir="${repo_root}/data/ocr/processed/original"
 output_base="${text_dir}/${base_name}"
 output_txt="${output_base}.txt"
 output_json="${json_dir}/${base_name}.json"
@@ -23,7 +24,7 @@ if [[ ! -f "$input_path" ]]; then
   exit 1
 fi
 
-mkdir -p "${text_dir}" "${json_dir}" "${chunk_dir}" "${failed_dir}"
+mkdir -p "${text_dir}" "${json_dir}" "${chunk_dir}" "${original_dir}" "${failed_dir}"
 
 env_file="${repo_root}/.env.mac"
 if [[ ! -f "${env_file}" && -f "${repo_root}/.env" ]]; then
@@ -34,8 +35,8 @@ if docker compose --env-file "${env_file}" -p llm-lab -f "${repo_root}/compose/l
   tesseract "/data/ocr/ingest-dropzone/${input_name}" "/data/ocr/processed/rawtext/${base_name}"; then
   :
 else
-  cp -f "${input_path}" "${failed_dir}/${input_name}"
-  echo "OCR failed. Input copied to ${failed_dir}/${input_name}" >&2
+  mv -f "${input_path}" "${failed_dir}/${input_name}"
+  echo "OCR failed. Input moved to ${failed_dir}/${input_name}" >&2
   exit 1
 fi
 
@@ -59,6 +60,8 @@ awk -v outdir="${chunk_dir}" -v base="${base_name}" '
   }
   END { close(file) }
 ' "${output_txt}"
+
+mv -f "${input_path}" "${original_dir}/${input_name}"
 
 echo "OCR text written to ${output_txt}"
 echo "OCR metadata written to ${output_json}"

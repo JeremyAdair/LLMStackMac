@@ -1,0 +1,54 @@
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Defines runtime settings for the "aider" container.
+#
+# Why it exists:
+# Keeping service definitions in versioned YAML makes local environments reproducible.
+#
+# What happens next:
+# The service block below declares concrete runtime settings that Docker Compose
+# reads to start the Aider browser UI on the shared stack network.
+############################################
+
+services:
+  aider:
+    profiles:
+      - lab
+    image: ${AIDER_IMAGE:-paulgauthier/aider-full@sha256:ba4d51b3c846b89d0f261f88dd712b9ce62968d3844c73fe2b3353ae65b11ea4}
+    working_dir: /workspace
+    command:
+      - --browser
+      - --model
+      - ${AIDER_MODEL:-ollama_chat/qwen2.5-coder:7b-instruct}
+      - --chat-history-file
+      - /app/.aider-data/chat-history.md
+      - --input-history-file
+      - /app/.aider-data/input-history
+      - --llm-history-file
+      - /app/.aider-data/llm-history.log
+      - --restore-chat-history
+      - --no-auto-commits
+      - --no-dirty-commits
+      - --subtree-only
+    environment:
+      OLLAMA_API_BASE: ${AIDER_OLLAMA_API_BASE:-http://ollama-gateway:11434}
+      AIDER_ANALYTICS_DISABLE: "true"
+      AIDER_CHECK_UPDATE: "false"
+    volumes:
+      - ../../..:/workspace
+      - ../../../data/aider:/app/.aider-data
+    networks:
+      - llm-stack
+      - ollama-access
+    expose:
+      - "8501"
+
+networks:
+  llm-stack:
+    external: true
+    name: llm-shared
+  ollama-access:
+    external: true
+    name: llm-ollama-access

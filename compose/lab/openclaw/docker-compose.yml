@@ -48,7 +48,7 @@ services:
   openclaw:
     profiles:
       - lab
-    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:2026.3.11}
     user: "0:0"
     # Seed runtime config into volume on first boot, then start gateway.
     command:
@@ -56,6 +56,10 @@ services:
       - -lc
       - |
         install -m 600 /config/openclaw.json /data/openclaw.json
+        mkdir -p /data/workspace-chat /data/workspace-main
+        rm -rf /data/workspace-chat/.git /data/workspace-main/.git
+        cp -Rn /config/workspace-chat/. /data/workspace-chat/
+        cp -Rn /config/workspace-main/. /data/workspace-main/
         exec node dist/index.js gateway
     environment:
       # Use volume-backed runtime config (tokens/secrets never written to git files).
@@ -64,6 +68,8 @@ services:
       OPENCLAW_STATE_DIR: /data
     volumes:
       - ../config/openclaw/openclaw.json:/config/openclaw.json:ro
+      - ../config/openclaw/workspace-chat:/config/workspace-chat:ro
+      - ../config/openclaw/workspace-main:/config/workspace-main:ro
       - ${OPENCLAW_STATE_MOUNT:-openclaw_data}:/data
     networks:
       - llm-stack

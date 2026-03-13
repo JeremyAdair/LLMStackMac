@@ -2,14 +2,14 @@
 set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
-prompt_file="${repo_root}/prompts/system/install-ollama-and-models.md"
+prompt_file="${repo_root}/docs/prompts/system/install-ollama-and-models.md"
 
 usage() {
   cat <<EOF2
 Usage: llm models pull
 
 Pulls all Ollama models listed in:
-  prompts/system/install-ollama-and-models.md
+  docs/prompts/system/install-ollama-and-models.md
 EOF2
 }
 

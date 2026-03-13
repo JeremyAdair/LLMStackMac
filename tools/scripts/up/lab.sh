@@ -9,6 +9,7 @@ ensure_shared_network
 echo "[llmstack] Starting lab layer (llm-lab)"
 if [[ "$#" -eq 0 ]]; then
   compose_project llm-lab lab up -d \
+    aider \
     python-toolbox \
     node-red \
     openclaw \

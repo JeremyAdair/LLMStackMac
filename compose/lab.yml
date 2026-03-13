@@ -57,19 +57,25 @@ services:
     restart: unless-stopped
 
   openclaw:
-    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:2026.3.11}
     user: "0:0"
     command:
       - /bin/sh
       - -lc
       - |
         install -m 600 /config/openclaw.json /data/openclaw.json
+        mkdir -p /data/workspace-chat /data/workspace-main
+        rm -rf /data/workspace-chat/.git /data/workspace-main/.git
+        cp -Rn /config/workspace-chat/. /data/workspace-chat/
+        cp -Rn /config/workspace-main/. /data/workspace-main/
         exec node dist/index.js gateway
     environment:
       OPENCLAW_CONFIG_PATH: /data/openclaw.json
       OPENCLAW_STATE_DIR: /data
     volumes:
       - ../config/openclaw/openclaw.json:/config/openclaw.json:ro
+      - ../config/openclaw/workspace-chat:/config/workspace-chat:ro
+      - ../config/openclaw/workspace-main:/config/workspace-main:ro
       - ${OPENCLAW_STATE_MOUNT:-openclaw_data}:/data
     networks:
       llm-stack:
@@ -78,6 +84,39 @@ services:
       ollama-access:
     expose:
       - "18789"
+    restart: unless-stopped
+
+  aider:
+    image: ${AIDER_IMAGE:-paulgauthier/aider-full@sha256:ba4d51b3c846b89d0f261f88dd712b9ce62968d3844c73fe2b3353ae65b11ea4}
+    working_dir: /workspace
+    command:
+      - --browser
+      - --model
+      - ${AIDER_MODEL:-ollama_chat/qwen2.5-coder:7b-instruct}
+      - --chat-history-file
+      - /app/.aider-data/chat-history.md
+      - --input-history-file
+      - /app/.aider-data/input-history
+      - --llm-history-file
+      - /app/.aider-data/llm-history.log
+      - --restore-chat-history
+      - --no-auto-commits
+      - --no-dirty-commits
+      - --subtree-only
+    environment:
+      OLLAMA_API_BASE: ${AIDER_OLLAMA_API_BASE:-http://ollama-gateway:11434}
+      AIDER_ANALYTICS_DISABLE: "true"
+      AIDER_CHECK_UPDATE: "false"
+    volumes:
+      - ..:/workspace
+      - ../data/aider:/app/.aider-data
+    networks:
+      llm-stack:
+        aliases:
+          - aider
+      ollama-access:
+    expose:
+      - "8501"
     restart: unless-stopped
 
   openhands:

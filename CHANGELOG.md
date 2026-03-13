@@ -11,7 +11,7 @@
 - Reorganize setup-only scripts into `bin/temp-scripts/` to reduce root `bin/` clutter.
 - Replace legacy `bin/models-pull` + `models/models.yml` flow with `bin/llm-models-pull`.
 - Update docs/runbooks to match model pull and auth storage changes.
-- Add and organize security/system prompt assets under `prompts/`.
+- Add and organize security/system prompt assets under `docs/prompts/`.
 
 ## 2026-03-09
 - `2026-03-09 14:15:52 -0500` `a868cf5` Manage host Ollama in llm-up/down and add security stack prompt.

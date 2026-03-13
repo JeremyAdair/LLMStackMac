@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-llm="${repo_root}/tools/bin/llm"
+llm="${repo_root}/tools/bin/cli-handler/llm"
 
 ok() { echo "OK   $*"; }
 warn() { echo "WARN $*"; }

@@ -19,13 +19,702 @@
   "models": {
     "providers": {
       "ollama": {
-        "baseUrl": "http://ollama-gateway:11434/v1",
+        "baseUrl": "http://ollama-gateway:11434",
         "apiKey": "ollama-local",
-        "api": "openai-completions",
+        "api": "ollama",
         "models": [
+          {
+            "id": "codellama:13b-instruct",
+            "name": "Codellama 13b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "codellama:34b-instruct",
+            "name": "Codellama 34b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "codellama:70b-instruct",
+            "name": "Codellama 70b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "codestral:22b",
+            "name": "Codestral 22b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-coder:1.3b-instruct",
+            "name": "Deepseek Coder 1.3b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-coder:33b-instruct",
+            "name": "Deepseek Coder 33b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-coder:6.7b-instruct",
+            "name": "Deepseek Coder 6.7b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-r1:1.5b",
+            "name": "Deepseek R1 1.5b",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-r1:14b",
+            "name": "Deepseek R1 14b",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-r1:32b",
+            "name": "Deepseek R1 32b",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-r1:7b",
+            "name": "Deepseek R1 7b",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "deepseek-r1:8b",
+            "name": "Deepseek R1 8b",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "dolphin-llama3:8b",
+            "name": "Dolphin Llama3 8b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "dolphin-mistral:7b",
+            "name": "Dolphin Mistral 7b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "dolphin-mixtral:latest",
+            "name": "Dolphin Mixtral latest",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "gemma:2b-instruct",
+            "name": "Gemma 2b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "gemma:7b-instruct",
+            "name": "Gemma 7b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "llama3:70b",
+            "name": "Llama3 70b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "llama3:8b",
+            "name": "Llama3 8b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "llava:latest",
+            "name": "Llava latest",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "mistral:7b-instruct",
+            "name": "Mistral 7b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "mixtral:8x7b",
+            "name": "Mixtral 8x7b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "neural-chat:7b",
+            "name": "Neural CHAT 7b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "nomic-embed-text:latest",
+            "name": "Nomic Embed TEXT latest",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "nous-hermes2:latest",
+            "name": "NOUS Hermes2 latest",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "openchat:7b",
+            "name": "Openchat 7b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "phi3:latest",
+            "name": "Phi3 latest",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5-coder:14b-instruct",
+            "name": "Qwen2.5 Coder 14b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5-coder:32b-instruct",
+            "name": "Qwen2.5 Coder 32b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
           {
             "id": "qwen2.5-coder:7b-instruct",
             "name": "Qwen 2.5 Coder 7B Instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:0.5b",
+            "name": "Qwen2.5 0.5b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:0.5b-instruct",
+            "name": "Qwen2.5 0.5b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:1.5b-instruct",
+            "name": "Qwen2.5 1.5b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:14b-instruct",
+            "name": "Qwen2.5 14b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:32b-instruct",
+            "name": "Qwen2.5 32b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:3b-instruct",
+            "name": "Qwen2.5 3b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:72b-instruct",
+            "name": "Qwen2.5 72b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "qwen2.5:7b-instruct",
+            "name": "Qwen2.5 7b-instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "starcoder2:latest",
+            "name": "Starcoder2 latest",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "vicuna:13b",
+            "name": "Vicuna 13b",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "wizardcoder:latest",
+            "name": "Wizardcoder latest",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "yi:34b-chat",
+            "name": "YI 34b-chat",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "yi:6b-chat",
+            "name": "YI 6b-chat",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 327680
+          },
+          {
+            "id": "zephyr:7b-beta",
+            "name": "Zephyr 7b-beta",
             "reasoning": false,
             "input": [
               "text"
@@ -45,9 +734,173 @@
   },
   "agents": {
     "defaults": {
+      "workspace": "/data/workspace",
+      "compaction": {
+        "mode": "default",
+        "memoryFlush": {
+          "enabled": false
+        }
+      },
+      "model": {
+        "primary": "ollama/qwen2.5-coder:7b-instruct"
+      },
+      "models": {
+        "ollama/codellama:13b-instruct": {
+          "alias": "Codellama 13b-instruct"
+        },
+        "ollama/codellama:34b-instruct": {
+          "alias": "Codellama 34b-instruct"
+        },
+        "ollama/codellama:70b-instruct": {
+          "alias": "Codellama 70b-instruct"
+        },
+        "ollama/codestral:22b": {
+          "alias": "Codestral 22b"
+        },
+        "ollama/deepseek-coder:1.3b-instruct": {
+          "alias": "Deepseek Coder 1.3b-instruct"
+        },
+        "ollama/deepseek-coder:33b-instruct": {
+          "alias": "Deepseek Coder 33b-instruct"
+        },
+        "ollama/deepseek-coder:6.7b-instruct": {
+          "alias": "Deepseek Coder 6.7b-instruct"
+        },
+        "ollama/deepseek-r1:1.5b": {
+          "alias": "Deepseek R1 1.5b"
+        },
+        "ollama/deepseek-r1:14b": {
+          "alias": "Deepseek R1 14b"
+        },
+        "ollama/deepseek-r1:32b": {
+          "alias": "Deepseek R1 32b"
+        },
+        "ollama/deepseek-r1:7b": {
+          "alias": "Deepseek R1 7b"
+        },
+        "ollama/deepseek-r1:8b": {
+          "alias": "Deepseek R1 8b"
+        },
+        "ollama/dolphin-llama3:8b": {
+          "alias": "Dolphin Llama3 8b"
+        },
+        "ollama/dolphin-mistral:7b": {
+          "alias": "Dolphin Mistral 7b"
+        },
+        "ollama/dolphin-mixtral:latest": {
+          "alias": "Dolphin Mixtral latest"
+        },
+        "ollama/gemma:2b-instruct": {
+          "alias": "Gemma 2b-instruct"
+        },
+        "ollama/gemma:7b-instruct": {
+          "alias": "Gemma 7b-instruct"
+        },
+        "ollama/llama3:70b": {
+          "alias": "Llama3 70b"
+        },
+        "ollama/llama3:8b": {
+          "alias": "Llama3 8b"
+        },
+        "ollama/llava:latest": {
+          "alias": "Llava latest"
+        },
+        "ollama/mistral:7b-instruct": {
+          "alias": "Mistral 7b-instruct"
+        },
+        "ollama/mixtral:8x7b": {
+          "alias": "Mixtral 8x7b"
+        },
+        "ollama/neural-chat:7b": {
+          "alias": "Neural CHAT 7b"
+        },
+        "ollama/nomic-embed-text:latest": {
+          "alias": "Nomic Embed TEXT latest"
+        },
+        "ollama/nous-hermes2:latest": {
+          "alias": "NOUS Hermes2 latest"
+        },
+        "ollama/openchat:7b": {
+          "alias": "Openchat 7b"
+        },
+        "ollama/phi3:latest": {
+          "alias": "Phi3 latest"
+        },
+        "ollama/qwen2.5-coder:14b-instruct": {
+          "alias": "Qwen2.5 Coder 14b-instruct"
+        },
+        "ollama/qwen2.5-coder:32b-instruct": {
+          "alias": "Qwen2.5 Coder 32b-instruct"
+        },
+        "ollama/qwen2.5-coder:7b-instruct": {
+          "alias": "Qwen 2.5 Coder 7B Instruct"
+        },
+        "ollama/qwen2.5:0.5b": {
+          "alias": "Qwen2.5 0.5b"
+        },
+        "ollama/qwen2.5:0.5b-instruct": {
+          "alias": "Qwen2.5 0.5b-instruct"
+        },
+        "ollama/qwen2.5:1.5b-instruct": {
+          "alias": "Qwen2.5 1.5b-instruct"
+        },
+        "ollama/qwen2.5:14b-instruct": {
+          "alias": "Qwen2.5 14b-instruct"
+        },
+        "ollama/qwen2.5:32b-instruct": {
+          "alias": "Qwen2.5 32b-instruct"
+        },
+        "ollama/qwen2.5:3b-instruct": {
+          "alias": "Qwen2.5 3b-instruct"
+        },
+        "ollama/qwen2.5:72b-instruct": {
+          "alias": "Qwen2.5 72b-instruct"
+        },
+        "ollama/qwen2.5:7b-instruct": {
+          "alias": "Qwen2.5 7b-instruct"
+        },
+        "ollama/starcoder2:latest": {
+          "alias": "Starcoder2 latest"
+        },
+        "ollama/vicuna:13b": {
+          "alias": "Vicuna 13b"
+        },
+        "ollama/wizardcoder:latest": {
+          "alias": "Wizardcoder latest"
+        },
+        "ollama/yi:34b-chat": {
+          "alias": "YI 34b-chat"
+        },
+        "ollama/yi:6b-chat": {
+          "alias": "YI 6b-chat"
+        },
+        "ollama/zephyr:7b-beta": {
+          "alias": "Zephyr 7b-beta"
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "workspace": "/data/workspace-main",
+        "identity": {
+          "name": "Forge"
+        },
+        "model": {
+          "primary": "ollama/qwen2.5-coder:7b-instruct"
+        }
+      },
+    {
+      "id": "chat",
+      "default": true,
+      "workspace": "/data/workspace-chat",
+      "identity": {
+        "name": "Forge"
+      },
       "model": {
         "primary": "ollama/qwen2.5-coder:7b-instruct"
       }
     }
+  ]
   }
 }

@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+
+############################################
+# SECTION: File Overview
+#
+# What this part of the program does:
+# Syncs the OpenClaw Ollama model catalog from the live Ollama gateway.
+#
+# Why it exists:
+# OpenClaw skips Ollama auto-discovery when the provider is defined explicitly.
+# This helper keeps the explicit catalog aligned with the real Ollama models
+# available through the stack's internal gateway.
+#
+# What happens next:
+# The script fetches model tags from the running stack, rewrites only the
+# OpenClaw provider model list, and can optionally recreate OpenClaw so the
+# Control UI sees the updated catalog immediately.
+############################################
+
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "${repo_root}"
+
+config_path="${OPENCLAW_CONFIG_FILE:-${repo_root}/config/openclaw/openclaw.json}"
+compose_file="${OPENCLAW_COMPOSE_FILE:-${repo_root}/compose/lab.yml}"
+env_file="${OPENCLAW_ENV_FILE:-${repo_root}/.env.mac}"
+project_name="${OPENCLAW_PROJECT_NAME:-llm-lab}"
+sample_container="${OLLAMA_SYNC_SAMPLE_CONTAINER:-llm-core-open-webui-1}"
+restart_openclaw="${RESTART_OPENCLAW_AFTER_SYNC:-true}"
+
+if [[ ! -f "${config_path}" ]]; then
+  echo "OpenClaw config not found at ${config_path}" >&2
+  exit 1
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required" >&2
+  exit 1
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "python3 is required" >&2
+  exit 1
+fi
+
+if ! docker ps --format '{{.Names}}' | grep -qx "${sample_container}"; then
+  echo "Container ${sample_container} is not running; cannot reach ollama-gateway" >&2
+  exit 1
+fi
+
+tmp_tags="$(mktemp)"
+tmp_config="$(mktemp)"
+cleanup() {
+  rm -f "${tmp_tags}" "${tmp_config}"
+}
+trap cleanup EXIT
+
+docker exec "${sample_container}" sh -lc 'curl -fsS http://ollama-gateway:11434/api/tags' > "${tmp_tags}"
+
+python3 - "${config_path}" "${tmp_tags}" "${tmp_config}" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+tags_path = Path(sys.argv[2])
+tmp_config_path = Path(sys.argv[3])
+
+with config_path.open() as f:
+    config = json.load(f)
+
+with tags_path.open() as f:
+    tags = json.load(f)
+
+providers = config.setdefault("models", {}).setdefault("providers", {})
+ollama = providers.setdefault("ollama", {})
+existing_models = {
+    item.get("id"): item
+    for item in ollama.get("models", [])
+    if isinstance(item, dict) and item.get("id")
+}
+
+default_ids = []
+defaults = config.get("agents", {}).get("defaults", {}).get("model", {})
+agent_defaults = config.setdefault("agents", {}).setdefault("defaults", {})
+for key in ("primary",):
+    value = defaults.get(key)
+    if isinstance(value, str) and value.startswith("ollama/"):
+        default_ids.append(value.split("/", 1)[1])
+for key in ("fallbacks",):
+    values = defaults.get(key)
+    if isinstance(values, list):
+        for value in values:
+            if isinstance(value, str) and value.startswith("ollama/"):
+                default_ids.append(value.split("/", 1)[1])
+
+reasoning_re = re.compile(r"(?:^|[-_:])(r1|reasoning|think)(?:$|[-_:])", re.I)
+
+def pretty_name(model_id: str) -> str:
+    base, _, tag = model_id.partition(":")
+    parts = re.split(r"[-_]", base)
+    base_name = " ".join(part.upper() if part.isalpha() and len(part) <= 4 else part.capitalize() for part in parts if part)
+    if tag:
+        return f"{base_name} {tag}"
+    return base_name or model_id
+
+models = []
+for item in tags.get("models", []):
+    model_id = item.get("model") or item.get("name")
+    if not model_id:
+        continue
+
+    existing = existing_models.get(model_id, {})
+    details = item.get("details") or {}
+
+    context_window = existing.get("contextWindow") or 32768
+    max_tokens = existing.get("maxTokens") or max(context_window * 10, 32768)
+    input_modalities = existing.get("input") or ["text"]
+    reasoning = existing.get("reasoning")
+    if reasoning is None:
+        reasoning = bool(reasoning_re.search(model_id))
+
+    entry = {
+        "id": model_id,
+        "name": existing.get("name") or pretty_name(model_id),
+        "reasoning": reasoning,
+        "input": input_modalities,
+        "cost": existing.get("cost") or {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+        },
+        "contextWindow": context_window,
+        "maxTokens": max_tokens,
+    }
+
+    family = details.get("family")
+    families = details.get("families") or []
+    if family == "clip" or "clip" in families or model_id.startswith("llava"):
+        entry["input"] = ["text", "image"]
+
+    models.append(entry)
+
+models.sort(key=lambda item: item["id"].lower())
+ollama["models"] = models
+
+# Populate the agent model catalog/allowlist so UI pickers can see the synced
+# Ollama catalog instead of only the resolved default model.
+agent_catalog = {}
+for item in models:
+    agent_catalog[f"ollama/{item['id']}"] = {
+        "alias": item["name"]
+    }
+agent_defaults["models"] = agent_catalog
+
+if models and default_ids:
+    available_ids = {item["id"] for item in models}
+    primary = defaults.get("primary")
+    if isinstance(primary, str) and primary.startswith("ollama/"):
+        primary_id = primary.split("/", 1)[1]
+        if primary_id not in available_ids:
+            defaults["primary"] = f"ollama/{models[0]['id']}"
+
+tmp_config_path.write_text(json.dumps(config, indent=2) + "\n")
+PY
+
+mv "${tmp_config}" "${config_path}"
+echo "Updated ${config_path} with $(python3 - "${config_path}" <<'PY'
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+models = data.get("models", {}).get("providers", {}).get("ollama", {}).get("models", [])
+print(len(models))
+PY
+) Ollama models."
+
+if [[ "${restart_openclaw}" == "true" ]]; then
+  export PATH="/Applications/Docker.app/Contents/Resources/bin:${PATH}"
+  docker compose --env-file "${env_file}" -p "${project_name}" -f "${compose_file}" up -d --force-recreate openclaw >/dev/null
+  echo "Recreated OpenClaw so the new model catalog is active."
+fi

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-services=(open-webui qdrant redis flowise node-red)
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
@@ -27,18 +25,21 @@ cpu_as_int() {
 }
 
 containers_file="${tmp_dir}/containers.tsv"
+running_file="${tmp_dir}/running.txt"
 stats_file="${tmp_dir}/stats.tsv"
 loaded_file="${tmp_dir}/loaded.txt"
+models_file="${tmp_dir}/models.txt"
+stack_file="${tmp_dir}/stack.txt"
+stack_all_file="${tmp_dir}/stack_all.txt"
 
 docker ps -a --format '{{.Names}}\t{{.Label "com.docker.compose.service"}}\t{{.Status}}' \
   > "${containers_file}" 2>/dev/null || true
+docker ps --format '{{.Names}}' > "${running_file}" 2>/dev/null || true
 docker stats --no-stream --format '{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' \
   > "${stats_file}" 2>/dev/null || true
 
-get_container_for_service() {
-  local svc="$1"
-  awk -F '\t' -v s="${svc}" '$2==s {print $1; exit}' "${containers_file}"
-}
+# LLM stack container universe (all states).
+awk -F '\t' '$1 ~ /^llm-/ {print $1}' "${containers_file}" | sort -u > "${stack_all_file}"
 
 get_cpu_for_container() {
   local cname="$1"
@@ -54,45 +55,98 @@ get_mem_for_container() {
   [[ -n "${mem}" ]] && normalize_mem "${mem}" || true
 }
 
+format_mem_mb() {
+  local mb="${1:-0}"
+  awk -v mb="${mb}" 'BEGIN {
+    if (mb >= 1024) {
+      printf "%.2fgb", mb/1024
+    } else {
+      printf "%.1fmb", mb
+    }
+  }'
+}
+
+print_3col() {
+  local file="$1"
+  local width="${2:-44}"
+  if [[ ! -s "${file}" ]]; then
+    echo 'none'
+    return 0
+  fi
+  awk -v cols=3 -v width="${width}" '
+    { items[NR]=$0 }
+    END {
+      n=NR
+      rows=int((n + cols - 1)/cols)
+      for (r=1; r<=rows; r++) {
+        for (c=0; c<cols; c++) {
+          idx=r + c*rows
+          if (idx<=n) {
+            printf "%-*s", width, items[idx]
+          }
+        }
+        printf "\n"
+      }
+    }
+  ' "${file}"
+}
+
+total_count="$(wc -l < "${stack_all_file}" | tr -d ' ')"
+online_count="$(awk -F '\t' '$1 ~ /^llm-/ {c++} END {print c+0}' "${stats_file}")"
+offline_count="$(awk -F '\t' '$1 ~ /^llm-/ && ($3 ~ /^Restarting/ || $3 ~ /^Dead/ || $3 ~ /^Exited \\([1-9][0-9]*\\)/) {c++} END {print c+0}' "${containers_file}")"
+on_demand_count=$((total_count - online_count - offline_count))
+if [[ "${on_demand_count}" -lt 0 ]]; then
+  on_demand_count=0
+fi
+
+total_cpu="$(awk -F '\t' '
+  $1 ~ /^llm-/ {
+    gsub(/%/, "", $2)
+    if ($2 ~ /^[0-9]+(\\.[0-9]+)?$/) cpu += $2
+  }
+  END { printf "%.1f%%", cpu+0 }
+' "${stats_file}")"
+
+total_mem_mb="$(awk -F '\t' '
+  function to_mb(v, n) {
+    gsub(/ /, "", v)
+    sub(/\/.*$/, "", v)
+    if (v ~ /GiB$/) { sub(/GiB$/, "", v); return v*1024 }
+    if (v ~ /MiB$/) { sub(/MiB$/, "", v); return v+0 }
+    if (v ~ /KiB$/) { sub(/KiB$/, "", v); return v/1024 }
+    if (v ~ /GB$/)  { sub(/GB$/,  "", v); return v*1024 }
+    if (v ~ /MB$/)  { sub(/MB$/,  "", v); return v+0 }
+    if (v ~ /KB$/)  { sub(/KB$/,  "", v); return v/1024 }
+    if (v ~ /B$/)   { sub(/B$/,   "", v); return v/(1024*1024) }
+    return 0
+  }
+  $1 ~ /^llm-/ { mem += to_mb($3) }
+  END { printf "%.3f", mem+0 }
+' "${stats_file}")"
+total_mem="$(format_mem_mb "${total_mem_mb}")"
+
+printf 'STACK TOTAL\n'
+printf '%s\n' '--------------------------------'
+printf 'Total Containers: %s\n' "${total_count}"
+printf 'Online: %s\n' "${online_count}"
+printf 'On-Demand (idle): %s\n' "${on_demand_count}"
+printf 'Offline (errored): %s\n' "${offline_count}"
+printf 'Total CPU: %s\n' "${total_cpu}"
+printf 'Total MEM: %s\n' "${total_mem}"
+
+printf '\n'
 printf 'STACK HEALTH\n'
 printf '%s\n' '--------------------------------'
-for svc in "${services[@]}"; do
-  cname="$(get_container_for_service "${svc}")"
-  if [[ -z "${cname}" ]]; then
-    printf '%-14s %-10s\n' "${svc}" "OFFLINE"
-    continue
-  fi
-
-  state="OFFLINE"
-  if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "${cname}"; then
-    state="ONLINE"
-  fi
-
+while IFS= read -r cname; do
+  [[ -n "${cname}" ]] || continue
   cpu="$(get_cpu_for_container "${cname}")"
   mem="$(get_mem_for_container "${cname}")"
+  [[ -z "${cpu}" ]] && cpu="0%"
+  [[ -z "${mem}" ]] && mem="n/a"
+  printf '%-22.22s %-7s cpu:%-4.4s mem:%-8.8s\n' "${cname}" "ONLINE" "${cpu}" "${mem}" >> "${stack_file}"
+done < "${running_file}"
 
-  details=""
-  case "${svc}" in
-    open-webui|flowise|node-red)
-      [[ -n "${cpu}" ]] && details="cpu: ${cpu}"
-      ;;
-    qdrant|redis)
-      [[ -n "${mem}" ]] && details="mem: ${mem}"
-      ;;
-  esac
-
-  if [[ -z "${details}" ]]; then
-    if [[ -n "${cpu}" ]]; then
-      details="cpu: ${cpu}"
-    elif [[ -n "${mem}" ]]; then
-      details="mem: ${mem}"
-    fi
-  fi
-
-  printf '%-14s %-10s' "${svc}" "${state}"
-  [[ -n "${details}" ]] && printf ' %s' "${details}"
-  printf '\n'
-done
+print_3col "${stack_file}" 48
 
 printf '\nMODELS\n'
 printf '%s\n' '--------------------------------'
@@ -104,27 +158,18 @@ fi
 while IFS=$'\t' read -r mname mstatus; do
   [[ -n "${mname}" ]] || continue
   echo "${mname}" >> "${loaded_file}"
-  printf '%-14s %s\n' "${mname}" "${mstatus}"
+  printf '%-28s %s\n' "${mname}" "${mstatus}" >> "${models_file}"
 done < <(ollama ps 2>/dev/null | awk 'NR>1 && NF>0 {print $1"\tloaded"}' || true)
 
 idle_printed=0
 idle_total=0
-idle_max=8
 while IFS= read -r mname; do
   [[ -n "${mname}" ]] || continue
   if ! grep -Fxq "${mname}" "${loaded_file}" 2>/dev/null; then
     idle_total=$((idle_total + 1))
-    if [[ "${idle_printed}" -lt "${idle_max}" ]]; then
-      printf '%-14s %s\n' "${mname}" "idle"
-      idle_printed=$((idle_printed + 1))
-    fi
+    printf '%-28s %s\n' "${mname}" "idle" >> "${models_file}"
+    idle_printed=$((idle_printed + 1))
   fi
 done < <(ollama list 2>/dev/null | awk 'NR>1 && NF>0 {print $1}' || true)
 
-if [[ "${idle_total}" -gt "${idle_printed}" ]]; then
-  echo "... (+$((idle_total - idle_printed)) more idle)"
-fi
-
-if [[ ! -s "${loaded_file}" && "${idle_total}" -eq 0 ]]; then
-  echo 'none           none'
-fi
+print_3col "${models_file}" 38

@@ -46,7 +46,7 @@ cp .env.example .env
 2) Start the full stack.
 
 ```bash
-./tools/bin/llm up full
+./tools/bin/cli-handler/llm up full
 ```
 
 3) Open the UI via the reverse proxy.
@@ -181,7 +181,7 @@ lightweight, self-contained server that works well in homelab and air-gapped set
 If these ports are in use, update the port mappings in
 `compose/admin/forgejo/docker-compose.yml`.
 
-`./tools/bin/llm up full` starts Forgejo with the rest of the stack. To start only Forgejo:
+`./tools/bin/cli-handler/llm up full` starts Forgejo with the rest of the stack. To start only Forgejo:
 
 ```bash
 docker compose \
@@ -289,7 +289,7 @@ sent to Flowise vector upsert, and logged to stdout by `pdf-auto-ingest`.
 Install the standard Ollama model set:
 
 ```bash
-./tools/bin/llm models pull
+./tools/bin/cli-handler/llm models pull
 ```
 
 Run a speech-to-text example:

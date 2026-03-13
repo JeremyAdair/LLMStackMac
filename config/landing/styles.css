@@ -13,6 +13,30 @@ body {
   text-shadow: 0 0 8px rgba(57, 255, 20, 0.35);
 }
 
+.stack-banner {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #101828;
+  color: #ffffff;
+  font: 600 12px/1.4 "Segoe UI", system-ui, sans-serif;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  text-shadow: none;
+}
+
+.stack-banner a {
+  color: #ffd37a;
+  text-decoration: none;
+}
+
+.stack-banner-divider {
+  opacity: 0.7;
+}
+
 .container {
   max-width: 980px;
   margin: 0 auto;
