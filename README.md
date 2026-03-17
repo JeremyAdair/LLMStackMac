@@ -1,5 +1,7 @@
 # LLMStack
 
+![LLMStack screenshot tour](assets/screenshots.gif)
+
 LLMStack is a self-hosted local LLM stack built around Docker Compose. It provides a modular setup for running models, a web UI, vector search, RAG ingestion, and optional agent tooling.
 
 ## Layered stacks (Docker Desktop groups)
