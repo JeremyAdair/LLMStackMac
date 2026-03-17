@@ -46,6 +46,7 @@ That gives you:
 
 - python-toolbox
 - Node-RED
+- Stirling-PDF
 - console
 - OpenClaw
 - OpenHands

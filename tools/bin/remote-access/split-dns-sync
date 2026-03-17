@@ -13,6 +13,7 @@ hostnames=(
   "${domain}"
   "openwebui.${domain}"
   "flowise.${domain}"
+  "pdf.${domain}"
   "aider.${domain}"
   "openhands.${domain}"
   "openclaw.${domain}"

@@ -22,6 +22,7 @@ services:
       RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-50}
       PDF_INGEST_WATCHER_ENABLED: ${PDF_INGEST_WATCHER_ENABLED:-true}
       PDF_INGEST_WATCH_INTERVAL: ${PDF_INGEST_WATCH_INTERVAL:-3}
+      STIRLING_PDF_BASE_URL: ${STIRLING_PDF_BASE_URL:-http://stirling-pdf:8080}
     volumes:
       - ../services/python-toolbox/app:/app
       - ../tools/bin:/host-bin
@@ -54,6 +55,26 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  stirling-pdf:
+    image: ${STIRLING_PDF_IMAGE:-docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest}
+    environment:
+      DISABLE_ADDITIONAL_FEATURES: ${STIRLING_PDF_DISABLE_ADDITIONAL_FEATURES:-false}
+      SECURITY_ENABLELOGIN: ${STIRLING_PDF_ENABLE_LOGIN:-false}
+      SECURITY_INITIALLOGIN_USERNAME: ${STIRLING_PDF_INITIALLOGIN_USERNAME:-admin}
+      SECURITY_INITIALLOGIN_PASSWORD: ${STIRLING_PDF_INITIALLOGIN_PASSWORD:-stirling}
+      LANGS: ${STIRLING_PDF_LANGS:-en_GB}
+    volumes:
+      - ${STIRLING_PDF_CONFIG_MOUNT:-stirling_pdf_config}:/configs
+      - ../data/pdfs:/data/pdfs
+    networks:
+      llm-stack:
+        aliases:
+          - stirling-pdf
+          - pdf-tools
+    expose:
+      - "8080"
     restart: unless-stopped
 
   openclaw:
@@ -237,6 +258,8 @@ networks:
     external: true
 
 volumes:
+  stirling_pdf_config:
+    name: llm-stack_stirling_pdf_config
   openclaw_data:
     name: llm-stack_openclaw_data
     external: true

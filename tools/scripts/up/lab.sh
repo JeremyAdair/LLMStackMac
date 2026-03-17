@@ -12,6 +12,7 @@ if [[ "$#" -eq 0 ]]; then
     aider \
     python-toolbox \
     node-red \
+    stirling-pdf \
     openclaw \
     openhands \
     rag-pipeline \

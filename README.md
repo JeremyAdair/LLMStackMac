@@ -42,6 +42,7 @@ See:
 - Authelia is configured as the SSO gateway for the stack so you don't have to manage separate passwords per app.
 - Flowise supports PDF drop-in via bind mount: `./data/pdfs` -> `/data/pdfs`.
 - DefectDojo is available at `https://defectdojo.llmstack.lan/` with gitleaks imports via `./tools/bin/security/defectdojo-gitleaks-scan`.
+- Stirling-PDF is available at `https://pdf.llmstack.lan/` for manual PDF operations, with the internal API reachable at `http://stirling-pdf:8080`.
 - Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise (lab profile).
 - Rebuilt Flowise PDF ingestion and retrieval chatflows with current node wiring for latest Flowise compatibility.
 - OpenWebUI API proxy auth handling was adjusted to prevent chat timeout/500 issues.
@@ -199,6 +200,7 @@ Then open:
 - OpenHands: https://openhands.llmstack.lan/
 - OpenClaw: https://openclaw.llmstack.lan/
 - DefectDojo: https://defectdojo.llmstack.lan/
+- Stirling-PDF: https://pdf.llmstack.lan/
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
 - Forgejo: https://forgejo.llmstack.lan/
