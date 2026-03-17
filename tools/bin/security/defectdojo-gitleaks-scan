@@ -16,6 +16,7 @@ defectdojo_host_header="${DEFECTDOJO_HOST_HEADER:-defectdojo.llmstack.lan}"
 product_name="${DEFECTDOJO_PRODUCT_NAME:-LLMStackMac}"
 product_type_name="${DEFECTDOJO_PRODUCT_TYPE_NAME:-Repositories}"
 engagement_name="${DEFECTDOJO_ENGAGEMENT_NAME:-Local Secret Scanning}"
+product_members="${DEFECTDOJO_PRODUCT_MEMBERS:-}"
 today="$(date +%F)"
 
 usage() {
@@ -185,6 +186,10 @@ import_report() {
   echo "Imported gitleaks report into DefectDojo."
   echo "Findings in report: ${findings}"
   echo "Import response saved to ${import_response_path}"
+
+  if [[ -n "${product_members}" ]]; then
+    "${script_dir}/defectdojo-grant-product-access" --product "${product_name}" ${product_members//,/ }
+  fi
 }
 
 ensure_docker_path

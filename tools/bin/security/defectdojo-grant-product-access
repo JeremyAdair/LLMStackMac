@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_path="${BASH_SOURCE[0]}"
+script_dir="$(cd "$(dirname "${script_path}")" && pwd)"
+repo_root="$(cd "${script_dir}/../../.." && pwd)"
+product_name="${DEFECTDOJO_PRODUCT_NAME:-LLMStackMac}"
+role_value="${DEFECTDOJO_PRODUCT_MEMBER_ROLE:-Owner}"
+
+usage() {
+  cat <<'USAGE'
+Usage: defectdojo-grant-product-access [--product <name>] [--role <number>] <username> [<username> ...]
+
+Examples:
+  defectdojo-grant-product-access jeremyadair87
+  defectdojo-grant-product-access --product LLMStackMac --role 4 jeremyadair87 anotheruser
+
+Notes:
+  - Users must sign in through DefectDojo once before they can be granted access.
+  - Role defaults to Owner. Valid names include Owner, Maintainer, Writer, Reader.
+USAGE
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --product)
+      product_name="$2"
+      shift 2
+      ;;
+    --role)
+      role_value="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  usage >&2
+  exit 1
+fi
+
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+
+usernames=("$@")
+username_csv=""
+for username in "${usernames[@]}"; do
+  if [[ -n "${username_csv}" ]]; then
+    username_csv+=","
+  fi
+  username_csv+="${username}"
+done
+
+docker exec \
+  -e DD_PRODUCT_NAME="${product_name}" \
+  -e DD_ROLE_VALUE="${role_value}" \
+  -e DD_USERNAMES="${username_csv}" \
+  llm-admin-defectdojo-uwsgi-1 \
+  sh -lc "python manage.py shell -c '
+from django.contrib.auth import get_user_model
+from dojo.models import Product, Product_Member, Role
+import os
+
+product_name = os.environ[\"DD_PRODUCT_NAME\"]
+role_value = os.environ[\"DD_ROLE_VALUE\"]
+usernames = [item.strip() for item in os.environ[\"DD_USERNAMES\"].split(\",\") if item.strip()]
+
+User = get_user_model()
+product = Product.objects.get(name=product_name)
+role = Role.objects.filter(name=role_value).first()
+if role is None and role_value.isdigit():
+    role = Role.objects.filter(id=int(role_value)).first()
+if role is None:
+    valid = \", \".join(Role.objects.order_by(\"id\").values_list(\"name\", flat=True))
+    raise SystemExit(f\"Unknown DefectDojo role: {role_value}. Valid roles: {valid}\")
+
+for username in usernames:
+    user = User.objects.filter(username=username).first()
+    if user is None:
+        raise SystemExit(f\"User not found in DefectDojo: {username}. Log in once through the UI first.\")
+    Product_Member.objects.update_or_create(
+        product=product,
+        user=user,
+        defaults={\"role\": role},
+    )
+    print(f\"Granted product access: {product_name} -> {username} (role {role.name})\")
+'"

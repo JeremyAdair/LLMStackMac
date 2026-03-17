@@ -41,8 +41,8 @@ See:
 - Forgejo is now routed through the reverse proxy at `https://forgejo.llmstack.lan/`.
 - Authelia is configured as the SSO gateway for the stack so you don't have to manage separate passwords per app.
 - Flowise supports PDF drop-in via bind mount: `./data/pdfs` -> `/data/pdfs`.
-- DefectDojo is available at `https://defectdojo.llmstack.lan/` with gitleaks imports via `./tools/bin/security/defectdojo-gitleaks-scan`.
-- Stirling-PDF is available at `https://pdf.llmstack.lan/` for manual PDF operations, with the internal API reachable at `http://stirling-pdf:8080`.
+- DefectDojo is available at `https://defectdojo.llmstack.lan/` as the repo scanner GUI, with Dockerized gitleaks imports via `./tools/bin/security/defectdojo-gitleaks-scan`.
+- Stirling-PDF is available at `https://pdf.llmstack.lan/` for manual PDF changes, with the internal API reachable at `http://stirling-pdf:8080` for code-driven PDF operations.
 - Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise (lab profile).
 - Rebuilt Flowise PDF ingestion and retrieval chatflows with current node wiring for latest Flowise compatibility.
 - OpenWebUI API proxy auth handling was adjusted to prevent chat timeout/500 issues.
@@ -357,11 +357,19 @@ If these ports are in use, update the port mappings in
 
 DefectDojo runs in the admin layer at `https://defectdojo.llmstack.lan/`.
 
-Run a Dockerized gitleaks scan and import the redacted report into DefectDojo:
+Run a Dockerized gitleaks scan and import the redacted report into the DefectDojo GUI:
 
 ```bash
 ./tools/bin/security/defectdojo-gitleaks-scan
 ```
+
+If your SSO user can log in but cannot see the `LLMStackMac` product yet, log in once and then grant product access:
+
+```bash
+./tools/bin/security/defectdojo-grant-product-access your-username
+```
+
+You can also set `DEFECTDOJO_PRODUCT_MEMBERS` in your local `.env.mac` so future scans keep those users attached to the product automatically.
 
 See `docs/git-local.md` for setup and backup details.
 
