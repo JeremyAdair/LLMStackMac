@@ -21,6 +21,7 @@ hostnames=(
   "pgadmin.${domain}"
   "redisinsight.${domain}"
   "dns.${domain}"
+  "defectdojo.${domain}"
   "qdrant.${domain}"
   "nodered.${domain}"
   "forgejo.${domain}"

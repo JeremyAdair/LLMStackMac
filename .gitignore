@@ -71,6 +71,10 @@
 !/data/auth/
 /data/auth/*
 !/data/auth/.gitkeep
+/data/security/
+!/data/security/
+/data/security/*
+!/data/security/.gitkeep
 !/data/db-cleanup-backups/
 /data/db-cleanup-backups/*
 !/data/db-cleanup-backups/.gitkeep

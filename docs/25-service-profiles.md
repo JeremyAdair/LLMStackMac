@@ -37,6 +37,7 @@ That gives you:
 
 `llm up admin`:
 
+- DefectDojo
 - Forgejo
 - pgAdmin
 - RedisInsight

@@ -1,4 +1,159 @@
+x-defectdojo-common-env: &defectdojo-common-env
+  DD_DEBUG: "False"
+  DD_ALLOWED_HOSTS: ${DEFECTDOJO_ALLOWED_HOSTS:-defectdojo.llmstack.lan}
+  DD_DATABASE_HOST: ${DEFECTDOJO_DB_HOST:-defectdojo-postgres}
+  DD_DATABASE_PORT: ${DEFECTDOJO_DB_PORT:-5432}
+  DD_DATABASE_URL: ${DEFECTDOJO_DATABASE_URL:-postgresql://defectdojo:${DEFECTDOJO_DATABASE_PASSWORD:?set DEFECTDOJO_DATABASE_PASSWORD in your env file}@defectdojo-postgres:5432/defectdojo}
+  DD_CELERY_BROKER_URL: ${DEFECTDOJO_CELERY_BROKER_URL:-redis://defectdojo-valkey:6379/0}
+  DD_SECRET_KEY: ${DEFECTDOJO_SECRET_KEY:?set DEFECTDOJO_SECRET_KEY in your env file}
+  DD_CREDENTIAL_AES_256_KEY: ${DEFECTDOJO_CREDENTIAL_AES_256_KEY:?set DEFECTDOJO_CREDENTIAL_AES_256_KEY in your env file}
+  DD_AUTH_REMOTEUSER_ENABLED: "True"
+  DD_AUTH_REMOTEUSER_USERNAME_HEADER: ${DEFECTDOJO_REMOTEUSER_USERNAME_HEADER:-HTTP_X_FORWARDED_USER}
+  DD_AUTH_REMOTEUSER_FIRSTNAME_HEADER: ${DEFECTDOJO_REMOTEUSER_FIRSTNAME_HEADER:-HTTP_X_FORWARDED_NAME}
+  DD_AUTH_REMOTEUSER_TRUSTED_PROXY: ${DEFECTDOJO_REMOTEUSER_TRUSTED_PROXY:-172.16.0.0/12}
+  DEFECTDOJO_PUBLIC_HOST: ${DEFECTDOJO_PUBLIC_HOST:-defectdojo.llmstack.lan}
+
 services:
+  defectdojo-nginx:
+    image: defectdojo/defectdojo-nginx:2.56.1
+    depends_on:
+      - defectdojo-uwsgi
+    environment:
+      DD_UWSGI_HOST: ${DEFECTDOJO_UWSGI_HOST:-defectdojo-uwsgi}
+      DD_UWSGI_PORT: ${DEFECTDOJO_UWSGI_PORT:-3031}
+      NGINX_METRICS_ENABLED: "false"
+    expose:
+      - "8080"
+    volumes:
+      - ${DEFECTDOJO_MEDIA_MOUNT:-defectdojo_media}:/usr/share/nginx/html/media
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-nginx
+          - defectdojo
+    restart: unless-stopped
+
+  defectdojo-uwsgi:
+    image: defectdojo/defectdojo-django:2.56.1
+    depends_on:
+      - defectdojo-initializer
+      - defectdojo-postgres
+      - defectdojo-valkey
+    entrypoint:
+      - /wait-for-it.sh
+      - ${DEFECTDOJO_DB_HOST:-defectdojo-postgres}:${DEFECTDOJO_DB_PORT:-5432}
+      - -t
+      - "30"
+      - --
+      - /entrypoint-uwsgi.sh
+    environment:
+      <<: *defectdojo-common-env
+    volumes:
+      - ../config/defectdojo/extra_settings:/app/docker/extra_settings:ro
+      - ${DEFECTDOJO_MEDIA_MOUNT:-defectdojo_media}:/app/media
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-uwsgi
+    restart: unless-stopped
+
+  defectdojo-celerybeat:
+    image: defectdojo/defectdojo-django:2.56.1
+    depends_on:
+      - defectdojo-initializer
+      - defectdojo-postgres
+      - defectdojo-valkey
+    entrypoint:
+      - /wait-for-it.sh
+      - ${DEFECTDOJO_DB_HOST:-defectdojo-postgres}:${DEFECTDOJO_DB_PORT:-5432}
+      - -t
+      - "30"
+      - --
+      - /entrypoint-celery-beat.sh
+    environment:
+      <<: *defectdojo-common-env
+    volumes:
+      - ../config/defectdojo/extra_settings:/app/docker/extra_settings:ro
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-celerybeat
+    restart: unless-stopped
+
+  defectdojo-celeryworker:
+    image: defectdojo/defectdojo-django:2.56.1
+    depends_on:
+      - defectdojo-initializer
+      - defectdojo-postgres
+      - defectdojo-valkey
+    entrypoint:
+      - /wait-for-it.sh
+      - ${DEFECTDOJO_DB_HOST:-defectdojo-postgres}:${DEFECTDOJO_DB_PORT:-5432}
+      - -t
+      - "30"
+      - --
+      - /entrypoint-celery-worker.sh
+    environment:
+      <<: *defectdojo-common-env
+    volumes:
+      - ../config/defectdojo/extra_settings:/app/docker/extra_settings:ro
+      - ${DEFECTDOJO_MEDIA_MOUNT:-defectdojo_media}:/app/media
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-celeryworker
+    restart: unless-stopped
+
+  defectdojo-initializer:
+    image: defectdojo/defectdojo-django:2.56.1
+    depends_on:
+      - defectdojo-postgres
+    entrypoint:
+      - /wait-for-it.sh
+      - ${DEFECTDOJO_DB_HOST:-defectdojo-postgres}:${DEFECTDOJO_DB_PORT:-5432}
+      - --
+      - /entrypoint-initializer.sh
+    environment:
+      <<: *defectdojo-common-env
+      DD_ADMIN_USER: ${DEFECTDOJO_ADMIN_USER:-admin}
+      DD_ADMIN_MAIL: ${DEFECTDOJO_ADMIN_EMAIL:?set DEFECTDOJO_ADMIN_EMAIL in your env file}
+      DD_ADMIN_FIRST_NAME: ${DEFECTDOJO_ADMIN_FIRST_NAME:-LLMStack}
+      DD_ADMIN_LAST_NAME: ${DEFECTDOJO_ADMIN_LAST_NAME:-Admin}
+      DD_ADMIN_PASSWORD: ${DEFECTDOJO_ADMIN_PASSWORD:?set DEFECTDOJO_ADMIN_PASSWORD in your env file}
+      DD_INITIALIZE: ${DEFECTDOJO_INITIALIZE:-true}
+    volumes:
+      - ../config/defectdojo/extra_settings:/app/docker/extra_settings:ro
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-initializer
+    restart: "no"
+
+  defectdojo-postgres:
+    image: postgres:18.2-alpine@sha256:035b9ab53cfa147d7202b61f5f7782b939ae815b7d6bc81c96b7b42ff1fca950
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: ${DEFECTDOJO_DB_NAME:-defectdojo}
+      POSTGRES_USER: ${DEFECTDOJO_DB_USER:-defectdojo}
+      POSTGRES_PASSWORD: ${DEFECTDOJO_DATABASE_PASSWORD:?set DEFECTDOJO_DATABASE_PASSWORD in your env file}
+    volumes:
+      - ${DEFECTDOJO_POSTGRES_MOUNT:-defectdojo_postgres}:/var/lib/postgresql/data
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-postgres
+    restart: unless-stopped
+
+  defectdojo-valkey:
+    image: valkey/valkey:7.2.12-alpine@sha256:32860ea506d2dde08333d1cca2bf28c46bc84e9654308eabf801f77548f72573
+    volumes:
+      - ${DEFECTDOJO_VALKEY_MOUNT:-defectdojo_valkey}:/data
+    networks:
+      llm-stack:
+        aliases:
+          - defectdojo-valkey
+    restart: unless-stopped
+
   dns-server:
     image: technitium/dns-server:latest
     environment:
@@ -92,6 +247,12 @@ networks:
     external: true
 
 volumes:
+  defectdojo_postgres:
+    name: llm-stack_defectdojo_postgres
+  defectdojo_media:
+    name: llm-stack_defectdojo_media
+  defectdojo_valkey:
+    name: llm-stack_defectdojo_valkey
   technitium_data:
     name: llm-stack_technitium_data
     external: true

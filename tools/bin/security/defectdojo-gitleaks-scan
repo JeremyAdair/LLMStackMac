@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_path="${BASH_SOURCE[0]}"
+script_dir="$(cd "$(dirname "${script_path}")" && pwd)"
+repo_root="$(cd "${script_dir}/../../.." && pwd)"
+env_file="${LLMSTACK_ENV_FILE:-${repo_root}/.env.mac}"
+report_dir="${repo_root}/data/security/gitleaks"
+report_path="${report_dir}/latest.json"
+import_response_path="${report_dir}/last-import.json"
+gitleaks_image="${GITLEAKS_IMAGE:-ghcr.io/gitleaks/gitleaks:latest}"
+curl_image="${DEFECTDOJO_CURL_IMAGE:-curlimages/curl:latest}"
+defectdojo_url="${DEFECTDOJO_URL:-http://defectdojo-nginx:8080}"
+defectdojo_api_via_docker="${DEFECTDOJO_API_VIA_DOCKER:-true}"
+defectdojo_host_header="${DEFECTDOJO_HOST_HEADER:-defectdojo.llmstack.lan}"
+product_name="${DEFECTDOJO_PRODUCT_NAME:-LLMStackMac}"
+product_type_name="${DEFECTDOJO_PRODUCT_TYPE_NAME:-Repositories}"
+engagement_name="${DEFECTDOJO_ENGAGEMENT_NAME:-Local Secret Scanning}"
+today="$(date +%F)"
+
+usage() {
+  cat <<'USAGE'
+Usage: defectdojo-gitleaks-scan [--scan-only|--import-only|--help]
+
+Defaults:
+  - run a git-history gitleaks scan in Docker
+  - write the redacted JSON report to data/security/gitleaks/latest.json
+  - import the report into DefectDojo via API
+USAGE
+}
+
+mode="full"
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    --scan-only) mode="scan-only" ;;
+    --import-only) mode="import-only" ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+fi
+
+ensure_docker_path() {
+  if ! command -v docker >/dev/null 2>&1; then
+    export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+  fi
+}
+
+api_json_request() {
+  if [[ "${defectdojo_api_via_docker}" == "true" ]]; then
+    docker run --rm --network llm-shared "${curl_image}" -H "Host: ${defectdojo_host_header}" "$@"
+  else
+    curl "$@"
+  fi
+}
+
+api_file_request() {
+  if [[ "${defectdojo_api_via_docker}" == "true" ]]; then
+    docker run --rm --network llm-shared -v "${report_dir}:/report:ro" "${curl_image}" -H "Host: ${defectdojo_host_header}" "$@"
+  else
+    curl "$@"
+  fi
+}
+
+read_env_value() {
+  local key="$1"
+  python3 - "$env_file" "$key" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+env_path = Path(sys.argv[1])
+key = sys.argv[2]
+text = env_path.read_text() if env_path.exists() else ""
+match = re.search(rf'^{re.escape(key)}=(.*)$', text, re.M)
+print(match.group(1).strip() if match else "")
+PY
+}
+
+count_findings() {
+  python3 - "$report_path" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+if not path.exists():
+    print(0)
+    raise SystemExit(0)
+data = json.loads(path.read_text() or "[]")
+if isinstance(data, list):
+    print(len(data))
+else:
+    print(0)
+PY
+}
+
+run_scan() {
+  local rc
+  mkdir -p "${report_dir}"
+  rm -f "${report_path}"
+
+  set +e
+  docker run --rm \
+    -v "${repo_root}:/repo:ro" \
+    -v "${report_dir}:/report" \
+    "${gitleaks_image}" \
+    git /repo --report-format json --report-path /report/latest.json --redact
+  rc=$?
+  set -e
+
+  if [[ "${rc}" -ne 0 && "${rc}" -ne 1 ]]; then
+    echo "gitleaks failed with exit code ${rc}" >&2
+    exit "${rc}"
+  fi
+
+  if [[ ! -f "${report_path}" ]]; then
+    printf '[]\n' > "${report_path}"
+  fi
+
+  echo "Gitleaks report written to ${report_path}"
+  echo "Findings: $(count_findings)"
+}
+
+import_report() {
+  local admin_user admin_password token_response token import_response findings
+  if [[ ! -f "${report_path}" ]]; then
+    echo "Missing gitleaks report: ${report_path}" >&2
+    exit 1
+  fi
+
+  admin_user="$(read_env_value DEFECTDOJO_ADMIN_USER)"
+  admin_password="$(read_env_value DEFECTDOJO_ADMIN_PASSWORD)"
+  if [[ -z "${admin_user}" ]]; then
+    admin_user="admin"
+  fi
+  if [[ -z "${admin_password}" ]]; then
+    echo "DEFECTDOJO_ADMIN_PASSWORD is not set in ${env_file}" >&2
+    exit 1
+  fi
+
+  token_response="$(api_json_request -sS \
+    -H 'Content-Type: application/json' \
+    -X POST \
+    -d "{\"username\":\"${admin_user}\",\"password\":\"${admin_password}\"}" \
+    "${defectdojo_url}/api/v2/api-token-auth/")"
+  token="$(printf '%s' "${token_response}" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
+  if [[ -z "${token}" ]]; then
+    echo "Failed to obtain DefectDojo API token." >&2
+    printf '%s\n' "${token_response}" >&2
+    exit 1
+  fi
+
+  findings="$(count_findings)"
+  local file_arg="${report_path}"
+  if [[ "${defectdojo_api_via_docker}" == "true" ]]; then
+    file_arg="/report/$(basename "${report_path}")"
+  fi
+
+  import_response="$(api_file_request -sS \
+    -H "Authorization: Token ${token}" \
+    -H 'accept: application/json' \
+    -X POST \
+    -F "scan_type=Gitleaks Scan" \
+    -F "product_name=${product_name}" \
+    -F "product_type_name=${product_type_name}" \
+    -F "engagement_name=${engagement_name}" \
+    -F "scan_date=${today}" \
+    -F "active=true" \
+    -F "verified=false" \
+    -F "minimum_severity=Info" \
+    -F "close_old_findings=false" \
+    -F "auto_create_context=true" \
+    -F "deduplication_on_engagement=true" \
+    -F "file=@${file_arg};type=application/json" \
+    "${defectdojo_url}/api/v2/import-scan/")"
+  printf '%s\n' "${import_response}" > "${import_response_path}"
+
+  echo "Imported gitleaks report into DefectDojo."
+  echo "Findings in report: ${findings}"
+  echo "Import response saved to ${import_response_path}"
+}
+
+ensure_docker_path
+
+case "${mode}" in
+  scan-only)
+    run_scan
+    ;;
+  import-only)
+    import_report
+    ;;
+  *)
+    run_scan
+    import_report
+    ;;
+esac

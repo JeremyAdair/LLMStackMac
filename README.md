@@ -41,6 +41,7 @@ See:
 - Forgejo is now routed through the reverse proxy at `https://forgejo.llmstack.lan/`.
 - Authelia is configured as the SSO gateway for the stack so you don't have to manage separate passwords per app.
 - Flowise supports PDF drop-in via bind mount: `./data/pdfs` -> `/data/pdfs`.
+- DefectDojo is available at `https://defectdojo.llmstack.lan/` with gitleaks imports via `./tools/bin/security/defectdojo-gitleaks-scan`.
 - Added `pdf-auto-ingest` watcher service to auto-upsert dropped PDFs through Flowise (lab profile).
 - Rebuilt Flowise PDF ingestion and retrieval chatflows with current node wiring for latest Flowise compatibility.
 - OpenWebUI API proxy auth handling was adjusted to prevent chat timeout/500 issues.
@@ -197,6 +198,7 @@ Then open:
 - Flowise: https://flowise.llmstack.lan/
 - OpenHands: https://openhands.llmstack.lan/
 - OpenClaw: https://openclaw.llmstack.lan/
+- DefectDojo: https://defectdojo.llmstack.lan/
 - Grafana: https://grafana.llmstack.lan/
 - Node-RED: https://nodered.llmstack.lan/
 - Forgejo: https://forgejo.llmstack.lan/
@@ -347,6 +349,16 @@ If these ports are in use, update the port mappings in
 
 ```bash
 ./tools/bin/cli-handler/llm up admin
+```
+
+## Security Scanning
+
+DefectDojo runs in the admin layer at `https://defectdojo.llmstack.lan/`.
+
+Run a Dockerized gitleaks scan and import the redacted report into DefectDojo:
+
+```bash
+./tools/bin/security/defectdojo-gitleaks-scan
 ```
 
 See `docs/git-local.md` for setup and backup details.

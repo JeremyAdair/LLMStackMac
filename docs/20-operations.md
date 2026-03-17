@@ -61,6 +61,12 @@ Refresh the Technitium split-DNS zone after the Tailscale IP changes:
 ./tools/bin/remote-access/split-dns-sync
 ```
 
+Run a full repo-history secret scan and import it into DefectDojo:
+
+```bash
+./tools/bin/security/defectdojo-gitleaks-scan
+```
+
 Check current Tailscale exposure state:
 
 ```bash
