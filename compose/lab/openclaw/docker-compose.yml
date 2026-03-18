@@ -55,7 +55,9 @@ services:
       - /bin/sh
       - -lc
       - |
-        install -m 600 /config/openclaw.json /data/openclaw.json
+        token_escaped="$(printf '%s' "${OPENCLAW_GATEWAY_TOKEN}" | sed 's/[\/&]/\\&/g')"
+        sed "s/__OPENCLAW_GATEWAY_TOKEN__/$${token_escaped}/g" /config/openclaw.json > /data/openclaw.json
+        chmod 600 /data/openclaw.json
         mkdir -p /data/workspace-chat /data/workspace-main
         rm -rf /data/workspace-chat/.git /data/workspace-main/.git
         cp -Rn /config/workspace-chat/. /data/workspace-chat/
@@ -66,6 +68,7 @@ services:
       OPENCLAW_CONFIG_PATH: /data/openclaw.json
       # Persist runtime state (auth token, logs, caches) across restarts.
       OPENCLAW_STATE_DIR: /data
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:?set OPENCLAW_GATEWAY_TOKEN in your env file}
     volumes:
       - ../config/openclaw/openclaw.json:/config/openclaw.json:ro
       - ../config/openclaw/workspace-chat:/config/workspace-chat:ro

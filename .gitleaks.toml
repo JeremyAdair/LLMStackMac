@@ -1,0 +1,10 @@
+title = "LLMStackMac gitleaks extensions"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow internal nginx upstream service:port references like auth:9091"
+regexTarget = "match"
+regexes = ['''\bauth:[0-9]{2,5}\b''']
+paths = ['''config/reverse-proxy/nginx\.conf''']

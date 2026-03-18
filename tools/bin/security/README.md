@@ -4,6 +4,9 @@
 redacted JSON report to `data/security/gitleaks/latest.json`, and imports the
 report into DefectDojo.
 
+If `.gitleaks.toml` exists at the repo root, the scanner passes it to
+`gitleaks` so targeted allowlists can suppress known false positives.
+
 Usage:
 
 ```bash

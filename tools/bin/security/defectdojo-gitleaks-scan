@@ -8,6 +8,7 @@ env_file="${LLMSTACK_ENV_FILE:-${repo_root}/.env.mac}"
 report_dir="${repo_root}/data/security/gitleaks"
 report_path="${report_dir}/latest.json"
 import_response_path="${report_dir}/last-import.json"
+gitleaks_config_path="${GITLEAKS_CONFIG_PATH:-${repo_root}/.gitleaks.toml}"
 gitleaks_image="${GITLEAKS_IMAGE:-ghcr.io/gitleaks/gitleaks:latest}"
 curl_image="${DEFECTDOJO_CURL_IMAGE:-curlimages/curl:latest}"
 defectdojo_url="${DEFECTDOJO_URL:-http://defectdojo-nginx:8080}"
@@ -17,6 +18,7 @@ product_name="${DEFECTDOJO_PRODUCT_NAME:-LLMStackMac}"
 product_type_name="${DEFECTDOJO_PRODUCT_TYPE_NAME:-Repositories}"
 engagement_name="${DEFECTDOJO_ENGAGEMENT_NAME:-Local Secret Scanning}"
 product_members="${DEFECTDOJO_PRODUCT_MEMBERS:-}"
+close_old_findings="${DEFECTDOJO_CLOSE_OLD_FINDINGS:-true}"
 today="$(date +%F)"
 
 usage() {
@@ -104,15 +106,20 @@ PY
 
 run_scan() {
   local rc
+  local gitleaks_args=(git /repo --report-format json --report-path /report/latest.json --redact)
   mkdir -p "${report_dir}"
   rm -f "${report_path}"
+
+  if [[ -f "${gitleaks_config_path}" ]]; then
+    gitleaks_args+=(--config "/repo/$(basename "${gitleaks_config_path}")")
+  fi
 
   set +e
   docker run --rm \
     -v "${repo_root}:/repo:ro" \
     -v "${report_dir}:/report" \
     "${gitleaks_image}" \
-    git /repo --report-format json --report-path /report/latest.json --redact
+    "${gitleaks_args[@]}"
   rc=$?
   set -e
 
@@ -176,7 +183,7 @@ import_report() {
     -F "active=true" \
     -F "verified=false" \
     -F "minimum_severity=Info" \
-    -F "close_old_findings=false" \
+    -F "close_old_findings=${close_old_findings}" \
     -F "auto_create_context=true" \
     -F "deduplication_on_engagement=true" \
     -F "file=@${file_arg};type=application/json" \

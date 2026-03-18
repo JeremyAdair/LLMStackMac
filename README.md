@@ -371,6 +371,8 @@ If your SSO user can log in but cannot see the `LLMStackMac` product yet, log in
 
 You can also set `DEFECTDOJO_PRODUCT_MEMBERS` in your local `.env.mac` so future scans keep those users attached to the product automatically.
 
+By default the gitleaks import closes old findings that disappear from later scans, so DefectDojo stays aligned with the current repo state instead of accumulating stale false positives.
+
 See `docs/git-local.md` for setup and backup details.
 
 ## OpenHands Workspace
